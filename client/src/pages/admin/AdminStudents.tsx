@@ -261,6 +261,7 @@ export default function AdminStudents() {
           <Button variant="primary" className="w-full" onClick={() => setCreatedCreds(null)}>Done</Button>
         </div>
       </Modal>
+    </>}
     </div>
   )
 }
