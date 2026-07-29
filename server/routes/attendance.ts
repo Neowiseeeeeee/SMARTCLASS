@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
-import prisma from '../prisma.js'
+import { v4 as uuidv4 } from 'uuid'
+import { db, expandAttendanceSession } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 
 const router = Router()
@@ -19,37 +20,44 @@ router.post('/sessions', requireAuth, requireRole('TEACHER'), async (req: Reques
       attendanceDate: z.string(),
     }).parse(req.body)
 
-    const teacher = await prisma.teacher.findUnique({ where: { userId: req.user!.userId } })
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
     if (!teacher) return res.status(404).json({ error: 'Teacher not found' })
 
-    const session = await prisma.attendanceSession.create({
-      data: {
-        teacherId: teacher.id,
-        subjectId: data.subjectId,
-        sectionId: data.sectionId,
-        attendanceDate: new Date(data.attendanceDate),
-        sessionStatus: 'open',
-      },
-      include: { subject: true, section: true },
-    })
+    const now = new Date().toISOString()
+    const session: (typeof db.attendanceSessions)[0] = {
+      id: uuidv4(),
+      teacherId: teacher.id,
+      subjectId: data.subjectId,
+      sectionId: data.sectionId,
+      attendanceDate: new Date(data.attendanceDate).toISOString(),
+      sessionStatus: 'open',
+      createdAt: now,
+      updatedAt: now,
+    }
+    db.attendanceSessions.push(session)
 
     // Pre-generate attendance records for all students in section
-    const assignments = await prisma.studentSectionAssignment.findMany({
-      where: { sectionId: data.sectionId },
-      include: { student: true },
-    })
+    const studentIds = db.studentSectionAssignments
+      .filter(a => a.sectionId === data.sectionId)
+      .map(a => a.studentId)
 
-    await prisma.attendanceRecord.createMany({
-      data: assignments.map((a) => ({
-        studentId: a.studentId,
-        sessionId: session.id,
-        status: 'absent',
-        verificationStatus: 'pending',
-      })),
-      skipDuplicates: true,
-    })
+    for (const studentId of studentIds) {
+      const existing = db.attendanceRecords.find(
+        r => r.studentId === studentId && r.sessionId === session.id
+      )
+      if (!existing) {
+        db.attendanceRecords.push({
+          id: uuidv4(),
+          studentId,
+          sessionId: session.id,
+          status: 'absent',
+          timeRecorded: now,
+          verificationStatus: 'pending',
+        })
+      }
+    }
 
-    res.json(session)
+    res.json(expandAttendanceSession(session, { includeRecords: true }))
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
     console.error(err)
@@ -60,18 +68,14 @@ router.post('/sessions', requireAuth, requireRole('TEACHER'), async (req: Reques
 // Teacher: list own sessions
 router.get('/sessions', requireAuth, requireRole('TEACHER'), async (req: Request, res: Response) => {
   try {
-    const teacher = await prisma.teacher.findUnique({ where: { userId: req.user!.userId } })
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
     if (!teacher) return res.status(404).json({ error: 'Not found' })
 
-    const sessions = await prisma.attendanceSession.findMany({
-      where: { teacherId: teacher.id },
-      include: {
-        subject: true,
-        section: true,
-        attendanceRecords: { include: { student: true } },
-      },
-      orderBy: { attendanceDate: 'desc' },
-    })
+    const sessions = db.attendanceSessions
+      .filter(s => s.teacherId === teacher.id)
+      .sort((a, b) => new Date(b.attendanceDate).getTime() - new Date(a.attendanceDate).getTime())
+      .map(s => expandAttendanceSession(s, { includeRecords: true }))
+
     res.json(sessions)
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
@@ -81,37 +85,30 @@ router.get('/sessions', requireAuth, requireRole('TEACHER'), async (req: Request
 // Get session + records
 router.get('/sessions/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const session = await prisma.attendanceSession.findUnique({
-      where: { id: req.params.id },
-      include: {
-        subject: true,
-        section: true,
-        teacher: true,
-        attendanceRecords: { include: { student: { include: { profile: true } } } },
-      },
-    })
+    const session = db.attendanceSessions.find(s => s.id === req.params.id)
     if (!session) return res.status(404).json({ error: 'Session not found' })
-    res.json(session)
+    res.json(expandAttendanceSession(session, { includeRecords: true }))
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
 })
 
-// Teacher: update attendance record
+// Update attendance record
 router.patch('/records/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
   try {
     const { status } = z.object({ status: z.enum(['present', 'absent', 'late', 'excused']) }).parse(req.body)
-    const record = await prisma.attendanceRecord.update({
-      where: { id: req.params.id },
-      data: { status, verificationStatus: 'verified', timeRecorded: new Date() },
-    })
+    const record = db.attendanceRecords.find(r => r.id === req.params.id)
+    if (!record) return res.status(404).json({ error: 'Not found' })
+    record.status = status
+    record.verificationStatus = 'verified'
+    record.timeRecorded = new Date().toISOString()
     res.json(record)
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
 })
 
-// Teacher: generate session code for student-assisted attendance
+// Teacher: generate session code
 router.post('/sessions/:id/generate-code', requireAuth, requireRole('TEACHER'), async (req: Request, res: Response) => {
   try {
     const { password, expiryMinutes = 30 } = z.object({
@@ -119,26 +116,28 @@ router.post('/sessions/:id/generate-code', requireAuth, requireRole('TEACHER'), 
       expiryMinutes: z.number().default(30),
     }).parse(req.body)
 
-    const teacher = await prisma.teacher.findUnique({
-      where: { userId: req.user!.userId },
-      include: { user: true },
-    })
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
     if (!teacher) return res.status(404).json({ error: 'Not found' })
 
-    const valid = await bcrypt.compare(password, teacher.user.passwordHash)
+    const user = db.users.find(u => u.id === teacher.userId)
+    if (!user) return res.status(404).json({ error: 'Not found' })
+
+    const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) return res.status(401).json({ error: 'Invalid password' })
 
     let code = generateSessionCode()
-    // Ensure unique code
-    while (await prisma.attendanceSession.findUnique({ where: { sessionCode: code } })) {
+    while (db.attendanceSessions.some(s => s.sessionCode === code)) {
       code = generateSessionCode()
     }
 
-    const expiry = new Date(Date.now() + expiryMinutes * 60 * 1000)
-    const session = await prisma.attendanceSession.update({
-      where: { id: req.params.id },
-      data: { sessionCode: code, sessionExpiry: expiry },
-    })
+    const expiry = new Date(Date.now() + expiryMinutes * 60 * 1000).toISOString()
+    const session = db.attendanceSessions.find(s => s.id === req.params.id)
+    if (!session) return res.status(404).json({ error: 'Session not found' })
+
+    session.sessionCode = code
+    session.sessionExpiry = expiry
+    session.updatedAt = new Date().toISOString()
+
     res.json({ sessionCode: session.sessionCode, expiresAt: session.sessionExpiry })
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
@@ -149,33 +148,26 @@ router.post('/sessions/:id/generate-code', requireAuth, requireRole('TEACHER'), 
 // Teacher: close session
 router.patch('/sessions/:id/close', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
   try {
-    const session = await prisma.attendanceSession.update({
-      where: { id: req.params.id },
-      data: { sessionStatus: 'closed' },
-    })
+    const session = db.attendanceSessions.find(s => s.id === req.params.id)
+    if (!session) return res.status(404).json({ error: 'Not found' })
+    session.sessionStatus = 'closed'
+    session.updatedAt = new Date().toISOString()
     res.json(session)
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
 })
 
-// Public: verify session code and get sheet
+// Public: verify session code
 router.get('/public/:code', async (req: Request, res: Response) => {
   try {
-    const session = await prisma.attendanceSession.findUnique({
-      where: { sessionCode: req.params.code },
-      include: {
-        subject: true,
-        section: true,
-        attendanceRecords: { include: { student: true } },
-      },
-    })
+    const session = db.attendanceSessions.find(s => s.sessionCode === req.params.code)
     if (!session) return res.status(404).json({ error: 'Invalid session code' })
     if (session.sessionStatus === 'closed') return res.status(400).json({ error: 'Session is closed' })
-    if (session.sessionExpiry && session.sessionExpiry < new Date()) {
+    if (session.sessionExpiry && new Date(session.sessionExpiry) < new Date()) {
       return res.status(400).json({ error: 'Session code has expired' })
     }
-    res.json(session)
+    res.json(expandAttendanceSession(session, { includeRecords: true }))
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
@@ -190,45 +182,46 @@ router.post('/public/submit', async (req: Request, res: Response) => {
       password: z.string(),
     }).parse(req.body)
 
-    const session = await prisma.attendanceSession.findUnique({ where: { sessionCode } })
+    const session = db.attendanceSessions.find(s => s.sessionCode === sessionCode)
     if (!session) return res.status(404).json({ error: 'Invalid session code' })
     if (session.sessionStatus === 'closed') return res.status(400).json({ error: 'Session is closed' })
-    if (session.sessionExpiry && session.sessionExpiry < new Date()) {
+    if (session.sessionExpiry && new Date(session.sessionExpiry) < new Date()) {
       return res.status(400).json({ error: 'Session has expired' })
     }
 
-    const student = await prisma.student.findUnique({
-      where: { studentNumber },
-      include: { user: true },
-    })
+    const student = db.students.find(s => s.studentNumber === studentNumber)
     if (!student) return res.status(401).json({ error: 'Student not found' })
 
-    // Verify student belongs to this section
-    const assignment = await prisma.studentSectionAssignment.findFirst({
-      where: { studentId: student.id, sectionId: session.sectionId },
-    })
+    const assignment = db.studentSectionAssignments.find(
+      a => a.studentId === student.id && a.sectionId === session.sectionId
+    )
     if (!assignment) return res.status(403).json({ error: 'Student not in this section' })
 
-    const valid = await bcrypt.compare(password, student.user.passwordHash)
+    const user = db.users.find(u => u.id === student.userId)
+    if (!user) return res.status(401).json({ error: 'User not found' })
+
+    const valid = await bcrypt.compare(password, user.passwordHash)
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' })
 
-    const existing = await prisma.attendanceRecord.findUnique({
-      where: { studentId_sessionId: { studentId: student.id, sessionId: session.id } },
-    })
-    if (existing && existing.status === 'present') {
+    const existing = db.attendanceRecords.find(
+      r => r.studentId === student.id && r.sessionId === session.id
+    )
+    if (existing?.status === 'present') {
       return res.status(400).json({ error: 'Attendance already recorded' })
     }
 
-    const record = await prisma.attendanceRecord.upsert({
-      where: { studentId_sessionId: { studentId: student.id, sessionId: session.id } },
-      update: { status: 'present', verificationStatus: 'verified', timeRecorded: new Date() },
-      create: {
-        studentId: student.id,
-        sessionId: session.id,
-        status: 'present',
-        verificationStatus: 'verified',
-      },
-    })
+    const now = new Date().toISOString()
+    let record
+    if (existing) {
+      existing.status = 'present'
+      existing.verificationStatus = 'verified'
+      existing.timeRecorded = now
+      record = existing
+    } else {
+      record = { id: uuidv4(), studentId: student.id, sessionId: session.id, status: 'present', verificationStatus: 'verified', timeRecorded: now }
+      db.attendanceRecords.push(record)
+    }
+
     res.json({ success: true, record })
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
@@ -240,16 +233,10 @@ router.post('/public/submit', async (req: Request, res: Response) => {
 // Admin: get all sessions
 router.get('/admin/sessions', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
-    const sessions = await prisma.attendanceSession.findMany({
-      include: {
-        subject: true,
-        section: true,
-        teacher: true,
-        attendanceRecords: true,
-      },
-      orderBy: { attendanceDate: 'desc' },
-      take: 100,
-    })
+    const sessions = db.attendanceSessions
+      .sort((a, b) => new Date(b.attendanceDate).getTime() - new Date(a.attendanceDate).getTime())
+      .slice(0, 100)
+      .map(s => expandAttendanceSession(s, { includeRecords: true }))
     res.json(sessions)
   } catch (err) {
     res.status(500).json({ error: 'Server error' })

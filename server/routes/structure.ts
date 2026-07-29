@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { z } from 'zod'
-import prisma from '../prisma.js'
+import { v4 as uuidv4 } from 'uuid'
+import { db, expandSection } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 
 const router = Router()
@@ -8,8 +9,7 @@ const router = Router()
 // Academic Years
 router.get('/academic-years', requireAuth, async (_req, res: Response) => {
   try {
-    const years = await prisma.academicYear.findMany({ orderBy: { name: 'desc' } })
-    res.json(years)
+    res.json([...db.academicYears].sort((a, b) => b.name.localeCompare(a.name)))
   } catch (err) { res.status(500).json({ error: 'Server error' }) }
 })
 
@@ -23,12 +23,18 @@ router.post('/academic-years', requireAuth, requireRole('ADMIN'), async (req: Re
     }).parse(req.body)
 
     if (data.isCurrent) {
-      await prisma.academicYear.updateMany({ data: { isCurrent: false } })
+      db.academicYears.forEach(y => { y.isCurrent = false })
     }
 
-    const year = await prisma.academicYear.create({
-      data: { ...data, startDate: data.startDate ? new Date(data.startDate) : undefined, endDate: data.endDate ? new Date(data.endDate) : undefined },
-    })
+    const now = new Date().toISOString()
+    const year = {
+      id: uuidv4(),
+      ...data,
+      isCurrent: data.isCurrent || false,
+      status: 'active',
+      createdAt: now,
+    }
+    db.academicYears.push(year)
     res.json(year)
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
@@ -39,10 +45,15 @@ router.post('/academic-years', requireAuth, requireRole('ADMIN'), async (req: Re
 // Grade Levels
 router.get('/grade-levels', requireAuth, async (_req, res: Response) => {
   try {
-    const levels = await prisma.gradeLevel.findMany({
-      orderBy: { order: 'asc' },
-      include: { strands: true, sections: { include: { strand: true } } },
-    })
+    const levels = [...db.gradeLevels]
+      .sort((a, b) => a.order - b.order)
+      .map(g => ({
+        ...g,
+        strands: db.strands.filter(s => s.gradeLevelId === g.id),
+        sections: db.sections
+          .filter(s => s.gradeLevelId === g.id)
+          .map(s => ({ ...s, strand: s.strandId ? db.strands.find(st => st.id === s.strandId) || null : null })),
+      }))
     res.json(levels)
   } catch (err) { res.status(500).json({ error: 'Server error' }) }
 })
@@ -50,7 +61,8 @@ router.get('/grade-levels', requireAuth, async (_req, res: Response) => {
 router.post('/grade-levels', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const data = z.object({ name: z.string(), order: z.number() }).parse(req.body)
-    const level = await prisma.gradeLevel.create({ data })
+    const level = { id: uuidv4(), ...data }
+    db.gradeLevels.push(level)
     res.json(level)
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
@@ -62,7 +74,8 @@ router.post('/grade-levels', requireAuth, requireRole('ADMIN'), async (req: Requ
 router.post('/strands', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const data = z.object({ name: z.string(), gradeLevelId: z.string() }).parse(req.body)
-    const strand = await prisma.strand.create({ data })
+    const strand = { id: uuidv4(), ...data }
+    db.strands.push(strand)
     res.json(strand)
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
@@ -73,10 +86,9 @@ router.post('/strands', requireAuth, requireRole('ADMIN'), async (req: Request, 
 // Sections
 router.get('/sections', requireAuth, async (_req, res: Response) => {
   try {
-    const sections = await prisma.section.findMany({
-      include: { gradeLevel: true, strand: true },
-      orderBy: { name: 'asc' },
-    })
+    const sections = [...db.sections]
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(expandSection)
     res.json(sections)
   } catch (err) { res.status(500).json({ error: 'Server error' }) }
 })
@@ -88,8 +100,11 @@ router.post('/sections', requireAuth, requireRole('ADMIN'), async (req: Request,
       gradeLevelId: z.string(),
       strandId: z.string().optional(),
     }).parse(req.body)
-    const section = await prisma.section.create({ data, include: { gradeLevel: true, strand: true } })
-    res.json(section)
+
+    const now = new Date().toISOString()
+    const section = { id: uuidv4(), ...data, status: 'active', createdAt: now }
+    db.sections.push(section)
+    res.json(expandSection(section))
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
     res.status(500).json({ error: 'Server error' })
@@ -99,8 +114,7 @@ router.post('/sections', requireAuth, requireRole('ADMIN'), async (req: Request,
 // Subjects
 router.get('/subjects', requireAuth, async (_req, res: Response) => {
   try {
-    const subjects = await prisma.subject.findMany({ orderBy: { name: 'asc' } })
-    res.json(subjects)
+    res.json([...db.subjects].sort((a, b) => a.name.localeCompare(b.name)))
   } catch (err) { res.status(500).json({ error: 'Server error' }) }
 })
 
@@ -111,7 +125,14 @@ router.post('/subjects', requireAuth, requireRole('ADMIN'), async (req: Request,
       code: z.string(),
       description: z.string().optional(),
     }).parse(req.body)
-    const subject = await prisma.subject.create({ data })
+
+    if (db.subjects.find(s => s.code === data.code)) {
+      return res.status(400).json({ error: 'Subject code already exists' })
+    }
+
+    const now = new Date().toISOString()
+    const subject = { id: uuidv4(), ...data, status: 'active', createdAt: now }
+    db.subjects.push(subject)
     res.json(subject)
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
@@ -123,16 +144,22 @@ router.post('/subjects', requireAuth, requireRole('ADMIN'), async (req: Request,
 router.get('/schedules', requireAuth, async (req: Request, res: Response) => {
   try {
     const { teacherId, sectionId, academicYearId } = req.query
-    const schedules = await prisma.classSchedule.findMany({
-      where: {
-        ...(teacherId ? { teacherId: String(teacherId) } : {}),
-        ...(sectionId ? { sectionId: String(sectionId) } : {}),
-        ...(academicYearId ? { academicYearId: String(academicYearId) } : {}),
-      },
-      include: { subject: true, teacher: true, section: true, academicYear: true },
-      orderBy: { uploadedAt: 'desc' },
-    })
-    res.json(schedules)
+    let schedules = db.classSchedules
+
+    if (teacherId) schedules = schedules.filter(s => s.teacherId === String(teacherId))
+    if (sectionId) schedules = schedules.filter(s => s.sectionId === String(sectionId))
+    if (academicYearId) schedules = schedules.filter(s => s.academicYearId === String(academicYearId))
+
+    const result = [...schedules]
+      .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
+      .map(s => ({
+        ...s,
+        subject: db.subjects.find(sub => sub.id === s.subjectId) || null,
+        teacher: db.teachers.find(t => t.id === s.teacherId) || null,
+        section: expandSection(db.sections.find(sec => sec.id === s.sectionId)!),
+        academicYear: db.academicYears.find(y => y.id === s.academicYearId) || null,
+      }))
+    res.json(result)
   } catch (err) { res.status(500).json({ error: 'Server error' }) }
 })
 
@@ -149,11 +176,17 @@ router.post('/schedules', requireAuth, requireRole('ADMIN'), async (req: Request
       description: z.string().optional(),
     }).parse(req.body)
 
-    const schedule = await prisma.classSchedule.create({
-      data,
-      include: { subject: true, teacher: true, section: true, academicYear: true },
+    const now = new Date().toISOString()
+    const schedule = { id: uuidv4(), ...data, uploadedAt: now }
+    db.classSchedules.push(schedule)
+
+    res.json({
+      ...schedule,
+      subject: db.subjects.find(s => s.id === data.subjectId) || null,
+      teacher: db.teachers.find(t => t.id === data.teacherId) || null,
+      section: expandSection(db.sections.find(s => s.id === data.sectionId)!),
+      academicYear: db.academicYears.find(y => y.id === data.academicYearId) || null,
     })
-    res.json(schedule)
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
     res.status(500).json({ error: 'Server error' })

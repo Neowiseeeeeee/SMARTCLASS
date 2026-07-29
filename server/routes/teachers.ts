@@ -1,7 +1,8 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
-import prisma from '../prisma.js'
+import { v4 as uuidv4 } from 'uuid'
+import { db, expandTeacher } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 
 const router = Router()
@@ -14,24 +15,20 @@ function generateTempPassword() {
 router.get('/', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
     const { search, status } = req.query
-    const teachers = await prisma.teacher.findMany({
-      where: {
-        ...(search ? {
-          OR: [
-            { fullName: { contains: String(search), mode: 'insensitive' } },
-            { email: { contains: String(search), mode: 'insensitive' } },
-          ],
-        } : {}),
-        ...(status ? { status: String(status) } : {}),
-      },
-      include: {
-        profile: true,
-        subjectAssignments: { include: { subject: true, section: true, academicYear: true } },
-        user: { select: { status: true, isFirstLogin: true, lastLogin: true } },
-      },
-      orderBy: { fullName: 'asc' },
-    })
-    res.json(teachers)
+    let teachers = db.teachers
+
+    if (search) {
+      const q = String(search).toLowerCase()
+      teachers = teachers.filter(t =>
+        t.fullName.toLowerCase().includes(q) || t.email.toLowerCase().includes(q)
+      )
+    }
+    if (status) teachers = teachers.filter(t => t.status === String(status))
+
+    const result = [...teachers]
+      .sort((a, b) => a.fullName.localeCompare(b.fullName))
+      .map(t => expandTeacher(t, { includeUser: true }))
+    res.json(result)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Server error' })
@@ -49,22 +46,28 @@ router.post('/', requireAuth, requireRole('ADMIN'), async (req: Request, res: Re
       contactNumber: z.string().optional(),
     }).parse(req.body)
 
-    const existing = await prisma.teacher.findUnique({ where: { email: data.email } })
+    const existing = db.teachers.find(t => t.email === data.email)
     if (existing) return res.status(400).json({ error: 'Email already exists' })
 
     const tempPassword = generateTempPassword()
     const passwordHash = await bcrypt.hash(tempPassword, 12)
+    const now = new Date().toISOString()
 
-    const teacher = await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: { email: data.email, passwordHash, role: 'TEACHER', isFirstLogin: true },
-      })
-      const t = await tx.teacher.create({
-        data: { userId: user.id, ...data },
-      })
-      await tx.teacherProfile.create({ data: { teacherId: t.id } })
-      return t
+    const userId = uuidv4()
+    db.users.push({
+      id: userId,
+      email: data.email,
+      passwordHash,
+      role: 'TEACHER',
+      status: 'active',
+      isFirstLogin: true,
+      createdAt: now,
     })
+
+    const teacherId = uuidv4()
+    const teacher = { id: teacherId, userId, ...data, status: 'active', createdAt: now }
+    db.teachers.push(teacher)
+    db.teacherProfiles.push({ id: uuidv4(), teacherId, updatedAt: now })
 
     res.json({ teacher, tempPassword })
   } catch (err: any) {
@@ -77,17 +80,9 @@ router.post('/', requireAuth, requireRole('ADMIN'), async (req: Request, res: Re
 // Get single teacher
 router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
-    const teacher = await prisma.teacher.findUnique({
-      where: { id: req.params.id },
-      include: {
-        profile: true,
-        subjectAssignments: { include: { subject: true, section: true, academicYear: true } },
-        classSchedules: { include: { subject: true, section: true, academicYear: true } },
-        user: { select: { status: true, isFirstLogin: true, lastLogin: true } },
-      },
-    })
-    if (!teacher) return res.status(404).json({ error: 'Teacher not found' })
-    res.json(teacher)
+    const t = db.teachers.find(t => t.id === req.params.id)
+    if (!t) return res.status(404).json({ error: 'Teacher not found' })
+    res.json(expandTeacher(t, { includeUser: true }))
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
@@ -102,8 +97,11 @@ router.put('/:id', requireAuth, requireRole('ADMIN'), async (req: Request, res: 
       contactNumber: z.string().optional(),
       employeeId: z.string().optional(),
     }).parse(req.body)
-    const teacher = await prisma.teacher.update({ where: { id: req.params.id }, data })
-    res.json(teacher)
+
+    const idx = db.teachers.findIndex(t => t.id === req.params.id)
+    if (idx === -1) return res.status(404).json({ error: 'Not found' })
+    db.teachers[idx] = { ...db.teachers[idx], ...data }
+    res.json(db.teachers[idx])
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
@@ -112,8 +110,11 @@ router.put('/:id', requireAuth, requireRole('ADMIN'), async (req: Request, res: 
 // Archive teacher
 router.patch('/:id/archive', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
-    const teacher = await prisma.teacher.update({ where: { id: req.params.id }, data: { status: 'archived' } })
-    await prisma.user.update({ where: { id: teacher.userId }, data: { status: 'inactive' } })
+    const t = db.teachers.find(t => t.id === req.params.id)
+    if (!t) return res.status(404).json({ error: 'Not found' })
+    t.status = 'archived'
+    const u = db.users.find(u => u.id === t.userId)
+    if (u) u.status = 'inactive'
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
@@ -128,11 +129,22 @@ router.post('/:id/assignments', requireAuth, requireRole('ADMIN'), async (req: R
       sectionId: z.string(),
       academicYearId: z.string(),
     }).parse(req.body)
-    const assignment = await prisma.teacherSubjectAssignment.create({
-      data: { teacherId: req.params.id, ...data },
-      include: { subject: true, section: true, academicYear: true },
+
+    const now = new Date().toISOString()
+    const assignment = {
+      id: uuidv4(),
+      teacherId: req.params.id,
+      ...data,
+      createdAt: now,
+    }
+    db.teacherSubjectAssignments.push(assignment)
+
+    res.json({
+      ...assignment,
+      subject: db.subjects.find(s => s.id === data.subjectId) || null,
+      section: db.sections.find(s => s.id === data.sectionId) || null,
+      academicYear: db.academicYears.find(y => y.id === data.academicYearId) || null,
     })
-    res.json(assignment)
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
@@ -141,11 +153,14 @@ router.post('/:id/assignments', requireAuth, requireRole('ADMIN'), async (req: R
 // Reset password
 router.post('/:id/reset-password', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
-    const teacher = await prisma.teacher.findUnique({ where: { id: req.params.id } })
-    if (!teacher) return res.status(404).json({ error: 'Not found' })
+    const t = db.teachers.find(t => t.id === req.params.id)
+    if (!t) return res.status(404).json({ error: 'Not found' })
     const tempPassword = generateTempPassword()
-    const passwordHash = await bcrypt.hash(tempPassword, 12)
-    await prisma.user.update({ where: { id: teacher.userId }, data: { passwordHash, isFirstLogin: true } })
+    const u = db.users.find(u => u.id === t.userId)
+    if (u) {
+      u.passwordHash = await bcrypt.hash(tempPassword, 12)
+      u.isFirstLogin = true
+    }
     res.json({ tempPassword })
   } catch (err) {
     res.status(500).json({ error: 'Server error' })

@@ -1,9 +1,21 @@
 import { Router, Request, Response } from 'express'
 import { z } from 'zod'
-import prisma from '../prisma.js'
+import { v4 as uuidv4 } from 'uuid'
+import { db } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 
 const router = Router()
+
+function expandActivity(act: (typeof db.academicActivities)[0]) {
+  return {
+    ...act,
+    subject: db.subjects.find(s => s.id === act.subjectId) || null,
+    section: db.sections.find(s => s.id === act.sectionId) || null,
+    studentScores: db.studentScores
+      .filter(s => s.activityId === act.id)
+      .map(s => ({ ...s, student: db.students.find(st => st.id === s.studentId) || null })),
+  }
+}
 
 // Teacher: create activity
 router.post('/activities', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
@@ -18,18 +30,19 @@ router.post('/activities', requireAuth, requireRole('TEACHER', 'ADMIN'), async (
       activityDate: z.string().optional(),
     }).parse(req.body)
 
-    const teacher = await prisma.teacher.findUnique({ where: { userId: req.user!.userId } })
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
     if (!teacher && req.user!.role !== 'ADMIN') return res.status(404).json({ error: 'Teacher not found' })
 
-    const activity = await prisma.academicActivity.create({
-      data: {
-        ...data,
-        teacherId: teacher?.id || '',
-        activityDate: data.activityDate ? new Date(data.activityDate) : new Date(),
-      },
-      include: { subject: true, section: true },
-    })
-    res.json(activity)
+    const now = new Date().toISOString()
+    const activity = {
+      id: uuidv4(),
+      ...data,
+      teacherId: teacher?.id || '',
+      activityDate: data.activityDate ? new Date(data.activityDate).toISOString() : now,
+      createdAt: now,
+    }
+    db.academicActivities.push(activity)
+    res.json(expandActivity(activity))
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
     res.status(500).json({ error: 'Server error' })
@@ -39,16 +52,11 @@ router.post('/activities', requireAuth, requireRole('TEACHER', 'ADMIN'), async (
 // Teacher: list own activities
 router.get('/activities', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
   try {
-    const teacher = await prisma.teacher.findUnique({ where: { userId: req.user!.userId } })
-    const activities = await prisma.academicActivity.findMany({
-      where: teacher ? { teacherId: teacher.id } : {},
-      include: {
-        subject: true,
-        section: true,
-        studentScores: { include: { student: true } },
-      },
-      orderBy: { activityDate: 'desc' },
-    })
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
+    const activities = db.academicActivities
+      .filter(a => teacher ? a.teacherId === teacher.id : true)
+      .sort((a, b) => new Date(b.activityDate).getTime() - new Date(a.activityDate).getTime())
+      .map(expandActivity)
     res.json(activities)
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
@@ -63,23 +71,31 @@ router.post('/activities/:id/scores', requireAuth, requireRole('TEACHER', 'ADMIN
       scoreObtained: z.number(),
     })).parse(req.body)
 
-    const activity = await prisma.academicActivity.findUnique({ where: { id: req.params.id } })
+    const activity = db.academicActivities.find(a => a.id === req.params.id)
     if (!activity) return res.status(404).json({ error: 'Activity not found' })
 
-    const results = await prisma.$transaction(
-      scores.map((s) =>
-        prisma.studentScore.upsert({
-          where: { studentId_activityId: { studentId: s.studentId, activityId: req.params.id } },
-          update: { scoreObtained: s.scoreObtained, totalScore: activity.totalScore },
-          create: {
-            studentId: s.studentId,
-            activityId: req.params.id,
-            scoreObtained: s.scoreObtained,
-            totalScore: activity.totalScore,
-          },
-        })
+    const now = new Date().toISOString()
+    const results = scores.map(s => {
+      const existing = db.studentScores.find(
+        sc => sc.studentId === s.studentId && sc.activityId === req.params.id
       )
-    )
+      if (existing) {
+        existing.scoreObtained = s.scoreObtained
+        existing.totalScore = activity.totalScore
+        return existing
+      } else {
+        const record = {
+          id: uuidv4(),
+          studentId: s.studentId,
+          activityId: req.params.id,
+          scoreObtained: s.scoreObtained,
+          totalScore: activity.totalScore,
+          dateRecorded: now,
+        }
+        db.studentScores.push(record)
+        return record
+      }
+    })
     res.json(results)
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
@@ -95,22 +111,31 @@ router.post('/scores', requireAuth, requireRole('STUDENT'), async (req: Request,
       scoreObtained: z.number(),
     }).parse(req.body)
 
-    const student = await prisma.student.findUnique({ where: { userId: req.user!.userId } })
+    const student = db.students.find(s => s.userId === req.user!.userId)
     if (!student) return res.status(404).json({ error: 'Not found' })
 
-    const activity = await prisma.academicActivity.findUnique({ where: { id: data.activityId } })
+    const activity = db.academicActivities.find(a => a.id === data.activityId)
     if (!activity) return res.status(404).json({ error: 'Activity not found' })
 
-    const score = await prisma.studentScore.upsert({
-      where: { studentId_activityId: { studentId: student.id, activityId: data.activityId } },
-      update: { scoreObtained: data.scoreObtained, totalScore: activity.totalScore },
-      create: {
-        studentId: student.id,
-        activityId: data.activityId,
-        scoreObtained: data.scoreObtained,
-        totalScore: activity.totalScore,
-      },
-    })
+    const now = new Date().toISOString()
+    const existing = db.studentScores.find(
+      s => s.studentId === student.id && s.activityId === data.activityId
+    )
+    if (existing) {
+      existing.scoreObtained = data.scoreObtained
+      existing.totalScore = activity.totalScore
+      return res.json(existing)
+    }
+
+    const score = {
+      id: uuidv4(),
+      studentId: student.id,
+      activityId: data.activityId,
+      scoreObtained: data.scoreObtained,
+      totalScore: activity.totalScore,
+      dateRecorded: now,
+    }
+    db.studentScores.push(score)
     res.json(score)
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
@@ -121,10 +146,12 @@ router.post('/scores', requireAuth, requireRole('STUDENT'), async (req: Request,
 // Admin: all activities
 router.get('/admin/activities', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
-    const activities = await prisma.academicActivity.findMany({
-      include: { subject: true, section: true, teacher: true, studentScores: true },
-      orderBy: { activityDate: 'desc' },
-    })
+    const activities = db.academicActivities
+      .sort((a, b) => new Date(b.activityDate).getTime() - new Date(a.activityDate).getTime())
+      .map(act => ({
+        ...expandActivity(act),
+        teacher: db.teachers.find(t => t.id === act.teacherId) || null,
+      }))
     res.json(activities)
   } catch (err) {
     res.status(500).json({ error: 'Server error' })

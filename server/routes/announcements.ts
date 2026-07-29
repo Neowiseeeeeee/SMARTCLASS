@@ -1,23 +1,27 @@
 import { Router, Request, Response } from 'express'
 import { z } from 'zod'
-import prisma from '../prisma.js'
+import { v4 as uuidv4 } from 'uuid'
+import { db } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 
 const router = Router()
 
+function withCategory(a: (typeof db.announcements)[0]) {
+  return { ...a, category: db.announcementCategories.find(c => c.id === a.categoryId) || null }
+}
+
 // Public: get all published announcements with categories
 router.get('/public', async (_req, res: Response) => {
   try {
-    const categories = await prisma.announcementCategory.findMany({
-      where: { status: 'active' },
-      orderBy: { order: 'asc' },
-      include: {
-        announcements: {
-          where: { publishStatus: 'published' },
-          orderBy: [{ displayPriority: 'desc' }, { publishedAt: 'desc' }],
-        },
-      },
-    })
+    const categories = db.announcementCategories
+      .filter(c => c.status === 'active')
+      .sort((a, b) => a.order - b.order)
+      .map(c => ({
+        ...c,
+        announcements: db.announcements
+          .filter(a => a.categoryId === c.id && a.publishStatus === 'published')
+          .sort((a, b) => b.displayPriority - a.displayPriority),
+      }))
     res.json(categories)
   } catch (err) {
     console.error(err)
@@ -28,8 +32,7 @@ router.get('/public', async (_req, res: Response) => {
 // Get all categories (admin)
 router.get('/categories', requireAuth, requireRole('ADMIN'), async (_req, res: Response) => {
   try {
-    const cats = await prisma.announcementCategory.findMany({ orderBy: { order: 'asc' } })
-    res.json(cats)
+    res.json([...db.announcementCategories].sort((a, b) => a.order - b.order))
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
@@ -43,7 +46,16 @@ router.post('/categories', requireAuth, requireRole('ADMIN'), async (req: Reques
       order: z.number().optional(),
     }).parse(req.body)
 
-    const cat = await prisma.announcementCategory.create({ data: { name, icon, order: order || 0 } })
+    const now = new Date().toISOString()
+    const cat = {
+      id: uuidv4(),
+      name,
+      icon,
+      order: order || 0,
+      status: 'active',
+      createdAt: now,
+    }
+    db.announcementCategories.push(cat)
     res.json(cat)
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
@@ -54,10 +66,9 @@ router.post('/categories', requireAuth, requireRole('ADMIN'), async (req: Reques
 // Get all announcements (admin)
 router.get('/', requireAuth, requireRole('ADMIN'), async (_req, res: Response) => {
   try {
-    const announcements = await prisma.announcement.findMany({
-      include: { category: true },
-      orderBy: { createdAt: 'desc' },
-    })
+    const announcements = [...db.announcements]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .map(withCategory)
     res.json(announcements)
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
@@ -75,14 +86,17 @@ router.post('/', requireAuth, requireRole('ADMIN'), async (req: Request, res: Re
       displayPriority: z.number().optional(),
     }).parse(req.body)
 
-    const ann = await prisma.announcement.create({
-      data: {
-        ...data,
-        publishedAt: data.publishStatus === 'published' ? new Date() : null,
-      },
-      include: { category: true },
-    })
-    res.json(ann)
+    const now = new Date().toISOString()
+    const ann = {
+      id: uuidv4(),
+      ...data,
+      displayPriority: data.displayPriority || 0,
+      publishedAt: data.publishStatus === 'published' ? now : undefined,
+      createdAt: now,
+      updatedAt: now,
+    }
+    db.announcements.push(ann)
+    res.json(withCategory(ann))
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
     res.status(500).json({ error: 'Server error' })
@@ -99,15 +113,17 @@ router.put('/:id', requireAuth, requireRole('ADMIN'), async (req: Request, res: 
       displayPriority: z.number().optional(),
     }).parse(req.body)
 
-    const ann = await prisma.announcement.update({
-      where: { id: req.params.id },
-      data: {
-        ...data,
-        publishedAt: data.publishStatus === 'published' ? new Date() : undefined,
-      },
-      include: { category: true },
-    })
-    res.json(ann)
+    const idx = db.announcements.findIndex(a => a.id === req.params.id)
+    if (idx === -1) return res.status(404).json({ error: 'Not found' })
+
+    const now = new Date().toISOString()
+    db.announcements[idx] = {
+      ...db.announcements[idx],
+      ...data,
+      publishedAt: data.publishStatus === 'published' ? now : db.announcements[idx].publishedAt,
+      updatedAt: now,
+    }
+    res.json(withCategory(db.announcements[idx]))
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
@@ -115,7 +131,9 @@ router.put('/:id', requireAuth, requireRole('ADMIN'), async (req: Request, res: 
 
 router.delete('/:id', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {
-    await prisma.announcement.delete({ where: { id: req.params.id } })
+    const idx = db.announcements.findIndex(a => a.id === req.params.id)
+    if (idx === -1) return res.status(404).json({ error: 'Not found' })
+    db.announcements.splice(idx, 1)
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
