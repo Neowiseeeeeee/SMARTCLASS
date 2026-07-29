@@ -20,7 +20,7 @@ interface PortalLayoutProps {
 
 const COUNTDOWN_SECONDS = 10
 
-export default function PortalLayout({ navItems, children, inactivityMinutes = 1 }: PortalLayoutProps) {
+export default function PortalLayout({ navItems, children, inactivityMinutes = 5 }: PortalLayoutProps) {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()

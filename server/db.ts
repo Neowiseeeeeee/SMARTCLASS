@@ -209,6 +209,7 @@ export interface Announcement {
   categoryId: string
   description?: string
   image?: string
+  pdf?: string
   content?: string
   publishStatus: string
   displayPriority: number

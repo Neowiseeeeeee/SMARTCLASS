@@ -37,6 +37,14 @@ export const announcementsApi = {
   update: (id: string, data: any) => api.put(`/announcements/${id}`, data),
   delete: (id: string) => api.delete(`/announcements/${id}`),
   createCategory: (data: any) => api.post('/announcements/categories', data),
+  uploadMedia: (id: string, file: File) => {
+    const fd = new FormData()
+    fd.append('media', file)
+    return api.post(`/announcements/${id}/upload`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  removeMedia: (id: string) => api.delete(`/announcements/${id}/media`),
 }
 
 // Students

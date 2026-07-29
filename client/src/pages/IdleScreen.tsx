@@ -233,42 +233,116 @@ export default function IdleScreen() {
             <p className="text-gray-400 font-inter">No announcements at this time.</p>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col gap-6">
+          <div className="flex-1 flex flex-col gap-6 min-h-0">
             {/* Slide card */}
-            <div className="flex-1 bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm flex">
-              {currentSlide.image && (
-                <div className="w-1/2 relative">
+            <div className="flex-1 bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm flex min-h-0">
+
+              {/* ── PDF attachment: full-height embed with title overlay ── */}
+              {currentSlide.pdf ? (
+                <div className="relative flex-1 flex flex-col min-h-0">
+                  <iframe
+                    src={currentSlide.pdf}
+                    title={currentSlide.title}
+                    className="flex-1 w-full border-0"
+                    style={{ minHeight: 0 }}
+                  />
+                  {/* Title bar at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-8 py-5 pointer-events-none">
+                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-2 w-fit">
+                      <span className="text-white/90">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
+                      <span className="text-white/90 text-xs font-poppins font-semibold">{activeCategory?.name}</span>
+                    </div>
+                    <h2 className="text-white font-poppins font-bold text-2xl leading-tight drop-shadow">
+                      {currentSlide.title}
+                    </h2>
+                    {currentSlide.publishedAt && (
+                      <p className="text-white/60 font-inter text-sm mt-1">
+                        {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+              /* ── Image-only: fill the card, text overlay at bottom ── */
+              ) : currentSlide.image && !currentSlide.description ? (
+                <div className="relative flex-1 min-h-0">
                   <img
                     src={currentSlide.image}
                     alt={currentSlide.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-gray-900"
                   />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-8 py-6 pointer-events-none">
+                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-2 w-fit">
+                      <span className="text-white/90">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
+                      <span className="text-white/90 text-xs font-poppins font-semibold">{activeCategory?.name}</span>
+                    </div>
+                    <h2 className="text-white font-poppins font-bold text-3xl leading-tight drop-shadow">
+                      {currentSlide.title}
+                    </h2>
+                    {currentSlide.publishedAt && (
+                      <p className="text-white/60 font-inter text-sm mt-1">
+                        {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+              /* ── Image + text: side-by-side layout ── */
+              ) : currentSlide.image && currentSlide.description ? (
+                <>
+                  <div className="w-1/2 relative flex-shrink-0">
+                    <img
+                      src={currentSlide.image}
+                      alt={currentSlide.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center p-10 w-1/2">
+                    <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full mb-4 w-fit">
+                      <span className="text-primary">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
+                      <span className="text-primary text-xs font-poppins font-semibold">{activeCategory?.name}</span>
+                    </div>
+                    <h2 className="text-gray-900 font-poppins font-bold text-4xl mb-4 leading-tight">
+                      {currentSlide.title}
+                    </h2>
+                    <p className="text-gray-600 font-inter text-lg leading-relaxed line-clamp-5">
+                      {currentSlide.description}
+                    </p>
+                    {currentSlide.publishedAt && (
+                      <p className="text-gray-400 font-inter text-sm mt-4">
+                        {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
+                      </p>
+                    )}
+                  </div>
+                </>
+
+              /* ── Text only ── */
+              ) : (
+                <div className="flex flex-col justify-center p-10 w-full">
+                  <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full mb-4 w-fit">
+                    <span className="text-primary">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
+                    <span className="text-primary text-xs font-poppins font-semibold">{activeCategory?.name}</span>
+                  </div>
+                  <h2 className="text-gray-900 font-poppins font-bold text-4xl mb-4 leading-tight">
+                    {currentSlide.title}
+                  </h2>
+                  {currentSlide.description && (
+                    <p className="text-gray-600 font-inter text-lg leading-relaxed line-clamp-4">
+                      {currentSlide.description}
+                    </p>
+                  )}
+                  {currentSlide.publishedAt && (
+                    <p className="text-gray-400 font-inter text-sm mt-4">
+                      {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
+                    </p>
+                  )}
                 </div>
               )}
-              <div className={`flex flex-col justify-center p-10 ${currentSlide.image ? 'w-1/2' : 'w-full'}`}>
-                <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full mb-4 w-fit">
-                  <span className="text-primary">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
-                  <span className="text-primary text-xs font-poppins font-semibold">{activeCategory?.name}</span>
-                </div>
-                <h2 className="text-gray-900 font-poppins font-bold text-4xl mb-4 leading-tight">
-                  {currentSlide.title}
-                </h2>
-                {currentSlide.description && (
-                  <p className="text-gray-600 font-inter text-lg leading-relaxed line-clamp-4">
-                    {currentSlide.description}
-                  </p>
-                )}
-                {currentSlide.publishedAt && (
-                  <p className="text-gray-400 font-inter text-sm mt-4">
-                    {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
-                  </p>
-                )}
-              </div>
             </div>
 
             {/* Slide controls */}
             {slides.length > 1 && (
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center justify-center gap-4 flex-shrink-0">
                 <button
                   onClick={prevSlide}
                   className="p-3 bg-white hover:bg-primary/5 border border-gray-200 rounded-xl text-gray-600 hover:text-primary transition-all shadow-sm"
