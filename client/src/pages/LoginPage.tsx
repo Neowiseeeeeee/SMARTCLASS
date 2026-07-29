@@ -10,20 +10,19 @@ import { Input } from '../components/ui/Input'
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Required'),
-  password: z.string().min(1, 'Required'),
+  password:   z.string().min(1, 'Required'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
-
 type LoginRole = 'STUDENT' | 'TEACHER'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuth()
-  const [role, setRole] = useState<LoginRole>('STUDENT')
+  const [role, setRole]               = useState<LoginRole>('STUDENT')
   const [showPassword, setShowPassword] = useState(false)
-  const [serverError, setServerError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [serverError, setServerError]   = useState('')
+  const [loading, setLoading]           = useState(false)
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -50,35 +49,37 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-dark via-primary to-primary/80 flex flex-col items-center justify-center p-6">
-      {/* Back to idle */}
+    <div className="min-h-screen bg-gradient-to-br from-primary-dark via-primary to-primary/80 flex flex-col items-center justify-center p-4 sm:p-6">
+
+      {/* Back link */}
       <Link
         to="/"
-        className="absolute top-6 left-6 flex items-center gap-2 text-white/70 hover:text-white font-inter text-sm transition-colors"
+        className="absolute top-4 sm:top-6 left-4 sm:left-6 flex items-center gap-2 text-white/70 hover:text-white font-inter text-sm transition-colors touch-manipulation"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back to Kiosk
+        <span className="hidden xs:inline">Back to Kiosk</span>
+        <span className="xs:hidden">Back</span>
       </Link>
 
-      <div className="w-full max-w-md animate-slide-up">
+      <div className="w-full max-w-sm sm:max-w-md animate-slide-up">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
-            <GraduationCap className="w-10 h-10 text-primary" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-xl">
+            <GraduationCap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
           </div>
-          <h1 className="text-white font-poppins font-bold text-3xl">SMARTCLASS</h1>
+          <h1 className="text-white font-poppins font-bold text-2xl sm:text-3xl">SMARTCLASS</h1>
           <p className="text-white/60 font-inter text-sm mt-1">Exequiel R. Lina High School</p>
         </div>
 
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Role Tabs */}
+          {/* Role tabs */}
           <div className="grid grid-cols-2 bg-primary-light">
             {(['STUDENT', 'TEACHER'] as LoginRole[]).map((r) => (
               <button
                 key={r}
                 onClick={() => handleRoleSwitch(r)}
-                className={`py-4 font-poppins font-semibold text-sm transition-all ${
+                className={`py-3.5 sm:py-4 font-poppins font-semibold text-sm transition-all touch-manipulation ${
                   role === r
                     ? 'bg-white text-primary shadow-sm'
                     : 'text-primary/60 hover:text-primary'
@@ -90,11 +91,11 @@ export default function LoginPage() {
           </div>
 
           {/* Form */}
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
             <h2 className="text-card-title font-poppins font-semibold text-text-primary mb-1">
               Welcome back
             </h2>
-            <p className="text-text-secondary font-inter text-sm mb-6">
+            <p className="text-text-secondary font-inter text-sm mb-5 sm:mb-6">
               {role === 'STUDENT'
                 ? 'Sign in with your student number'
                 : 'Sign in with your email address'}
@@ -119,7 +120,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-text-secondary hover:text-primary transition-colors"
+                    className="text-text-secondary hover:text-primary transition-colors touch-manipulation p-1"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -156,7 +157,7 @@ export default function LoginPage() {
         </div>
 
         {/* Admin link */}
-        <p className="text-center text-white/40 font-inter text-xs mt-6">
+        <p className="text-center text-white/40 font-inter text-xs mt-5 sm:mt-6">
           Administrator?{' '}
           <Link to="/admin/login" className="text-white/60 hover:text-white underline transition-colors">
             Admin Portal

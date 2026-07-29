@@ -6,15 +6,15 @@ import { announcementsApi } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import {
   GraduationCap, Calendar, Clock, ChevronLeft, ChevronRight,
-  BookOpen, Phone, Megaphone, LogIn, Menu, X, LayoutDashboard,
+  BookOpen, Phone, Megaphone, LogIn, LayoutDashboard,
   LogOut, User, ChevronDown,
 } from 'lucide-react'
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  'School Announcements': <Megaphone className="w-5 h-5" />,
-  'Upcoming Events': <Calendar className="w-5 h-5" />,
-  'Class Schedule': <BookOpen className="w-5 h-5" />,
-  'Emergency Hotlines': <Phone className="w-5 h-5" />,
+  'School Announcements': <Megaphone className="w-4 h-4 sm:w-5 sm:h-5" />,
+  'Upcoming Events':      <Calendar  className="w-4 h-4 sm:w-5 sm:h-5" />,
+  'Class Schedule':       <BookOpen  className="w-4 h-4 sm:w-5 sm:h-5" />,
+  'Emergency Hotlines':   <Phone     className="w-4 h-4 sm:w-5 sm:h-5" />,
 }
 
 const ROLE_DASHBOARD: Record<string, string> = {
@@ -94,7 +94,7 @@ export default function IdleScreen() {
 
   const currentSlide = slides[slideIndex]
 
-  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  const dayNames   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
   const handleLogout = async () => {
@@ -109,77 +109,85 @@ export default function IdleScreen() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col select-none">
-      {/* Header — dark green */}
-      <header className="flex items-center justify-between px-8 py-5 bg-primary-dark border-b border-white/10">
-        {/* Logo + School */}
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg">
-            <GraduationCap className="w-8 h-8 text-primary" />
+
+      {/* ── Header ── */}
+      <header className="flex items-center justify-between px-3 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 bg-primary-dark border-b border-white/10 gap-3">
+
+        {/* Logo + School name */}
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 min-w-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 bg-white rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+            <GraduationCap className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-primary" />
           </div>
-          <div>
-            <p className="text-white/60 text-xs font-inter uppercase tracking-widest">SMARTCLASS</p>
-            <h1 className="text-white font-poppins font-bold text-xl leading-tight">
-              Exequiel R. Lina High School
+          <div className="min-w-0">
+            <p className="text-white/60 text-[10px] sm:text-xs font-inter uppercase tracking-widest hidden sm:block">SMARTCLASS</p>
+            <h1 className="text-white font-poppins font-bold text-sm sm:text-base lg:text-xl leading-tight truncate">
+              {/* Short name on tiny screens */}
+              <span className="sm:hidden">ERLHS</span>
+              <span className="hidden sm:inline">Exequiel R. Lina High School</span>
             </h1>
           </div>
         </div>
 
-        {/* Date + Time + Auth button */}
-        <div className="flex items-center gap-8">
-          <div className="text-right">
-            <p className="text-white/70 text-sm font-inter">{dayNames[now.getDay()]}</p>
-            <p className="text-white font-poppins font-semibold text-lg">
-              {monthNames[now.getMonth()]} {now.getDate()}, {now.getFullYear()}
-            </p>
-          </div>
-          <div className="w-px h-10 bg-white/20" />
-          <div className="flex items-center gap-2">
-            <Clock className="w-5 h-5 text-white/70" />
-            <span className="text-white font-poppins font-bold text-3xl tabular-nums">
+        {/* Centre: date (hidden on mobile) */}
+        <div className="hidden md:flex flex-col items-center flex-1 px-4">
+          <p className="text-white/70 text-xs font-inter">{dayNames[now.getDay()]}</p>
+          <p className="text-white font-poppins font-semibold text-sm lg:text-lg leading-tight">
+            {monthNames[now.getMonth()]} {now.getDate()}, {now.getFullYear()}
+          </p>
+        </div>
+
+        {/* Right: clock + auth */}
+        <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 flex-shrink-0">
+          {/* Clock */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 hidden sm:block" />
+            <span className="text-white font-poppins font-bold text-xl sm:text-2xl lg:text-3xl tabular-nums leading-none">
               {format(now, 'hh:mm')}
             </span>
-            <div className="flex flex-col">
-              <span className="text-white/70 text-xs font-inter">{format(now, 'ss')}</span>
-              <span className="text-white font-poppins text-xs font-semibold">{format(now, 'a')}</span>
+            <div className="flex flex-col leading-none">
+              <span className="text-white/70 text-[10px] sm:text-xs font-inter">{format(now, 'ss')}</span>
+              <span className="text-white font-poppins text-[10px] sm:text-xs font-semibold">{format(now, 'a')}</span>
             </div>
           </div>
-          <div className="w-px h-10 bg-white/20" />
+
+          <div className="w-px h-8 sm:h-10 bg-white/20 hidden sm:block" />
 
           {/* Auth control */}
           {!user ? (
             <button
               onClick={() => navigate('/login')}
-              className="flex items-center gap-2 bg-white text-primary font-poppins font-semibold text-sm px-5 py-2.5 rounded-xl shadow hover:bg-primary-light transition-all"
+              className="flex items-center gap-1.5 sm:gap-2 bg-white text-primary font-poppins font-semibold text-xs sm:text-sm px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl shadow hover:bg-primary-light transition-all touch-manipulation"
             >
-              <LogIn className="w-4 h-4" />
-              Login
+              <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">Login</span>
+              <span className="xs:hidden">Login</span>
             </button>
           ) : (
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(o => !o)}
-                className="flex items-center gap-2.5 bg-white/15 hover:bg-white/25 text-white font-poppins font-medium text-sm px-4 py-2.5 rounded-xl transition-all border border-white/20"
+                className="flex items-center gap-1.5 sm:gap-2.5 bg-white/15 hover:bg-white/25 text-white font-poppins font-medium text-xs sm:text-sm px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl transition-all border border-white/20 touch-manipulation"
               >
-                <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary" />
+                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                 </div>
-                <div className="text-left">
+                {/* Name — hidden on very small screens */}
+                <div className="text-left hidden sm:block">
                   <p className="text-white text-xs font-semibold leading-none">{user.name}</p>
-                  <p className="text-white/60 text-xs leading-none mt-0.5">{ROLE_LABEL[user.role]}</p>
+                  <p className="text-white/60 text-[10px] leading-none mt-0.5">{ROLE_LABEL[user.role]}</p>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-white/60 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/60 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Dropdown */}
               {menuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                <div className="absolute right-0 top-full mt-2 w-52 sm:w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
                   <div className="px-4 py-3 bg-primary/5 border-b border-gray-100">
                     <p className="font-poppins font-semibold text-gray-800 text-sm">{user.name}</p>
                     <p className="text-xs text-gray-500 font-inter">{ROLE_LABEL[user.role]}</p>
                   </div>
                   <button
                     onClick={handleGoToDashboard}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 font-inter transition-colors"
+                    className="flex items-center gap-3 w-full px-4 py-3.5 text-sm text-gray-700 hover:bg-primary/5 font-inter transition-colors touch-manipulation"
                   >
                     <LayoutDashboard className="w-4 h-4 text-primary" />
                     Go to Dashboard
@@ -187,7 +195,7 @@ export default function IdleScreen() {
                   <div className="border-t border-gray-100" />
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-inter transition-colors"
+                    className="flex items-center gap-3 w-full px-4 py-3.5 text-sm text-red-600 hover:bg-red-50 font-inter transition-colors touch-manipulation"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -199,8 +207,8 @@ export default function IdleScreen() {
         </div>
       </header>
 
-      {/* Tabs — slightly lighter green */}
-      <nav className="flex items-center gap-2 px-8 py-4 bg-primary border-b border-primary-dark/20 overflow-x-auto">
+      {/* ── Category tabs ── */}
+      <nav className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 bg-primary border-b border-primary-dark/20 overflow-x-auto scrollbar-none">
         {(categories.length === 0
           ? ['School Announcements', 'Upcoming Events', 'Class Schedule', 'Emergency Hotlines'].map((name, i) => ({ id: String(i), name }))
           : categories
@@ -208,36 +216,38 @@ export default function IdleScreen() {
           <button
             key={cat.id}
             onClick={() => handleTabClick(i)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-poppins font-medium text-sm whitespace-nowrap transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 rounded-xl font-poppins font-medium text-xs sm:text-sm whitespace-nowrap transition-all touch-manipulation min-h-[40px] sm:min-h-[44px] ${
               activeTab === i
                 ? 'bg-white text-primary shadow-md'
                 : 'text-white/80 hover:bg-white/15 hover:text-white'
             }`}
           >
             {CATEGORY_ICONS[cat.name] || <BookOpen className="w-4 h-4" />}
-            {cat.name}
+            <span className="hidden sm:inline">{cat.name}</span>
+            {/* Mobile: short label */}
+            <span className="sm:hidden">{cat.name.split(' ')[0]}</span>
           </button>
         ))}
       </nav>
 
-      {/* Content — white background */}
-      <main className="flex-1 flex flex-col p-8 overflow-hidden bg-gray-50">
+      {/* ── Main content ── */}
+      <main className="flex-1 flex flex-col p-3 sm:p-5 lg:p-8 overflow-hidden bg-gray-50 min-h-0">
         {!currentSlide ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
-            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-              <GraduationCap className="w-12 h-12 text-primary/50" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4 sm:mb-6">
+              <GraduationCap className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary/50" />
             </div>
-            <h2 className="text-gray-700 font-poppins font-semibold text-2xl mb-2">
+            <h2 className="text-gray-700 font-poppins font-semibold text-lg sm:text-xl lg:text-2xl mb-2">
               {activeCategory?.name || 'Announcements'}
             </h2>
-            <p className="text-gray-400 font-inter">No announcements at this time.</p>
+            <p className="text-gray-400 font-inter text-sm">No announcements at this time.</p>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col gap-6 min-h-0">
+          <div className="flex-1 flex flex-col gap-3 sm:gap-5 lg:gap-6 min-h-0">
             {/* Slide card */}
-            <div className="flex-1 bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm flex min-h-0">
+            <div className="flex-1 bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-200 shadow-sm flex min-h-0">
 
-              {/* ── PDF attachment: full-height embed with title overlay ── */}
+              {/* ── PDF: full-height embed ── */}
               {currentSlide.pdf ? (
                 <div className="relative flex-1 flex flex-col min-h-0">
                   <iframe
@@ -246,24 +256,23 @@ export default function IdleScreen() {
                     className="flex-1 w-full border-0"
                     style={{ minHeight: 0 }}
                   />
-                  {/* Title bar at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-8 py-5 pointer-events-none">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 sm:px-8 py-4 sm:py-5 pointer-events-none">
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-2 w-fit">
                       <span className="text-white/90">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
                       <span className="text-white/90 text-xs font-poppins font-semibold">{activeCategory?.name}</span>
                     </div>
-                    <h2 className="text-white font-poppins font-bold text-2xl leading-tight drop-shadow">
+                    <h2 className="text-white font-poppins font-bold text-lg sm:text-xl lg:text-2xl leading-tight drop-shadow">
                       {currentSlide.title}
                     </h2>
                     {currentSlide.publishedAt && (
-                      <p className="text-white/60 font-inter text-sm mt-1">
+                      <p className="text-white/60 font-inter text-xs sm:text-sm mt-1">
                         {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
                       </p>
                     )}
                   </div>
                 </div>
 
-              /* ── Image-only: fill the card, text overlay at bottom ── */
+              /* ── Image only: fill the card ── */
               ) : currentSlide.image && !currentSlide.description ? (
                 <div className="relative flex-1 min-h-0">
                   <img
@@ -271,68 +280,68 @@ export default function IdleScreen() {
                     alt={currentSlide.title}
                     className="w-full h-full object-contain bg-gray-900"
                   />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-8 py-6 pointer-events-none">
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-4 sm:px-8 py-4 sm:py-6 pointer-events-none">
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-2 w-fit">
                       <span className="text-white/90">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
                       <span className="text-white/90 text-xs font-poppins font-semibold">{activeCategory?.name}</span>
                     </div>
-                    <h2 className="text-white font-poppins font-bold text-3xl leading-tight drop-shadow">
+                    <h2 className="text-white font-poppins font-bold text-xl sm:text-2xl lg:text-3xl leading-tight drop-shadow">
                       {currentSlide.title}
                     </h2>
                     {currentSlide.publishedAt && (
-                      <p className="text-white/60 font-inter text-sm mt-1">
+                      <p className="text-white/60 font-inter text-xs sm:text-sm mt-1">
                         {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
                       </p>
                     )}
                   </div>
                 </div>
 
-              /* ── Image + text: side-by-side layout ── */
+              /* ── Image + text: stack on mobile, side-by-side on md+ ── */
               ) : currentSlide.image && currentSlide.description ? (
-                <>
-                  <div className="w-1/2 relative flex-shrink-0">
+                <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-auto md:overflow-hidden">
+                  <div className="w-full md:w-1/2 flex-shrink-0 min-h-[200px] sm:min-h-[260px] md:min-h-0">
                     <img
                       src={currentSlide.image}
                       alt={currentSlide.title}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="flex flex-col justify-center p-10 w-1/2">
-                    <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full mb-4 w-fit">
+                  <div className="flex flex-col justify-center p-5 sm:p-7 lg:p-10 md:w-1/2 overflow-y-auto">
+                    <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full mb-3 sm:mb-4 w-fit">
                       <span className="text-primary">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
                       <span className="text-primary text-xs font-poppins font-semibold">{activeCategory?.name}</span>
                     </div>
-                    <h2 className="text-gray-900 font-poppins font-bold text-4xl mb-4 leading-tight">
+                    <h2 className="text-gray-900 font-poppins font-bold text-2xl sm:text-3xl lg:text-4xl mb-3 sm:mb-4 leading-tight">
                       {currentSlide.title}
                     </h2>
-                    <p className="text-gray-600 font-inter text-lg leading-relaxed line-clamp-5">
+                    <p className="text-gray-600 font-inter text-base sm:text-lg leading-relaxed line-clamp-5 sm:line-clamp-6">
                       {currentSlide.description}
                     </p>
                     {currentSlide.publishedAt && (
-                      <p className="text-gray-400 font-inter text-sm mt-4">
+                      <p className="text-gray-400 font-inter text-xs sm:text-sm mt-3 sm:mt-4">
                         {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
                       </p>
                     )}
                   </div>
-                </>
+                </div>
 
               /* ── Text only ── */
               ) : (
-                <div className="flex flex-col justify-center p-10 w-full">
-                  <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full mb-4 w-fit">
+                <div className="flex flex-col justify-center p-5 sm:p-7 lg:p-10 w-full overflow-y-auto">
+                  <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full mb-3 sm:mb-4 w-fit">
                     <span className="text-primary">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
                     <span className="text-primary text-xs font-poppins font-semibold">{activeCategory?.name}</span>
                   </div>
-                  <h2 className="text-gray-900 font-poppins font-bold text-4xl mb-4 leading-tight">
+                  <h2 className="text-gray-900 font-poppins font-bold text-2xl sm:text-3xl lg:text-4xl mb-3 sm:mb-4 leading-tight">
                     {currentSlide.title}
                   </h2>
                   {currentSlide.description && (
-                    <p className="text-gray-600 font-inter text-lg leading-relaxed line-clamp-4">
+                    <p className="text-gray-600 font-inter text-base sm:text-lg leading-relaxed line-clamp-4 sm:line-clamp-6">
                       {currentSlide.description}
                     </p>
                   )}
                   {currentSlide.publishedAt && (
-                    <p className="text-gray-400 font-inter text-sm mt-4">
+                    <p className="text-gray-400 font-inter text-xs sm:text-sm mt-3 sm:mt-4">
                       {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
                     </p>
                   )}
@@ -342,25 +351,25 @@ export default function IdleScreen() {
 
             {/* Slide controls */}
             {slides.length > 1 && (
-              <div className="flex items-center justify-center gap-4 flex-shrink-0">
+              <div className="flex items-center justify-center gap-3 sm:gap-4 flex-shrink-0">
                 <button
                   onClick={prevSlide}
-                  className="p-3 bg-white hover:bg-primary/5 border border-gray-200 rounded-xl text-gray-600 hover:text-primary transition-all shadow-sm"
+                  className="p-2.5 sm:p-3 bg-white hover:bg-primary/5 border border-gray-200 rounded-xl text-gray-600 hover:text-primary transition-all shadow-sm touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   {slides.map((_: any, i: number) => (
                     <button
                       key={i}
                       onClick={() => setSlideIndex(i)}
-                      className={`h-2.5 rounded-full transition-all ${i === slideIndex ? 'bg-primary w-8' : 'bg-gray-300 w-2.5'}`}
+                      className={`h-2.5 rounded-full transition-all touch-manipulation ${i === slideIndex ? 'bg-primary w-6 sm:w-8' : 'bg-gray-300 w-2.5'}`}
                     />
                   ))}
                 </div>
                 <button
                   onClick={nextSlide}
-                  className="p-3 bg-white hover:bg-primary/5 border border-gray-200 rounded-xl text-gray-600 hover:text-primary transition-all shadow-sm"
+                  className="p-2.5 sm:p-3 bg-white hover:bg-primary/5 border border-gray-200 rounded-xl text-gray-600 hover:text-primary transition-all shadow-sm touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -370,14 +379,14 @@ export default function IdleScreen() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="px-8 py-4 bg-primary-dark border-t border-white/10 flex items-center justify-between">
-        <p className="text-white/40 font-inter text-xs">
+      {/* ── Footer ── */}
+      <footer className="px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 bg-primary-dark border-t border-white/10 flex items-center justify-between gap-4">
+        <p className="text-white/40 font-inter text-[10px] sm:text-xs">
           SMARTCLASS v1.0 · Exequiel R. Lina High School
         </p>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          <p className="text-white/50 font-inter text-xs">System Online</p>
+          <p className="text-white/50 font-inter text-[10px] sm:text-xs">System Online</p>
         </div>
       </footer>
     </div>

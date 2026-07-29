@@ -5,20 +5,31 @@
 @layer base {
   * {
     -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
   }
 
   html {
     font-size: 16px;
     scroll-behavior: smooth;
+    /* Prevent layout shift from scrollbar appearing/disappearing */
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-background text-text-primary font-inter antialiased;
     min-height: 100vh;
+    min-height: 100dvh; /* dynamic viewport height — handles mobile browser chrome */
+    /* Prevent iOS bounce scroll on the body */
+    overscroll-behavior: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-poppins;
+  }
+
+  /* Ensure inputs and buttons scale correctly on iOS */
+  input, textarea, select, button {
+    font-size: inherit;
   }
 }
 

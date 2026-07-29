@@ -29,9 +29,9 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
   // Inactivity state
   const [showWarning, setShowWarning] = useState(false)
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
-  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inactivityTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const warningShownRef = useRef(false)
+  const warningShownRef      = useRef(false)
 
   const returnToIdle = useCallback(() => {
     setShowWarning(false)
@@ -53,23 +53,15 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
     clearCountdown()
     countdownIntervalRef.current = setInterval(() => {
       setCountdown(prev => {
-        if (prev <= 1) {
-          clearCountdown()
-          returnToIdle()
-          return 0
-        }
+        if (prev <= 1) { clearCountdown(); returnToIdle(); return 0 }
         return prev - 1
       })
     }, 1000)
   }, [clearCountdown, returnToIdle])
 
   const resetTimer = useCallback(() => {
-    // If warning is showing, user activity dismisses it
     if (warningShownRef.current) return
-
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current)
-
-    // Show warning 10s before timeout — fire after (inactivityMinutes * 60 - COUNTDOWN_SECONDS) seconds
     const warningDelay = inactivityMinutes * 60 * 1000 - COUNTDOWN_SECONDS * 1000
     inactivityTimerRef.current = setTimeout(startWarningCountdown, Math.max(warningDelay, 1000))
   }, [inactivityMinutes, startWarningCountdown])
@@ -100,8 +92,11 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
     navigate('/')
   }, [logout, navigate, clearCountdown])
 
-  const name = user?.profile?.fullName || user?.name || 'User'
-  const role = user?.role || ''
+  // Close sidebar when route changes (on mobile)
+  useEffect(() => { setSidebarOpen(false) }, [location.pathname])
+
+  const name       = user?.profile?.fullName || user?.name || 'User'
+  const role       = user?.role || ''
   const profilePic = user?.profile?.profile?.profilePicture || null
 
   const roleLabel = role === 'STUDENT' ? 'Student' : role === 'TEACHER' ? 'Teacher' : 'Administrator'
@@ -112,21 +107,20 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
 
       {/* ── Inactivity Warning Modal ── */}
       {showWarning && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 text-center">
-            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-5">
-              <AlertTriangle className="w-8 h-8 text-amber-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-sm sm:max-w-md text-center">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5">
+              <AlertTriangle className="w-7 h-7 sm:w-8 sm:h-8 text-amber-500" />
             </div>
-            <h2 className="font-poppins font-bold text-gray-900 text-xl mb-2">
+            <h2 className="font-poppins font-bold text-gray-900 text-lg sm:text-xl mb-2">
               Inactivity Detected
             </h2>
-            <p className="font-inter text-gray-500 text-sm mb-6">
+            <p className="font-inter text-gray-500 text-sm mb-5 sm:mb-6">
               You'll be returned to the Announcement Board in
             </p>
-
             {/* Countdown ring */}
-            <div className="relative w-24 h-24 mx-auto mb-6">
-              <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-5 sm:mb-6">
+              <svg className="w-20 h-20 sm:w-24 sm:h-24 -rotate-90" viewBox="0 0 96 96">
                 <circle cx="48" cy="48" r="42" fill="none" stroke="#f3f4f6" strokeWidth="8" />
                 <circle
                   cx="48" cy="48" r="42"
@@ -140,20 +134,19 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="font-poppins font-bold text-3xl text-amber-500">{countdown}</span>
+                <span className="font-poppins font-bold text-2xl sm:text-3xl text-amber-500">{countdown}</span>
               </div>
             </div>
-
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleStillHere}
-                className="w-full bg-primary hover:bg-primary-dark text-white font-poppins font-semibold py-3 rounded-xl transition-colors"
+                className="w-full bg-primary hover:bg-primary-dark text-white font-poppins font-semibold py-3 sm:py-3.5 rounded-xl transition-colors touch-manipulation"
               >
                 I'm Still Here
               </button>
               <button
                 onClick={returnToIdle}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-poppins font-medium py-3 rounded-xl transition-colors text-sm"
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-poppins font-medium py-3 sm:py-3.5 rounded-xl transition-colors text-sm touch-manipulation"
               >
                 Return to Announcement Board
               </button>
@@ -162,7 +155,7 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
         </div>
       )}
 
-      {/* Mobile overlay */}
+      {/* Mobile/tablet overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-20 lg:hidden"
@@ -170,13 +163,15 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
         />
       )}
 
-      {/* Sidebar */}
+      {/* ── Sidebar ── */}
       <aside className={cn(
-        'fixed lg:static inset-y-0 left-0 z-30 flex flex-col w-64 bg-primary-dark shadow-sidebar transition-transform duration-300',
+        'fixed lg:static inset-y-0 left-0 z-30 flex flex-col bg-primary-dark shadow-sidebar transition-transform duration-300',
+        /* width: full on tiny, 72 (18rem) on sm, 64 (16rem) on lg */
+        'w-72 sm:w-72 lg:w-64',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}>
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
+        {/* Logo + close button */}
+        <div className="flex items-center gap-3 px-5 py-4 sm:py-5 border-b border-white/10">
           <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
             <span className="text-primary font-poppins font-bold text-sm">SC</span>
           </div>
@@ -186,7 +181,7 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="ml-auto text-white/40 hover:text-white lg:hidden"
+            className="ml-auto text-white/40 hover:text-white lg:hidden p-1.5 rounded-lg hover:bg-white/10 transition-colors touch-manipulation"
           >
             <X className="w-5 h-5" />
           </button>
@@ -206,7 +201,7 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = item.exact
               ? location.pathname === item.path
@@ -215,8 +210,12 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => setSidebarOpen(false)}
-                className={isActive ? 'sidebar-item-active' : 'sidebar-item-inactive'}
+                className={cn(
+                  'flex items-center gap-3 px-4 rounded-xl font-poppins font-medium text-nav transition-all duration-150 cursor-pointer touch-manipulation',
+                  /* Taller tap targets: py-3.5 everywhere (good for touchscreen) */
+                  'py-3.5',
+                  isActive ? 'bg-primary text-white shadow-sm' : 'text-white/70 hover:bg-white/10 hover:text-white'
+                )}
               >
                 <span className="flex-shrink-0">{item.icon}</span>
                 <span>{item.label}</span>
@@ -230,7 +229,7 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
         <div className="px-3 py-4 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="sidebar-item-inactive w-full"
+            className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white font-poppins font-medium text-nav transition-all touch-manipulation"
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
             <span>Logout</span>
@@ -238,21 +237,21 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* ── Main content ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top bar (mobile) */}
-        <header className="lg:hidden flex items-center gap-3 px-4 py-3 bg-surface border-b border-border shadow-sm">
+        {/* Mobile/tablet top bar */}
+        <header className="lg:hidden flex items-center gap-3 px-4 py-3 sm:py-4 bg-surface border-b border-border shadow-sm">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 hover:bg-primary-light rounded-lg transition-colors"
+            className="p-2.5 hover:bg-primary-light rounded-xl transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <Menu className="w-5 h-5 text-primary" />
           </button>
           <span className="font-poppins font-bold text-primary text-lg">SMARTCLASS</span>
         </header>
 
-        {/* Page */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-5 md:p-6 lg:p-8">
           {children}
         </main>
       </div>
