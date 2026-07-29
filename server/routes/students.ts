@@ -189,6 +189,51 @@ router.post('/:id/reset-password', requireAuth, requireRole('ADMIN'), async (req
   }
 })
 
+// Admin: reassign student to a section
+router.patch('/:id/section', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const data = z.object({
+      sectionId: z.string(),
+      academicYearId: z.string(),
+      gradeLevelId: z.string(),
+    }).parse(req.body)
+
+    const s = db.students.find(s => s.id === req.params.id)
+    if (!s) return res.status(404).json({ error: 'Student not found' })
+
+    // Remove any existing active assignment and replace with new one
+    const existing = db.studentSectionAssignments.findIndex(a => a.studentId === s.id)
+    const now = new Date().toISOString()
+    const assignment = { id: uuidv4(), studentId: s.id, ...data, createdAt: now }
+
+    if (existing !== -1) {
+      db.studentSectionAssignments[existing] = assignment
+    } else {
+      db.studentSectionAssignments.push(assignment)
+    }
+
+    res.json(expandStudent(s, { includeUser: true }))
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Admin: remove student from section
+router.delete('/:id/section', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const s = db.students.find(s => s.id === req.params.id)
+    if (!s) return res.status(404).json({ error: 'Student not found' })
+
+    const idx = db.studentSectionAssignments.findIndex(a => a.studentId === s.id)
+    if (idx !== -1) db.studentSectionAssignments.splice(idx, 1)
+
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // Student: get own attendance
 router.get('/:id/attendance', requireAuth, async (req: Request, res: Response) => {
   try {

@@ -8,9 +8,13 @@ import { Badge } from '../../components/ui/Badge'
 import { Avatar } from '../../components/ui/Avatar'
 import { LoadingSpinner, EmptyState } from '../../components/ui/EmptyState'
 import { formatDate } from '../../lib/utils'
-import { Plus, Search, RotateCcw, Archive, Eye, GraduationCap } from 'lucide-react'
+import { Plus, Search, RotateCcw, Archive, Eye, GraduationCap, BookOpen } from 'lucide-react'
+import AdminSections from './AdminSections'
+
+type Tab = 'students' | 'sections'
 
 export default function AdminStudents() {
+  const [activeTab, setActiveTab] = useState<Tab>('students')
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
@@ -61,18 +65,49 @@ export default function AdminStudents() {
   const strands = selectedLevel?.strands || []
   const sections = selectedLevel?.sections?.filter((s: any) => !form.strandId || s.strandId === form.strandId) || []
 
-  if (isLoading) return <LoadingSpinner />
+  if (isLoading && activeTab === 'students') return <LoadingSpinner />
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Page header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="page-title">Students</h1>
-          <p className="text-text-secondary font-inter text-sm mt-1">{(students as any[]).length} active students</p>
+          <p className="text-text-secondary font-inter text-sm mt-1">
+            Manage student records and section assignments
+          </p>
         </div>
-        <Button onClick={() => setShowAdd(true)} icon={<Plus className="w-4 h-4" />}>Add Student</Button>
+        {activeTab === 'students' && (
+          <Button onClick={() => setShowAdd(true)} icon={<Plus className="w-4 h-4" />}>Add Student</Button>
+        )}
       </div>
 
+      {/* Sub-tabs */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+        {([
+          { id: 'students', label: 'All Students', icon: <GraduationCap className="w-4 h-4" /> },
+          { id: 'sections', label: 'Sections', icon: <BookOpen className="w-4 h-4" /> },
+        ] as const).map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-inter font-medium transition-all duration-150 ${
+              activeTab === tab.id
+                ? 'bg-white text-primary shadow-sm'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Sections tab */}
+      {activeTab === 'sections' && <AdminSections />}
+
+      {/* Students tab content below */}
+      {activeTab === 'students' && <>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
         <input

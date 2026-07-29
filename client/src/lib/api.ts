@@ -47,6 +47,9 @@ export const studentsApi = {
   update: (id: string, data: any) => api.put(`/students/${id}`, data),
   archive: (id: string) => api.patch(`/students/${id}/archive`),
   resetPassword: (id: string) => api.post(`/students/${id}/reset-password`),
+  reassignSection: (id: string, data: { sectionId: string; academicYearId: string; gradeLevelId: string }) =>
+    api.patch(`/students/${id}/section`, data),
+  removeFromSection: (id: string) => api.delete(`/students/${id}/section`),
   getAttendance: (id: string) => api.get(`/students/${id}/attendance`),
   getScores: (id: string) => api.get(`/students/${id}/scores`),
 }
