@@ -9,6 +9,7 @@ interface NavItem {
   label: string
   path: string
   icon: React.ReactNode
+  exact?: boolean
 }
 
 interface PortalLayoutProps {
@@ -207,7 +208,9 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 1
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+            const isActive = item.exact
+              ? location.pathname === item.path
+              : location.pathname === item.path || location.pathname.startsWith(item.path + '/')
             return (
               <Link
                 key={item.path}

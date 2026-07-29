@@ -9,7 +9,7 @@ import StudentAttendance from './StudentAttendance'
 import StudentPerformance from './StudentPerformance'
 
 const navItems = [
-  { label: 'Dashboard', path: '/student', icon: <LayoutDashboard className="w-5 h-5" /> },
+  { label: 'Dashboard', path: '/student', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
   { label: 'Subjects', path: '/student/subjects', icon: <BookOpen className="w-5 h-5" /> },
   { label: 'Class Schedule', path: '/student/schedule', icon: <Calendar className="w-5 h-5" /> },
   { label: 'Attendance', path: '/student/attendance', icon: <ClipboardList className="w-5 h-5" /> },

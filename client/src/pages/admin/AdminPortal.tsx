@@ -14,7 +14,7 @@ import AdminAttendance from './AdminAttendance'
 import AdminSettings from './AdminSettings'
 
 const navItems = [
-  { label: 'Dashboard', path: '/admin', icon: <LayoutDashboard className="w-5 h-5" /> },
+  { label: 'Dashboard', path: '/admin', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
   { label: 'Students', path: '/admin/students', icon: <GraduationCap className="w-5 h-5" /> },
   { label: 'Teachers', path: '/admin/teachers', icon: <Users className="w-5 h-5" /> },
   { label: 'Academic Structure', path: '/admin/structure', icon: <BookOpen className="w-5 h-5" /> },

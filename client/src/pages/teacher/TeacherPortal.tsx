@@ -9,7 +9,7 @@ import TeacherAcademic from './TeacherAcademic'
 import TeacherSchedule from './TeacherSchedule'
 
 const navItems = [
-  { label: 'Dashboard', path: '/teacher', icon: <LayoutDashboard className="w-5 h-5" /> },
+  { label: 'Dashboard', path: '/teacher', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
   { label: 'Attendance', path: '/teacher/attendance', icon: <ClipboardList className="w-5 h-5" /> },
   { label: 'Presentation', path: '/teacher/presentation', icon: <Monitor className="w-5 h-5" /> },
   { label: 'Academic Performance', path: '/teacher/academic', icon: <BarChart2 className="w-5 h-5" /> },
