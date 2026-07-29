@@ -65,8 +65,6 @@ export default function AdminStudents() {
   const strands = selectedLevel?.strands || []
   const sections = selectedLevel?.sections?.filter((s: any) => !form.strandId || s.strandId === form.strandId) || []
 
-  if (isLoading && activeTab === 'students') return <LoadingSpinner />
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page header */}
@@ -118,7 +116,7 @@ export default function AdminStudents() {
         />
       </div>
 
-      {(students as any[]).length === 0 ? (
+      {isLoading ? <LoadingSpinner /> : (students as any[]).length === 0 ? (
         <EmptyState
           title="No Students Found"
           description={search ? 'Try a different search term.' : 'Add your first student to get started.'}
