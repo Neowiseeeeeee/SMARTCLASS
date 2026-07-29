@@ -8,8 +8,9 @@ import { Badge } from '../../components/ui/Badge'
 import { Avatar } from '../../components/ui/Avatar'
 import { LoadingSpinner, EmptyState } from '../../components/ui/EmptyState'
 import { formatDate } from '../../lib/utils'
-import { Plus, Search, RotateCcw, Archive, Eye, GraduationCap, BookOpen } from 'lucide-react'
+import { Plus, Search, RotateCcw, Archive, Eye, GraduationCap, BookOpen, Upload } from 'lucide-react'
 import AdminSections from './AdminSections'
+import AdminStudentsImport from './AdminStudentsImport'
 
 type Tab = 'students' | 'sections'
 
@@ -20,6 +21,7 @@ export default function AdminStudents() {
   const [showAdd, setShowAdd] = useState(false)
   const [viewStudent, setViewStudent] = useState<any>(null)
   const [createdCreds, setCreatedCreds] = useState<any>(null)
+  const [showImport, setShowImport] = useState(false)
   const [form, setForm] = useState({
     studentNumber: '', fullName: '', email: '', gender: '',
     birthDate: '', contactNumber: '', guardianName: '', guardianContact: '',
@@ -76,7 +78,10 @@ export default function AdminStudents() {
           </p>
         </div>
         {activeTab === 'students' && (
-          <Button onClick={() => setShowAdd(true)} icon={<Plus className="w-4 h-4" />}>Add Student</Button>
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => setShowImport(true)} icon={<Upload className="w-4 h-4" />}>Import CSV</Button>
+            <Button onClick={() => setShowAdd(true)} icon={<Plus className="w-4 h-4" />}>Add Student</Button>
+          </div>
         )}
       </div>
 
@@ -260,6 +265,8 @@ export default function AdminStudents() {
         </div>
       </Modal>
     </>}
+
+      <AdminStudentsImport open={showImport} onClose={() => setShowImport(false)} />
     </div>
   )
 }

@@ -189,6 +189,104 @@ router.post('/:id/reset-password', requireAuth, requireRole('ADMIN'), async (req
   }
 })
 
+// Admin: bulk import students from CSV
+router.post('/import', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const { rows, dryRun, academicYearId, gradeLevelId, sectionId } = z.object({
+      rows: z.array(z.object({
+        studentNumber: z.string(),
+        fullName: z.string(),
+        email: z.string(),
+        gender: z.string().optional().default(''),
+        birthDate: z.string().optional().default(''),
+        contactNumber: z.string().optional().default(''),
+        guardianName: z.string().optional().default(''),
+        guardianContact: z.string().optional().default(''),
+      })),
+      dryRun: z.boolean().default(true),
+      academicYearId: z.string().optional(),
+      gradeLevelId: z.string().optional(),
+      sectionId: z.string().optional(),
+    }).parse(req.body)
+
+    const seenNumbers = new Set<string>()
+    const seenEmails = new Set<string>()
+
+    const results: Array<{
+      rowNumber: number
+      data: any
+      status: 'valid' | 'error' | 'duplicate'
+      errors: string[]
+    }> = []
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]
+      const rowNumber = i + 2 // row 1 is header
+      const errors: string[] = []
+
+      if (!row.studentNumber?.trim()) errors.push('Student number is required')
+      if (!row.fullName?.trim()) errors.push('Full name is required')
+      if (!row.email?.trim()) errors.push('Email is required')
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email.trim())) errors.push('Invalid email format')
+
+      const num = row.studentNumber?.trim()
+      const email = row.email?.trim().toLowerCase()
+
+      if (num && seenNumbers.has(num)) errors.push('Duplicate student number in file')
+      if (email && seenEmails.has(email)) errors.push('Duplicate email in file')
+      if (num && !seenNumbers.has(num) && db.students.find(s => s.studentNumber === num)) errors.push('Student number already exists in system')
+      if (email && !seenEmails.has(email) && db.students.find(s => s.email === email)) errors.push('Email already exists in system')
+      if (email && !seenEmails.has(email) && db.users.find(u => u.email === email)) errors.push('Email already in use')
+
+      if (num) seenNumbers.add(num)
+      if (email) seenEmails.add(email)
+
+      const isDup = errors.some(e => e.includes('already') || e.includes('Duplicate'))
+      results.push({ rowNumber, data: row, status: errors.length === 0 ? 'valid' : isDup ? 'duplicate' : 'error', errors })
+    }
+
+    const summary = {
+      total: rows.length,
+      valid: results.filter(r => r.status === 'valid').length,
+      errors: results.filter(r => r.status === 'error').length,
+      duplicates: results.filter(r => r.status === 'duplicate').length,
+    }
+
+    if (dryRun) return res.json({ rows: results, summary })
+
+    // Actual import — only valid rows
+    const credentials: Array<{ rowNumber: number; studentNumber: string; fullName: string; tempPassword: string }> = []
+    const now = new Date().toISOString()
+
+    for (const result of results) {
+      if (result.status !== 'valid') continue
+      const row = result.data
+      const tempPassword = generateTempPassword()
+      const passwordHash = await bcrypt.hash(tempPassword, 12)
+      const userId = uuidv4()
+      db.users.push({ id: userId, email: row.email.trim().toLowerCase(), passwordHash, role: 'STUDENT', status: 'active', isFirstLogin: true, createdAt: now })
+      const studentId = uuidv4()
+      db.students.push({
+        id: studentId, userId, studentNumber: row.studentNumber.trim(), studentCode: generateStudentCode(),
+        fullName: row.fullName.trim(), email: row.email.trim().toLowerCase(),
+        gender: row.gender?.trim() || undefined, birthDate: row.birthDate?.trim() || undefined,
+        contactNumber: row.contactNumber?.trim() || undefined, status: 'active', createdAt: now,
+      })
+      db.studentProfiles.push({ id: uuidv4(), studentId, guardianName: row.guardianName?.trim() || undefined, guardianContact: row.guardianContact?.trim() || undefined, updatedAt: now })
+      if (sectionId && academicYearId && gradeLevelId) {
+        db.studentSectionAssignments.push({ id: uuidv4(), studentId, sectionId, academicYearId, gradeLevelId, createdAt: now })
+      }
+      credentials.push({ rowNumber: result.rowNumber, studentNumber: row.studentNumber.trim(), fullName: row.fullName.trim(), tempPassword })
+    }
+
+    res.json({ imported: credentials.length, skipped: results.filter(r => r.status !== 'valid').length, credentials })
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // Admin: reassign student to a section
 router.patch('/:id/section', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {

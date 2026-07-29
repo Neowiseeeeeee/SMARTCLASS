@@ -50,6 +50,8 @@ export const studentsApi = {
   reassignSection: (id: string, data: { sectionId: string; academicYearId: string; gradeLevelId: string }) =>
     api.patch(`/students/${id}/section`, data),
   removeFromSection: (id: string) => api.delete(`/students/${id}/section`),
+  importStudents: (data: { rows: any[]; dryRun: boolean; academicYearId?: string; gradeLevelId?: string; sectionId?: string }) =>
+    api.post('/students/import', data),
   getAttendance: (id: string) => api.get(`/students/${id}/attendance`),
   getScores: (id: string) => api.get(`/students/${id}/scores`),
 }
