@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, Menu, X, ChevronRight } from 'lucide-react'
+import { LogOut, Menu, X, ChevronRight, AlertTriangle } from 'lucide-react'
 import { useAuth } from '../../lib/auth'
 import { Avatar } from '../ui/Avatar'
 import { cn } from '../../lib/utils'
@@ -17,33 +17,87 @@ interface PortalLayoutProps {
   inactivityMinutes?: number
 }
 
-export default function PortalLayout({ navItems, children, inactivityMinutes = 15 }: PortalLayoutProps) {
+const COUNTDOWN_SECONDS = 10
+
+export default function PortalLayout({ navItems, children, inactivityMinutes = 1 }: PortalLayoutProps) {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const handleLogout = useCallback(async () => {
-    await logout()
+  // Inactivity state
+  const [showWarning, setShowWarning] = useState(false)
+  const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS)
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const warningShownRef = useRef(false)
+
+  const returnToIdle = useCallback(() => {
+    setShowWarning(false)
+    warningShownRef.current = false
     navigate('/')
-  }, [logout, navigate])
+  }, [navigate])
 
-  // Inactivity timer
+  const clearCountdown = useCallback(() => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current)
+      countdownIntervalRef.current = null
+    }
+  }, [])
+
+  const startWarningCountdown = useCallback(() => {
+    setCountdown(COUNTDOWN_SECONDS)
+    setShowWarning(true)
+    warningShownRef.current = true
+    clearCountdown()
+    countdownIntervalRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearCountdown()
+          returnToIdle()
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }, [clearCountdown, returnToIdle])
+
   const resetTimer = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(handleLogout, inactivityMinutes * 60 * 1000)
-  }, [handleLogout, inactivityMinutes])
+    // If warning is showing, user activity dismisses it
+    if (warningShownRef.current) return
+
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current)
+
+    // Show warning 10s before timeout — fire after (inactivityMinutes * 60 - COUNTDOWN_SECONDS) seconds
+    const warningDelay = inactivityMinutes * 60 * 1000 - COUNTDOWN_SECONDS * 1000
+    inactivityTimerRef.current = setTimeout(startWarningCountdown, Math.max(warningDelay, 1000))
+  }, [inactivityMinutes, startWarningCountdown])
 
   useEffect(() => {
     const events = ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll', 'click']
     events.forEach(e => document.addEventListener(e, resetTimer, true))
     resetTimer()
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current)
+      clearCountdown()
       events.forEach(e => document.removeEventListener(e, resetTimer, true))
     }
-  }, [resetTimer])
+  }, [resetTimer, clearCountdown])
+
+  const handleStillHere = useCallback(() => {
+    clearCountdown()
+    setShowWarning(false)
+    warningShownRef.current = false
+    setCountdown(COUNTDOWN_SECONDS)
+    resetTimer()
+  }, [clearCountdown, resetTimer])
+
+  const handleLogout = useCallback(async () => {
+    clearCountdown()
+    setShowWarning(false)
+    await logout()
+    navigate('/')
+  }, [logout, navigate, clearCountdown])
 
   const name = user?.profile?.fullName || user?.name || 'User'
   const role = user?.role || ''
@@ -54,6 +108,59 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 1
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
+
+      {/* ── Inactivity Warning Modal ── */}
+      {showWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md mx-4 text-center">
+            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-5">
+              <AlertTriangle className="w-8 h-8 text-amber-500" />
+            </div>
+            <h2 className="font-poppins font-bold text-gray-900 text-xl mb-2">
+              Inactivity Detected
+            </h2>
+            <p className="font-inter text-gray-500 text-sm mb-6">
+              You'll be returned to the Announcement Board in
+            </p>
+
+            {/* Countdown ring */}
+            <div className="relative w-24 h-24 mx-auto mb-6">
+              <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
+                <circle cx="48" cy="48" r="42" fill="none" stroke="#f3f4f6" strokeWidth="8" />
+                <circle
+                  cx="48" cy="48" r="42"
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${2 * Math.PI * 42}`}
+                  strokeDashoffset={`${2 * Math.PI * 42 * (1 - countdown / COUNTDOWN_SECONDS)}`}
+                  className="transition-all duration-1000"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="font-poppins font-bold text-3xl text-amber-500">{countdown}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleStillHere}
+                className="w-full bg-primary hover:bg-primary-dark text-white font-poppins font-semibold py-3 rounded-xl transition-colors"
+              >
+                I'm Still Here
+              </button>
+              <button
+                onClick={returnToIdle}
+                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-poppins font-medium py-3 rounded-xl transition-colors text-sm"
+              >
+                Return to Announcement Board
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div

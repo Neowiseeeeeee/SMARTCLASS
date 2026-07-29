@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
 import { announcementsApi } from '../lib/api'
+import { useAuth } from '../lib/auth'
 import {
-  GraduationCap, Calendar, Clock, Cloud, ChevronLeft, ChevronRight,
-  AlertCircle, BookOpen, Users, Phone, Megaphone
+  GraduationCap, Calendar, Clock, ChevronLeft, ChevronRight,
+  BookOpen, Phone, Megaphone, LogIn, Menu, X, LayoutDashboard,
+  LogOut, User, ChevronDown,
 } from 'lucide-react'
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -15,12 +17,27 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   'Emergency Hotlines': <Phone className="w-5 h-5" />,
 }
 
+const ROLE_DASHBOARD: Record<string, string> = {
+  ADMIN: '/admin/dashboard',
+  TEACHER: '/teacher/dashboard',
+  STUDENT: '/student/dashboard',
+}
+
+const ROLE_LABEL: Record<string, string> = {
+  ADMIN: 'Administrator',
+  TEACHER: 'Teacher',
+  STUDENT: 'Student',
+}
+
 export default function IdleScreen() {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const [now, setNow] = useState(new Date())
   const [activeTab, setActiveTab] = useState(0)
   const [slideIndex, setSlideIndex] = useState(0)
   const [autoRotateTab, setAutoRotateTab] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const { data: categories = [] } = useQuery({
     queryKey: ['public-announcements'],
@@ -32,6 +49,17 @@ export default function IdleScreen() {
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(t)
+  }, [])
+
+  // Close menu on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   const activeCategory = categories[activeTab]
@@ -69,13 +97,20 @@ export default function IdleScreen() {
   const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
+  const handleLogout = async () => {
+    setMenuOpen(false)
+    await logout()
+  }
+
+  const handleGoToDashboard = () => {
+    setMenuOpen(false)
+    if (user) navigate(ROLE_DASHBOARD[user.role] || '/')
+  }
+
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-primary-dark via-primary to-primary/90 flex flex-col select-none"
-      onClick={() => navigate('/login')}
-    >
-      {/* Header */}
-      <header className="flex items-center justify-between px-8 py-5 bg-black/20 backdrop-blur-sm border-b border-white/10">
+    <div className="min-h-screen bg-gray-100 flex flex-col select-none">
+      {/* Header — dark green */}
+      <header className="flex items-center justify-between px-8 py-5 bg-primary-dark border-b border-white/10">
         {/* Logo + School */}
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-lg">
@@ -89,7 +124,7 @@ export default function IdleScreen() {
           </div>
         </div>
 
-        {/* Date + Time + Weather */}
+        {/* Date + Time + Auth button */}
         <div className="flex items-center gap-8">
           <div className="text-right">
             <p className="text-white/70 text-sm font-inter">{dayNames[now.getDay()]}</p>
@@ -109,67 +144,98 @@ export default function IdleScreen() {
             </div>
           </div>
           <div className="w-px h-10 bg-white/20" />
-          <div className="flex items-center gap-2 text-white/80">
-            <Cloud className="w-5 h-5" />
-            <span className="font-inter text-sm">--°C</span>
-          </div>
+
+          {/* Auth control */}
+          {!user ? (
+            <button
+              onClick={() => navigate('/login')}
+              className="flex items-center gap-2 bg-white text-primary font-poppins font-semibold text-sm px-5 py-2.5 rounded-xl shadow hover:bg-primary-light transition-all"
+            >
+              <LogIn className="w-4 h-4" />
+              Login
+            </button>
+          ) : (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen(o => !o)}
+                className="flex items-center gap-2.5 bg-white/15 hover:bg-white/25 text-white font-poppins font-medium text-sm px-4 py-2.5 rounded-xl transition-all border border-white/20"
+              >
+                <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center">
+                  <User className="w-4 h-4 text-primary" />
+                </div>
+                <div className="text-left">
+                  <p className="text-white text-xs font-semibold leading-none">{user.name}</p>
+                  <p className="text-white/60 text-xs leading-none mt-0.5">{ROLE_LABEL[user.role]}</p>
+                </div>
+                <ChevronDown className={`w-4 h-4 text-white/60 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown */}
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                  <div className="px-4 py-3 bg-primary/5 border-b border-gray-100">
+                    <p className="font-poppins font-semibold text-gray-800 text-sm">{user.name}</p>
+                    <p className="text-xs text-gray-500 font-inter">{ROLE_LABEL[user.role]}</p>
+                  </div>
+                  <button
+                    onClick={handleGoToDashboard}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-primary/5 font-inter transition-colors"
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-primary" />
+                    Go to Dashboard
+                  </button>
+                  <div className="border-t border-gray-100" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-inter transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Tabs */}
-      <nav className="flex items-center gap-2 px-8 py-4 bg-black/10 border-b border-white/10 overflow-x-auto">
-        {categories.length === 0 ? (
-          ['School Announcements', 'Upcoming Events', 'Class Schedule', 'Emergency Hotlines'].map((name, i) => (
-            <button
-              key={i}
-              onClick={(e) => { e.stopPropagation(); handleTabClick(i) }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-poppins font-medium text-sm whitespace-nowrap transition-all ${
-                activeTab === i
-                  ? 'bg-white text-primary shadow-lg'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              {CATEGORY_ICONS[name] || <BookOpen className="w-4 h-4" />}
-              {name}
-            </button>
-          ))
-        ) : (
-          categories.map((cat: any, i: number) => (
-            <button
-              key={cat.id}
-              onClick={(e) => { e.stopPropagation(); handleTabClick(i) }}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-poppins font-medium text-sm whitespace-nowrap transition-all ${
-                activeTab === i
-                  ? 'bg-white text-primary shadow-lg'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              {CATEGORY_ICONS[cat.name] || <BookOpen className="w-4 h-4" />}
-              {cat.name}
-            </button>
-          ))
-        )}
+      {/* Tabs — slightly lighter green */}
+      <nav className="flex items-center gap-2 px-8 py-4 bg-primary border-b border-primary-dark/20 overflow-x-auto">
+        {(categories.length === 0
+          ? ['School Announcements', 'Upcoming Events', 'Class Schedule', 'Emergency Hotlines'].map((name, i) => ({ id: String(i), name }))
+          : categories
+        ).map((cat: any, i: number) => (
+          <button
+            key={cat.id}
+            onClick={() => handleTabClick(i)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-poppins font-medium text-sm whitespace-nowrap transition-all ${
+              activeTab === i
+                ? 'bg-white text-primary shadow-md'
+                : 'text-white/80 hover:bg-white/15 hover:text-white'
+            }`}
+          >
+            {CATEGORY_ICONS[cat.name] || <BookOpen className="w-4 h-4" />}
+            {cat.name}
+          </button>
+        ))}
       </nav>
 
-      {/* Content */}
-      <main className="flex-1 flex flex-col p-8 overflow-hidden">
+      {/* Content — white background */}
+      <main className="flex-1 flex flex-col p-8 overflow-hidden bg-gray-50">
         {!currentSlide ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center">
-            <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mb-6">
-              <GraduationCap className="w-12 h-12 text-white/60" />
+            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <GraduationCap className="w-12 h-12 text-primary/50" />
             </div>
-            <h2 className="text-white/80 font-poppins font-semibold text-2xl mb-2">
+            <h2 className="text-gray-700 font-poppins font-semibold text-2xl mb-2">
               {activeCategory?.name || 'Announcements'}
             </h2>
-            <p className="text-white/50 font-inter">No announcements at this time.</p>
-            <div className="mt-12 animate-bounce">
-              <p className="text-white/40 font-poppins text-sm">Touch anywhere to log in</p>
-            </div>
+            <p className="text-gray-400 font-inter">No announcements at this time.</p>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col gap-6 animate-fade-in">
-            {/* Slide */}
-            <div className="flex-1 bg-white/10 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/20 flex">
+          <div className="flex-1 flex flex-col gap-6">
+            {/* Slide card */}
+            <div className="flex-1 bg-white rounded-3xl overflow-hidden border border-gray-200 shadow-sm flex">
               {currentSlide.image && (
                 <div className="w-1/2 relative">
                   <img
@@ -177,36 +243,35 @@ export default function IdleScreen() {
                     alt={currentSlide.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20" />
                 </div>
               )}
               <div className={`flex flex-col justify-center p-10 ${currentSlide.image ? 'w-1/2' : 'w-full'}`}>
-                <div className="inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full mb-4 w-fit">
-                  {CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5 text-white" />}
-                  <span className="text-white/90 text-xs font-poppins font-medium">{activeCategory?.name}</span>
+                <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full mb-4 w-fit">
+                  <span className="text-primary">{CATEGORY_ICONS[activeCategory?.name] || <BookOpen className="w-3.5 h-3.5" />}</span>
+                  <span className="text-primary text-xs font-poppins font-semibold">{activeCategory?.name}</span>
                 </div>
-                <h2 className="text-white font-poppins font-bold text-4xl mb-4 leading-tight">
+                <h2 className="text-gray-900 font-poppins font-bold text-4xl mb-4 leading-tight">
                   {currentSlide.title}
                 </h2>
                 {currentSlide.description && (
-                  <p className="text-white/80 font-inter text-lg leading-relaxed line-clamp-4">
+                  <p className="text-gray-600 font-inter text-lg leading-relaxed line-clamp-4">
                     {currentSlide.description}
                   </p>
                 )}
                 {currentSlide.publishedAt && (
-                  <p className="text-white/50 font-inter text-sm mt-4">
+                  <p className="text-gray-400 font-inter text-sm mt-4">
                     {format(new Date(currentSlide.publishedAt), 'MMMM d, yyyy')}
                   </p>
                 )}
               </div>
             </div>
 
-            {/* Controls */}
+            {/* Slide controls */}
             {slides.length > 1 && (
               <div className="flex items-center justify-center gap-4">
                 <button
-                  onClick={(e) => { e.stopPropagation(); prevSlide() }}
-                  className="p-3 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all"
+                  onClick={prevSlide}
+                  className="p-3 bg-white hover:bg-primary/5 border border-gray-200 rounded-xl text-gray-600 hover:text-primary transition-all shadow-sm"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -214,14 +279,14 @@ export default function IdleScreen() {
                   {slides.map((_: any, i: number) => (
                     <button
                       key={i}
-                      onClick={(e) => { e.stopPropagation(); setSlideIndex(i) }}
-                      className={`w-2.5 h-2.5 rounded-full transition-all ${i === slideIndex ? 'bg-white w-8' : 'bg-white/40'}`}
+                      onClick={() => setSlideIndex(i)}
+                      className={`h-2.5 rounded-full transition-all ${i === slideIndex ? 'bg-primary w-8' : 'bg-gray-300 w-2.5'}`}
                     />
                   ))}
                 </div>
                 <button
-                  onClick={(e) => { e.stopPropagation(); nextSlide() }}
-                  className="p-3 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all"
+                  onClick={nextSlide}
+                  className="p-3 bg-white hover:bg-primary/5 border border-gray-200 rounded-xl text-gray-600 hover:text-primary transition-all shadow-sm"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -231,16 +296,14 @@ export default function IdleScreen() {
         )}
       </main>
 
-      {/* Footer CTA */}
-      <footer className="px-8 py-5 bg-black/20 border-t border-white/10 flex items-center justify-between">
+      {/* Footer */}
+      <footer className="px-8 py-4 bg-primary-dark border-t border-white/10 flex items-center justify-between">
         <p className="text-white/40 font-inter text-xs">
           SMARTCLASS v1.0 · Exequiel R. Lina High School
         </p>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          <p className="text-white/60 font-poppins text-sm font-medium">
-            Touch anywhere to log in
-          </p>
+          <p className="text-white/50 font-inter text-xs">System Online</p>
         </div>
       </footer>
     </div>
