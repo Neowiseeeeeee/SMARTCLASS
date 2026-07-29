@@ -382,9 +382,9 @@ export default function AdminSections() {
     queryFn: () => structureApi.getAcademicYears().then(r => r.data),
   })
 
-  if (loadingSections || loadingStudents) return <LoadingSpinner />
+  if (loadingSections) return <LoadingSpinner />
 
-  // Count students per section
+  // Count students per section (best-effort — shows 0 while allStudents still loads)
   const countMap: Record<string, number> = {}
   ;(allStudents as any[]).forEach((s: any) => {
     s.sectionAssignments?.forEach((a: any) => {
