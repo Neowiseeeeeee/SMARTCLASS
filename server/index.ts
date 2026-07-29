@@ -5,7 +5,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
 
-import { seedDatabase } from './db.js'
+import { seedDatabase, saveDb } from './db.js'
 import authRoutes from './routes/auth.js'
 import studentRoutes from './routes/students.js'
 import teacherRoutes from './routes/teachers.js'
@@ -31,6 +31,16 @@ app.use(cors({ origin: allowedOrigins, credentials: true }))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
+
+// Auto-save db to disk after every successful mutating request
+app.use((req, res, next) => {
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    res.on('finish', () => {
+      if (res.statusCode >= 200 && res.statusCode < 300) saveDb()
+    })
+  }
+  next()
+})
 
 // Uploads directory
 const uploadsDir = path.join(__dirname, '../uploads')

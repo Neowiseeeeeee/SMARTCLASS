@@ -1,11 +1,46 @@
 /**
- * In-memory mock database for SMARTCLASS.
- * All data lives in plain JS arrays/maps. No database required.
- * When the real database is ready, swap this file out and keep the route files unchanged.
+ * In-memory database for SMARTCLASS with JSON file persistence.
+ * Data is loaded from data/db.json on startup and auto-saved after every mutation.
+ * When migrating to a real database, swap this file and keep the route files unchanged.
  */
 
 import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const DB_FILE = path.join(__dirname, '../data/db.json')
+
+/** Write the current db state to disk (synchronous, fast). */
+export function saveDb() {
+  try {
+    const dir = path.dirname(DB_FILE)
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2))
+  } catch (err) {
+    console.error('[db] Failed to save:', err)
+  }
+}
+
+/** Load db state from disk. Returns true if data was found and loaded. */
+export function loadDb(): boolean {
+  try {
+    if (!fs.existsSync(DB_FILE)) return false
+    const raw = fs.readFileSync(DB_FILE, 'utf-8')
+    const data = JSON.parse(raw)
+    // Assign each known collection; skip unknown keys
+    ;(Object.keys(db) as Array<keyof typeof db>).forEach(key => {
+      if (Array.isArray(data[key])) (db as any)[key] = data[key]
+    })
+    console.log('[db] Loaded persisted data from', DB_FILE)
+    return true
+  } catch (err) {
+    console.error('[db] Failed to load persisted data:', err)
+    return false
+  }
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -255,6 +290,10 @@ export const db = {
 // ─── Seed ─────────────────────────────────────────────────────────────────────
 
 export async function seedDatabase() {
+  // If persisted data exists, load it and skip seeding
+  const loaded = loadDb()
+  if (loaded && db.users.length > 0) return
+
   const now = new Date().toISOString()
 
   // ── Users ──
