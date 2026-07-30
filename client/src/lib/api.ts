@@ -93,6 +93,8 @@ export const attendanceApi = {
 export const academicApi = {
   createActivity: (data: any) => api.post('/academic/activities', data),
   getActivities: () => api.get('/academic/activities'),
+  updateActivity: (id: string, data: any) => api.patch(`/academic/activities/${id}`, data),
+  deleteActivity: (id: string) => api.delete(`/academic/activities/${id}`),
   recordScores: (activityId: string, scores: any) =>
     api.post(`/academic/activities/${activityId}/scores`, scores),
   submitScore: (data: any) => api.post('/academic/scores', data),

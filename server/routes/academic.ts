@@ -143,6 +143,52 @@ router.post('/scores', requireAuth, requireRole('STUDENT'), async (req: Request,
   }
 })
 
+// Update activity (title / category / totalScore / activityDate)
+router.patch('/activities/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const data = z.object({
+      title:        z.string().min(1).optional(),
+      category:     z.string().optional(),
+      totalScore:   z.number().optional(),
+      activityDate: z.string().optional(),
+    }).parse(req.body)
+
+    const idx = db.academicActivities.findIndex(a => a.id === req.params.id)
+    if (idx === -1) return res.status(404).json({ error: 'Activity not found' })
+
+    const activity = db.academicActivities[idx]
+    if (data.totalScore !== undefined && data.totalScore !== activity.totalScore) {
+      db.studentScores.filter(s => s.activityId === activity.id).forEach(s => {
+        s.totalScore = data.totalScore!
+      })
+    }
+    if (data.title)        activity.title        = data.title
+    if (data.category)     activity.category     = data.category
+    if (data.totalScore)   activity.totalScore   = data.totalScore
+    if (data.activityDate) activity.activityDate = new Date(data.activityDate).toISOString()
+
+    res.json(expandActivity(activity))
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Delete activity and all its scores
+router.delete('/activities/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const idx = db.academicActivities.findIndex(a => a.id === req.params.id)
+    if (idx === -1) return res.status(404).json({ error: 'Activity not found' })
+    db.academicActivities.splice(idx, 1)
+    for (let i = db.studentScores.length - 1; i >= 0; i--) {
+      if (db.studentScores[i].activityId === req.params.id) db.studentScores.splice(i, 1)
+    }
+    res.json({ deleted: true })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // Admin: all activities
 router.get('/admin/activities', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {

@@ -6,13 +6,52 @@ import { attendanceApi, structureApi } from '../../lib/api'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
-import { AttendanceBadge } from '../../components/ui/Badge'
 import { LoadingSpinner, EmptyState } from '../../components/ui/EmptyState'
 import { formatDate } from '../../lib/utils'
 import {
-  Plus, Key, Lock, CheckCircle, XCircle, Clock,
-  ChevronLeft, ChevronRight, Users, BookOpen, FolderOpen,
+  Plus, Key, Lock, CheckCircle2, XCircle, Clock, AlertCircle,
+  ChevronLeft, ChevronRight, Users, BookOpen, FolderOpen, Minus,
 } from 'lucide-react'
+
+// ─── Status helpers ───────────────────────────────────────────────────────────
+
+type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused'
+
+const STATUS_CYCLE: AttendanceStatus[] = ['absent', 'present', 'late', 'excused']
+
+const STATUS_STYLES: Record<AttendanceStatus, { bg: string; icon: React.ReactNode; label: string; dot: string }> = {
+  present: {
+    bg:    'bg-success/15 hover:bg-success/25 text-success',
+    icon:  <CheckCircle2 className="w-4 h-4" />,
+    label: 'Present',
+    dot:   'bg-success',
+  },
+  absent: {
+    bg:    'bg-danger/15 hover:bg-danger/25 text-danger',
+    icon:  <XCircle className="w-4 h-4" />,
+    label: 'Absent',
+    dot:   'bg-danger',
+  },
+  late: {
+    bg:    'bg-warning/20 hover:bg-warning/30 text-yellow-700',
+    icon:  <Clock className="w-4 h-4" />,
+    label: 'Late',
+    dot:   'bg-warning',
+  },
+  excused: {
+    bg:    'bg-info/15 hover:bg-info/25 text-info',
+    icon:  <AlertCircle className="w-4 h-4" />,
+    label: 'Excused',
+    dot:   'bg-info',
+  },
+}
+
+function nextStatus(current: AttendanceStatus): AttendanceStatus {
+  const idx = STATUS_CYCLE.indexOf(current)
+  return STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length]
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function TeacherAttendance() {
   const { user } = useAuth()
@@ -21,31 +60,31 @@ export default function TeacherAttendance() {
   const assignments: any[] = useMemo(() => teacher?.subjectAssignments || [], [teacher])
 
   // ── Navigation ──────────────────────────────────────────────────────────────
-  const [selectedSection, setSelectedSection] = useState<any>(null)
+  const [selectedSection,   setSelectedSection]   = useState<any>(null)
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string>('')
 
-  // ── Session / modal state ───────────────────────────────────────────────────
+  // ── Session management modal ────────────────────────────────────────────────
+  const [managingSession, setManagingSession] = useState<any>(null)
+  const [showCodePanel,   setShowCodePanel]   = useState(false)
+  const [codePassword,    setCodePassword]    = useState('')
+  const [codeResult,      setCodeResult]      = useState<any>(null)
+  const [codeError,       setCodeError]       = useState('')
+
+  // ── Create session modal ────────────────────────────────────────────────────
   const [showCreate, setShowCreate] = useState(false)
-  const [selectedSession, setSelectedSession] = useState<any>(null)
-  const [showCodeModal, setShowCodeModal] = useState(false)
-  const [codePassword, setCodePassword] = useState('')
-  const [codeResult, setCodeResult] = useState<any>(null)
-  const [codeError, setCodeError] = useState('')
   const [form, setForm] = useState({
     subjectId: '',
     sectionId: '',
     attendanceDate: format(new Date(), 'yyyy-MM-dd'),
   })
 
+  // ── Pending cell updates (for optimistic loading) ───────────────────────────
+  const [pendingCells, setPendingCells] = useState<Set<string>>(new Set())
+
   // ── Queries ─────────────────────────────────────────────────────────────────
-  const { data: sessions = [], isLoading } = useQuery({
+  const { data: sessions = [], isLoading: loadingSessions } = useQuery({
     queryKey: ['teacher-sessions'],
     queryFn: () => attendanceApi.getSessions().then(r => r.data),
-  })
-
-  const { data: sessionDetail } = useQuery({
-    queryKey: ['session-detail', selectedSession?.id],
-    queryFn: () => attendanceApi.getSession(selectedSession!.id).then(r => r.data),
-    enabled: !!selectedSession?.id,
   })
 
   // ── Section groups ──────────────────────────────────────────────────────────
@@ -54,14 +93,13 @@ export default function TeacherAttendance() {
     assignments.forEach(a => {
       if (!a.sectionId) return
       if (!map[a.sectionId]) map[a.sectionId] = { section: a.section, subjects: [] }
-      if (!map[a.sectionId].subjects.find((s: any) => s.subjectId === a.subjectId)) {
+      if (!map[a.sectionId].subjects.find((s: any) => s.subjectId === a.subjectId))
         map[a.sectionId].subjects.push(a)
-      }
     })
     return Object.values(map)
   }, [assignments])
 
-  // ── Student counts per section ──────────────────────────────────────────────
+  // ── Student counts per section (for landing cards) ──────────────────────────
   const sectionIds = useMemo(() => [...new Set(assignments.map(a => a.sectionId))], [assignments])
   const studentCountQueries = useQueries({
     queries: sectionIds.map(id => ({
@@ -74,87 +112,139 @@ export default function TeacherAttendance() {
     [sectionIds, studentCountQueries],
   )
 
-  // ── Sessions filtered to selected section ───────────────────────────────────
-  const visibleSessions = useMemo(
-    () => selectedSection ? sessions.filter((s: any) => s.sectionId === selectedSection.id) : sessions,
-    [sessions, selectedSection],
-  )
-
-  // ── Subjects available in selected section (for create form) ────────────────
-  const sectionSubjects = useMemo(() => {
-    if (!selectedSection) return [...new Map(assignments.map(a => [a.subjectId, a])).values()]
-    return [...new Map(
-      assignments.filter(a => a.sectionId === selectedSection.id).map(a => [a.subjectId, a])
-    ).values()]
-  }, [selectedSection, assignments])
-
-  // For the create form: sections available for selected subject
-  const subjectSections = assignments.filter((a: any) => a.subjectId === form.subjectId)
-
-  // ── Mutations ───────────────────────────────────────────────────────────────
-  const createMutation = useMutation({
-    mutationFn: (d: any) => attendanceApi.createSession(d),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['teacher-sessions'] }); setShowCreate(false) },
+  // ── Students in selected section (for spreadsheet rows) ────────────────────
+  const { data: students = [], isLoading: loadingStudents } = useQuery({
+    queryKey: ['section-students', selectedSection?.id],
+    queryFn: () => structureApi.getSectionStudents(selectedSection!.id).then(r => r.data),
+    enabled: !!selectedSection?.id,
   })
 
+  // ── Subjects in selected section ────────────────────────────────────────────
+  const subjectsInSection = useMemo(() => {
+    if (!selectedSection) return []
+    const seen = new Set<string>()
+    return assignments.filter(a => {
+      if (a.sectionId !== selectedSection.id) return false
+      if (seen.has(a.subjectId)) return false
+      seen.add(a.subjectId)
+      return true
+    })
+  }, [selectedSection, assignments])
+
+  // ── Sessions for selected subject + section (spreadsheet columns) ───────────
+  const sessionsForSubject = useMemo(() => {
+    if (!selectedSection || !selectedSubjectId) return []
+    return (sessions as any[])
+      .filter(s => s.sectionId === selectedSection.id && s.subjectId === selectedSubjectId)
+      .sort((a: any, b: any) => new Date(a.attendanceDate).getTime() - new Date(b.attendanceDate).getTime())
+  }, [sessions, selectedSection, selectedSubjectId])
+
+  // ── Mutations ───────────────────────────────────────────────────────────────
   const updateRecord = useMutation({
-    mutationFn: ({ id, status }: any) => attendanceApi.updateRecord(id, { status }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['session-detail', selectedSession?.id] }),
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      attendanceApi.updateRecord(id, { status }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['teacher-sessions'] }),
+  })
+
+  const createMutation = useMutation({
+    mutationFn: (d: any) => attendanceApi.createSession(d),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['teacher-sessions'] })
+      setShowCreate(false)
+    },
   })
 
   const closeMutation = useMutation({
     mutationFn: (id: string) => attendanceApi.closeSession(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['teacher-sessions'] }); setSelectedSession(null) },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['teacher-sessions'] })
+      setManagingSession(null)
+    },
   })
 
-  const generateCode = async () => {
-    setCodeError('')
+  // ── Cell click: cycle status ────────────────────────────────────────────────
+  async function handleCellClick(session: any, studentId: string) {
+    const record = session.attendanceRecords?.find((r: any) => r.studentId === studentId)
+    if (!record) return
+    const key = `${session.id}_${studentId}`
+    if (pendingCells.has(key)) return
+    const next = nextStatus(record.status as AttendanceStatus)
+    setPendingCells(prev => new Set(prev).add(key))
     try {
-      const res = await attendanceApi.generateCode(selectedSession.id, { password: codePassword })
-      setCodeResult(res.data)
-    } catch (err: any) {
-      setCodeError(err.response?.data?.error || 'Failed')
+      await updateRecord.mutateAsync({ id: record.id, status: next })
+    } finally {
+      setPendingCells(prev => { const n = new Set(prev); n.delete(key); return n })
     }
   }
 
+  // ── Generate session code ───────────────────────────────────────────────────
+  async function generateCode() {
+    setCodeError('')
+    try {
+      const res = await attendanceApi.generateCode(managingSession.id, { password: codePassword })
+      setCodeResult(res.data)
+      // Refresh sessions so the managing panel shows updated code
+      qc.invalidateQueries({ queryKey: ['teacher-sessions'] })
+    } catch (err: any) {
+      setCodeError(err.response?.data?.error || 'Failed to generate code')
+    }
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
   function openCreateModal() {
     setForm({
-      subjectId: '',
+      subjectId: selectedSubjectId,
       sectionId: selectedSection?.id || '',
       attendanceDate: format(new Date(), 'yyyy-MM-dd'),
     })
     setShowCreate(true)
   }
 
-  // ── Loading ─────────────────────────────────────────────────────────────────
-  if (isLoading) return <LoadingSpinner />
+  function openManageSession(session: any) {
+    setManagingSession(session)
+    setShowCodePanel(false)
+    setCodePassword('')
+    setCodeResult(null)
+    setCodeError('')
+  }
 
-  // ── Section card landing view ───────────────────────────────────────────────
+  function selectSection(section: any) {
+    setSelectedSection(section)
+    const group = sectionGroups.find(g => g.section?.id === section.id)
+    setSelectedSubjectId(group?.subjects[0]?.subjectId || '')
+  }
+
+  // ── Loading ─────────────────────────────────────────────────────────────────
+  if (loadingSessions) return <LoadingSpinner />
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // RENDER: Section card landing
+  // ────────────────────────────────────────────────────────────────────────────
   if (!selectedSection) {
     return (
       <div className="space-y-6 animate-fade-in">
         <div>
           <h1 className="page-title">Attendance</h1>
           <p className="text-text-secondary font-inter text-sm mt-1">
-            Select a section to view and manage attendance sessions.
+            Select a section to view and manage attendance.
           </p>
         </div>
 
         {sectionGroups.length === 0 ? (
           <EmptyState
             title="No Assigned Sections"
-            description="Contact your administrator to get sections assigned to your account."
+            description="Contact your administrator to get sections assigned."
             icon={<FolderOpen className="w-8 h-8 text-primary" />}
           />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {sectionGroups.map(({ section, subjects }) => {
-              const sectionSessions = sessions.filter((s: any) => s.sectionId === section?.id)
-              const openCount = sectionSessions.filter((s: any) => s.sessionStatus === 'open').length
+              const sectionSessions = (sessions as any[]).filter(s => s.sectionId === section?.id)
+              const openCount = sectionSessions.filter(s => s.sessionStatus === 'open').length
               return (
                 <div
                   key={section?.id}
-                  onClick={() => setSelectedSection(section)}
+                  onClick={() => selectSection(section)}
                   className="card cursor-pointer hover:shadow-card-hover hover:ring-1 hover:ring-primary/30 transition-all duration-200 select-none"
                 >
                   <div className="flex items-center gap-3 mb-4">
@@ -204,16 +294,46 @@ export default function TeacherAttendance() {
     )
   }
 
-  // ── Section detail view ─────────────────────────────────────────────────────
+  // ────────────────────────────────────────────────────────────────────────────
+  // RENDER: Section detail — subject tabs + attendance spreadsheet
+  // ────────────────────────────────────────────────────────────────────────────
+  const isSheetLoading = loadingStudents || loadingSessions
+
+  // Build the status lookup: sessionId → studentId → status
+  const statusMap = useMemo(() => {
+    const m: Record<string, Record<string, { id: string; status: AttendanceStatus }>> = {}
+    sessionsForSubject.forEach((sess: any) => {
+      m[sess.id] = {}
+      sess.attendanceRecords?.forEach((r: any) => {
+        m[sess.id][r.studentId] = { id: r.id, status: r.status as AttendanceStatus }
+      })
+    })
+    return m
+  }, [sessionsForSubject])
+
+  // Summary counts per session (for column header)
+  const sessionSummaries = useMemo(() =>
+    sessionsForSubject.map((sess: any) => {
+      const records = sess.attendanceRecords || []
+      return {
+        present: records.filter((r: any) => r.status === 'present').length,
+        absent:  records.filter((r: any) => r.status === 'absent').length,
+        late:    records.filter((r: any) => r.status === 'late').length,
+        excused: records.filter((r: any) => r.status === 'excused').length,
+        total:   records.length,
+      }
+    }),
+    [sessionsForSubject],
+  )
+
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header with Back */}
+      {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-title">Attendance</h1>
           <p className="text-text-secondary font-inter text-sm mt-1 flex items-center gap-1.5">
-            <FolderOpen className="w-3.5 h-3.5" />
-            {selectedSection.name}
+            <FolderOpen className="w-3.5 h-3.5" /> {selectedSection.name}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -229,47 +349,229 @@ export default function TeacherAttendance() {
         </div>
       </div>
 
-      {/* Session list */}
-      {visibleSessions.length === 0 ? (
-        <EmptyState
-          title="No Sessions for This Section"
-          description="Create an attendance session to start tracking attendance."
-          action={<Button onClick={openCreateModal}>Create Session</Button>}
-        />
-      ) : (
-        <div className="grid gap-4">
-          {visibleSessions.map((s: any) => {
-            const present = s.attendanceRecords.filter((r: any) => r.status === 'present').length
-            const total = s.attendanceRecords.length
-            const pct = total > 0 ? Math.round((present / total) * 100) : 0
+      <div className="card">
+        {/* Subject tabs */}
+        <div className="flex items-center flex-wrap border-b border-border mb-5">
+          {subjectsInSection.map(a => {
+            const subjectSessions = (sessions as any[]).filter(
+              s => s.sectionId === selectedSection.id && s.subjectId === a.subjectId
+            )
+            const openCount = subjectSessions.filter(s => s.sessionStatus === 'open').length
             return (
-              <div key={s.id} className="card-hover" onClick={() => setSelectedSession(s)}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-poppins font-semibold text-text-primary">{s.subject?.name}</h3>
-                      <span className="badge bg-border text-text-secondary">{s.section?.name}</span>
-                      <span className={`badge ${s.sessionStatus === 'open' ? 'bg-success/10 text-success' : 'bg-border text-text-secondary'}`}>
-                        {s.sessionStatus === 'open' ? '● Open' : '✓ Closed'}
-                      </span>
-                    </div>
-                    <p className="text-text-secondary font-inter text-sm mt-1">{formatDate(s.attendanceDate)}</p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-poppins font-bold text-xl text-primary">{present}/{total}</p>
-                    <p className="text-xs text-text-secondary">{pct}% present</p>
-                  </div>
-                </div>
-                <div className="mt-3 h-1.5 bg-border rounded-full overflow-hidden">
-                  <div className="h-full bg-success rounded-full transition-all" style={{ width: `${pct}%` }} />
-                </div>
-              </div>
+              <button
+                key={a.subjectId}
+                onClick={() => setSelectedSubjectId(a.subjectId)}
+                className={`relative px-4 py-2.5 font-inter text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
+                  selectedSubjectId === a.subjectId
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
+                }`}
+              >
+                {a.subject?.name}
+                {openCount > 0 && (
+                  <span className="ml-1.5 inline-flex w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                )}
+              </button>
             )
           })}
         </div>
-      )}
 
-      {/* Create Session Modal */}
+        {/* Summary bar */}
+        {sessionsForSubject.length > 0 && (
+          <div className="flex items-center gap-4 mb-4 text-xs font-inter text-text-secondary flex-wrap">
+            <span>{sessionsForSubject.length} session{sessionsForSubject.length !== 1 ? 's' : ''}</span>
+            <span>·</span>
+            <span>{(students as any[]).length} student{(students as any[]).length !== 1 ? 's' : ''}</span>
+            <span className="ml-auto text-[11px] text-text-secondary/70 italic">
+              Click any cell to cycle: Absent → Present → Late → Excused
+            </span>
+          </div>
+        )}
+
+        {/* Spreadsheet */}
+        {isSheetLoading ? (
+          <LoadingSpinner />
+        ) : sessionsForSubject.length === 0 ? (
+          <EmptyState
+            title="No Sessions Yet"
+            description="Create an attendance session for this subject to start tracking."
+            action={<Button onClick={openCreateModal} icon={<Plus className="w-4 h-4" />}>New Session</Button>}
+          />
+        ) : (students as any[]).length === 0 ? (
+          <EmptyState title="No Students in This Section" description="Students will appear once enrolled." />
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-border">
+            <table
+              className="border-collapse w-full"
+              style={{ minWidth: Math.max(320, 180 + sessionsForSubject.length * 80) }}
+            >
+              {/* ── Column headers (dates) ───────────────────────────────────── */}
+              <thead>
+                <tr className="bg-surface">
+                  {/* Student column */}
+                  <th className="sticky left-0 z-20 bg-surface px-4 py-3 text-left border-b border-r border-border min-w-[170px]">
+                    <span className="font-poppins font-semibold text-[11px] text-text-secondary uppercase tracking-wider">
+                      Student
+                    </span>
+                  </th>
+
+                  {/* Session date columns */}
+                  {sessionsForSubject.map((sess: any, colIdx: number) => {
+                    const isOpen = sess.sessionStatus === 'open'
+                    const summary = sessionSummaries[colIdx]
+                    const pct = summary.total > 0 ? Math.round((summary.present / summary.total) * 100) : null
+                    return (
+                      <th
+                        key={sess.id}
+                        className="px-2 py-2 border-b border-r border-border text-center min-w-[72px] cursor-pointer hover:bg-primary-light/20 transition-colors group"
+                        onClick={() => openManageSession(sess)}
+                        title="Click to manage this session"
+                      >
+                        <div className="space-y-1">
+                          {/* Date */}
+                          <p className="font-poppins font-semibold text-[11px] text-text-primary">
+                            {format(new Date(sess.attendanceDate), 'MMM d')}
+                          </p>
+                          <p className="font-inter text-[10px] text-text-secondary">
+                            {format(new Date(sess.attendanceDate), 'EEE')}
+                          </p>
+                          {/* Status indicator */}
+                          {isOpen ? (
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-success">
+                              <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                              Open
+                            </span>
+                          ) : (
+                            <span className="text-[9px] text-text-secondary/60 font-inter">Closed</span>
+                          )}
+                          {/* Attendance pct */}
+                          {pct !== null && (
+                            <p className="font-inter text-[9px] text-text-secondary">{pct}%</p>
+                          )}
+                        </div>
+                      </th>
+                    )
+                  })}
+
+                  {/* + New session column */}
+                  <th className="px-2 py-3 border-b border-border min-w-[48px] text-center">
+                    <button
+                      onClick={openCreateModal}
+                      title="Add new session"
+                      className="w-7 h-7 rounded-lg bg-primary-light text-primary hover:bg-primary hover:text-white transition-colors flex items-center justify-center mx-auto"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                  </th>
+                </tr>
+              </thead>
+
+              {/* ── Student rows ──────────────────────────────────────────────── */}
+              <tbody>
+                {(students as any[]).map((student: any, rowIdx: number) => {
+                  const rowBg = rowIdx % 2 === 0 ? 'bg-white' : 'bg-background/40'
+
+                  // Row summary
+                  const rowStatuses = sessionsForSubject.map((sess: any) =>
+                    statusMap[sess.id]?.[student.id]?.status
+                  ).filter(Boolean) as AttendanceStatus[]
+                  const presentCount = rowStatuses.filter(s => s === 'present').length
+                  const totalSess    = rowStatuses.length
+
+                  return (
+                    <tr key={student.id} className={`border-b border-border ${rowBg}`}>
+                      {/* Sticky name */}
+                      <td className={`sticky left-0 z-10 ${rowBg} px-4 py-2 border-r border-border`}>
+                        <p className="font-inter text-sm font-medium text-text-primary leading-tight">{student.fullName}</p>
+                        <p className="font-inter text-[11px] text-text-secondary">
+                          {student.studentNumber}
+                          {totalSess > 0 && (
+                            <span className="ml-1.5 text-text-secondary/60">
+                              {presentCount}/{totalSess}
+                            </span>
+                          )}
+                        </p>
+                      </td>
+
+                      {/* Status cells */}
+                      {sessionsForSubject.map((sess: any) => {
+                        const entry   = statusMap[sess.id]?.[student.id]
+                        const status  = (entry?.status || 'absent') as AttendanceStatus
+                        const cellKey = `${sess.id}_${student.id}`
+                        const pending = pendingCells.has(cellKey)
+                        const style   = STATUS_STYLES[status]
+
+                        return (
+                          <td key={sess.id} className="border-r border-border p-1 text-center">
+                            <button
+                              onClick={() => handleCellClick(sess, student.id)}
+                              disabled={pending || !entry}
+                              title={`${student.fullName}: ${style.label} — click to change`}
+                              className={`w-full h-9 rounded-lg flex items-center justify-center transition-all duration-150 ${style.bg} ${pending ? 'opacity-50' : ''}`}
+                            >
+                              {pending
+                                ? <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                : style.icon
+                              }
+                            </button>
+                          </td>
+                        )
+                      })}
+
+                      {/* Spacer */}
+                      <td className="bg-background/20" />
+                    </tr>
+                  )
+                })}
+
+                {/* ── Column totals row ──────────────────────────────────────── */}
+                <tr className="border-t-2 border-primary/20 bg-primary-light/20">
+                  <td className="sticky left-0 z-10 bg-primary-light/30 px-4 py-2 border-r border-border">
+                    <span className="font-inter text-[11px] font-bold text-text-secondary uppercase tracking-wider">
+                      Summary
+                    </span>
+                  </td>
+                  {sessionsForSubject.map((sess: any, colIdx: number) => {
+                    const s = sessionSummaries[colIdx]
+                    return (
+                      <td key={sess.id} className="border-r border-border px-1 py-2 text-center">
+                        <p className="font-poppins font-bold text-xs text-success">{s.present}P</p>
+                        <p className="font-inter text-[10px] text-danger">{s.absent}A</p>
+                        {(s.late > 0 || s.excused > 0) && (
+                          <p className="font-inter text-[10px] text-text-secondary">
+                            {s.late > 0 ? `${s.late}L` : ''}{s.late > 0 && s.excused > 0 ? ' ' : ''}{s.excused > 0 ? `${s.excused}E` : ''}
+                          </p>
+                        )}
+                      </td>
+                    )
+                  })}
+                  <td className="bg-primary-light/10" />
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ── Legend ──────────────────────────────────────────────────────────── */}
+        {sessionsForSubject.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <div className="flex items-center gap-6 flex-wrap">
+              <p className="font-inter text-xs font-semibold text-text-secondary uppercase tracking-wider">Legend</p>
+              {(Object.entries(STATUS_STYLES) as [AttendanceStatus, typeof STATUS_STYLES[AttendanceStatus]][]).map(([status, st]) => (
+                <div key={status} className="flex items-center gap-1.5">
+                  <div className={`w-2.5 h-2.5 rounded-full ${st.dot}`} />
+                  <span className="font-inter text-xs text-text-secondary">{st.label}</span>
+                </div>
+              ))}
+              <p className="font-inter text-[11px] text-text-secondary/60 ml-auto italic">
+                Click date header to manage session · Click cell to cycle status
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Create Session Modal ───────────────────────────────────────────────── */}
       <Modal
         open={showCreate}
         onClose={() => setShowCreate(false)}
@@ -288,12 +590,10 @@ export default function TeacherAttendance() {
         }
       >
         <div className="space-y-4">
-          {/* Section indicator */}
           <div className="p-3 bg-primary-light/30 rounded-xl flex items-center gap-2">
             <FolderOpen className="w-4 h-4 text-primary flex-shrink-0" />
             <p className="font-inter text-sm font-medium text-text-primary">{selectedSection.name}</p>
           </div>
-
           <div>
             <label className="block text-sm font-medium font-inter text-text-primary mb-1.5">Subject</label>
             <select
@@ -302,30 +602,11 @@ export default function TeacherAttendance() {
               onChange={e => setForm(f => ({ ...f, subjectId: e.target.value }))}
             >
               <option value="">Select Subject</option>
-              {sectionSubjects.map((a: any) => (
+              {subjectsInSection.map((a: any) => (
                 <option key={a.subjectId} value={a.subjectId}>{a.subject?.name}</option>
               ))}
             </select>
           </div>
-
-          {/* If teacher has subjects in multiple sections show section selector too */}
-          {!selectedSection && (
-            <div>
-              <label className="block text-sm font-medium font-inter text-text-primary mb-1.5">Section</label>
-              <select
-                className="input-field"
-                value={form.sectionId}
-                onChange={e => setForm(f => ({ ...f, sectionId: e.target.value }))}
-                disabled={!form.subjectId}
-              >
-                <option value="">Select Section</option>
-                {subjectSections.map((a: any) => (
-                  <option key={a.sectionId} value={a.sectionId}>{a.section?.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
           <Input
             label="Attendance Date"
             type="date"
@@ -335,120 +616,125 @@ export default function TeacherAttendance() {
         </div>
       </Modal>
 
-      {/* Session Detail Modal */}
+      {/* ── Session Management Modal ───────────────────────────────────────────── */}
       <Modal
-        open={!!selectedSession}
-        onClose={() => { setSelectedSession(null); setCodeResult(null); setShowCodeModal(false) }}
-        title={`${selectedSession?.subject?.name} — ${selectedSession?.section?.name}`}
-        size="xl"
+        open={!!managingSession}
+        onClose={() => { setManagingSession(null); setShowCodePanel(false); setCodeResult(null) }}
+        title="Manage Session"
+        size="sm"
         footer={
-          <div className="flex gap-3 flex-wrap">
-            {selectedSession?.sessionStatus === 'open' && (
-              <>
-                <Button
-                  variant="secondary"
-                  icon={<Key className="w-4 h-4" />}
-                  onClick={() => setShowCodeModal(true)}
-                >
-                  Generate Session Code
-                </Button>
-                <Button
-                  variant="danger"
-                  onClick={() => closeMutation.mutate(selectedSession.id)}
-                  loading={closeMutation.isPending}
-                >
-                  Close Session
-                </Button>
-              </>
-            )}
-          </div>
+          managingSession?.sessionStatus === 'open' && !showCodePanel ? (
+            <div className="flex gap-3 flex-wrap">
+              <Button
+                variant="secondary"
+                icon={<Key className="w-4 h-4" />}
+                onClick={() => setShowCodePanel(true)}
+              >
+                Generate Code
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => closeMutation.mutate(managingSession.id)}
+                loading={closeMutation.isPending}
+              >
+                Close Session
+              </Button>
+            </div>
+          ) : undefined
         }
       >
-        {showCodeModal ? (
-          <div className="space-y-4">
-            <p className="font-inter text-sm text-text-secondary">
-              Enter your password to generate an Attendance Session Code for student self-attendance.
-            </p>
-            <Input
-              label="Your Password"
-              type="password"
-              placeholder="Verify your identity"
-              icon={<Lock className="w-4 h-4" />}
-              value={codePassword}
-              onChange={e => setCodePassword(e.target.value)}
-            />
-            {codeError && <p className="text-danger text-sm">{codeError}</p>}
-            {codeResult ? (
-              <div className="p-6 bg-primary-light rounded-2xl text-center">
-                <p className="text-xs text-text-secondary font-inter uppercase tracking-wider mb-2">Session Code</p>
-                <p className="text-5xl font-poppins font-bold text-primary tracking-widest">{codeResult.sessionCode}</p>
-                <p className="text-xs text-text-secondary mt-3 font-inter">
-                  Expires: {format(new Date(codeResult.expiresAt), 'h:mm a')}
-                </p>
+        {managingSession && (
+          <>
+            {/* Session info */}
+            <div className="space-y-3 mb-4">
+              <div className="p-4 bg-background rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="font-inter text-sm text-text-secondary">Date</p>
+                  <p className="font-poppins font-semibold text-text-primary">
+                    {formatDate(managingSession.attendanceDate)}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="font-inter text-sm text-text-secondary">Status</p>
+                  <span className={`badge ${managingSession.sessionStatus === 'open'
+                    ? 'bg-success/10 text-success'
+                    : 'bg-border text-text-secondary'}`}>
+                    {managingSession.sessionStatus === 'open' ? '● Open' : '✓ Closed'}
+                  </span>
+                </div>
+                {managingSession.sessionCode && (
+                  <div className="flex items-center justify-between">
+                    <p className="font-inter text-sm text-text-secondary">Session Code</p>
+                    <p className="font-poppins font-bold text-lg text-primary tracking-widest">
+                      {managingSession.sessionCode}
+                    </p>
+                  </div>
+                )}
               </div>
-            ) : (
-              <Button onClick={generateCode} className="w-full">Generate Code</Button>
+
+              {/* Attendance summary */}
+              {(() => {
+                const records = managingSession.attendanceRecords || []
+                const present = records.filter((r: any) => r.status === 'present').length
+                const absent  = records.filter((r: any) => r.status === 'absent').length
+                const late    = records.filter((r: any) => r.status === 'late').length
+                const excused = records.filter((r: any) => r.status === 'excused').length
+                const pct     = records.length > 0 ? Math.round((present / records.length) * 100) : 0
+                return (
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { label: 'Present', value: present, color: 'text-success' },
+                      { label: 'Absent',  value: absent,  color: 'text-danger' },
+                      { label: 'Late',    value: late,    color: 'text-yellow-600' },
+                      { label: 'Excused', value: excused, color: 'text-info' },
+                    ].map(item => (
+                      <div key={item.label} className="bg-background rounded-xl p-2.5 text-center">
+                        <p className={`font-poppins font-bold text-lg ${item.color}`}>{item.value}</p>
+                        <p className="font-inter text-[10px] text-text-secondary">{item.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+            </div>
+
+            {/* Generate code panel */}
+            {showCodePanel && (
+              <div className="space-y-3 border-t border-border pt-4">
+                <p className="font-inter text-sm text-text-secondary">
+                  Confirm your password to generate a session code for student self-attendance.
+                </p>
+                <Input
+                  label="Your Password"
+                  type="password"
+                  placeholder="Enter your password"
+                  icon={<Lock className="w-4 h-4" />}
+                  value={codePassword}
+                  onChange={e => setCodePassword(e.target.value)}
+                />
+                {codeError && <p className="text-danger text-sm font-inter">{codeError}</p>}
+                {codeResult ? (
+                  <div className="p-5 bg-primary-light rounded-2xl text-center">
+                    <p className="text-xs text-text-secondary font-inter uppercase tracking-wider mb-2">Session Code</p>
+                    <p className="text-5xl font-poppins font-bold text-primary tracking-widest">{codeResult.sessionCode}</p>
+                    <p className="text-xs text-text-secondary mt-3 font-inter">
+                      Expires: {format(new Date(codeResult.expiresAt), 'h:mm a')}
+                    </p>
+                  </div>
+                ) : (
+                  <Button onClick={generateCode} className="w-full">Generate Code</Button>
+                )}
+                <Button
+                  variant="secondary"
+                  onClick={() => { setShowCodePanel(false); setCodeResult(null); setCodePassword('') }}
+                  className="w-full"
+                >
+                  Back
+                </Button>
+              </div>
             )}
-            <Button
-              variant="secondary"
-              onClick={() => { setShowCodeModal(false); setCodeResult(null); setCodePassword('') }}
-              className="w-full"
-            >
-              Back to Attendance Sheet
-            </Button>
-          </div>
-        ) : sessionDetail ? (
-          <div className="table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Status</th>
-                  <th>Time</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sessionDetail.attendanceRecords.map((r: any) => (
-                  <tr key={r.id}>
-                    <td className="font-medium">{r.student?.fullName}</td>
-                    <td><AttendanceBadge status={r.status} /></td>
-                    <td className="text-text-secondary text-sm">
-                      {r.status !== 'absent' ? format(new Date(r.timeRecorded), 'h:mm a') : '—'}
-                    </td>
-                    <td>
-                      {sessionDetail.sessionStatus === 'open' && (
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => updateRecord.mutate({ id: r.id, status: 'present' })}
-                            className={`p-1.5 rounded-lg transition-colors ${r.status === 'present' ? 'bg-success/20 text-success' : 'hover:bg-success/10 text-text-secondary hover:text-success'}`}
-                            title="Present"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => updateRecord.mutate({ id: r.id, status: 'absent' })}
-                            className={`p-1.5 rounded-lg transition-colors ${r.status === 'absent' ? 'bg-danger/20 text-danger' : 'hover:bg-danger/10 text-text-secondary hover:text-danger'}`}
-                            title="Absent"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => updateRecord.mutate({ id: r.id, status: 'late' })}
-                            className={`p-1.5 rounded-lg transition-colors ${r.status === 'late' ? 'bg-warning/20 text-yellow-700' : 'hover:bg-warning/10 text-text-secondary hover:text-yellow-700'}`}
-                            title="Late"
-                          >
-                            <Clock className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : <LoadingSpinner />}
+          </>
+        )}
       </Modal>
     </div>
   )
