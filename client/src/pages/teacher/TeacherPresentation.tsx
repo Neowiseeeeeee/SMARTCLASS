@@ -4,10 +4,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../lib/auth'
 import { presentationsApi } from '../../lib/api'
 import {
-  Monitor, BookOpen, FileText, ImageIcon, Play, X, ChevronRight, FolderOpen,
+  Monitor, BookOpen, FileText, ImageIcon, Play, X, ChevronRight, FolderOpen, Clock,
 } from 'lucide-react'
 import { EmptyState, LoadingSpinner } from '../../components/ui/EmptyState'
 import { Button } from '../../components/ui/Button'
+import { formatDateTime, timeAgo } from '../../lib/utils'
 
 // ─── Full-screen presentation overlay ────────────────────────────────────────
 function PresentOverlay({
@@ -256,6 +257,13 @@ export default function TeacherPresentation() {
                                 </p>
                                 <p className="font-inter text-xs text-text-secondary truncate">
                                   {m.originalName}
+                                </p>
+                                <p
+                                  className="font-inter text-[11px] text-text-secondary/70 mt-0.5 flex items-center gap-1"
+                                  title={formatDateTime(m.uploadedAt)}
+                                >
+                                  <Clock className="w-3 h-3 flex-shrink-0" />
+                                  {timeAgo(m.uploadedAt)}
                                 </p>
                               </div>
                               <button

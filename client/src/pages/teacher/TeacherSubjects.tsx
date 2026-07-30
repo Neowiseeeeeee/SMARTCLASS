@@ -5,10 +5,11 @@ import { useAuth } from '../../lib/auth'
 import { presentationsApi } from '../../lib/api'
 import {
   BookOpen, Upload, FileText, ImageIcon, Trash2,
-  ChevronRight, ChevronDown, FolderOpen, Play, Monitor,
+  ChevronRight, ChevronDown, FolderOpen, Play, Monitor, Clock,
 } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { EmptyState, LoadingSpinner } from '../../components/ui/EmptyState'
+import { formatDateTime, timeAgo } from '../../lib/utils'
 
 // ─── Presentation overlay ─────────────────────────────────────────────────────
 function PresentOverlay({
@@ -417,6 +418,13 @@ export default function TeacherSubjects() {
                       </p>
                       <p className="font-inter text-xs text-text-secondary truncate">
                         {m.originalName}
+                      </p>
+                      <p
+                        className="font-inter text-[11px] text-text-secondary/70 mt-0.5 flex items-center gap-1"
+                        title={formatDateTime(m.uploadedAt)}
+                      >
+                        <Clock className="w-3 h-3 flex-shrink-0" />
+                        {timeAgo(m.uploadedAt)}
                       </p>
                     </div>
 
