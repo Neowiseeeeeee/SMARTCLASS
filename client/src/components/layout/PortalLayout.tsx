@@ -211,8 +211,7 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  'flex items-center gap-3 px-4 rounded-xl font-poppins font-medium text-nav transition-all duration-150 cursor-pointer touch-manipulation',
-                  /* Taller tap targets: py-3.5 everywhere (good for touchscreen) */
+                  'flex items-center gap-3 px-4 rounded-xl font-poppins font-medium text-nav transition-all duration-150 cursor-pointer touch-manipulation whitespace-nowrap',
                   'py-3.5',
                   isActive ? 'bg-primary text-white shadow-sm' : 'text-white/70 hover:bg-white/10 hover:text-white'
                 )}
