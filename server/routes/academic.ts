@@ -204,4 +204,73 @@ router.get('/admin/activities', requireAuth, requireRole('ADMIN'), async (req: R
   }
 })
 
+// ─── Imported Sheets ─────────────────────────────────────────────────────────
+
+// Get all imported sheets for a section (scoped to teacher)
+router.get('/sheets', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const { sectionId } = req.query
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
+    const sheets = db.importedSheets.filter(s =>
+      (!sectionId || s.sectionId === sectionId) &&
+      (req.user!.role === 'ADMIN' || s.teacherId === (teacher?.id || ''))
+    )
+    res.json(sheets)
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Create / replace an imported sheet
+router.post('/sheets', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const data = z.object({
+      sectionId:  z.string(),
+      subjectId:  z.string().optional(),
+      name:       z.string().min(1),
+      headers:    z.array(z.string()),
+      rows:       z.array(z.array(z.string())),
+    }).parse(req.body)
+
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
+    const teacherId = teacher?.id || ''
+
+    // If replacing a subject tab, remove any prior sheet for the same section+subject
+    if (data.subjectId) {
+      const idx = db.importedSheets.findIndex(
+        s => s.sectionId === data.sectionId && s.subjectId === data.subjectId && s.teacherId === teacherId
+      )
+      if (idx !== -1) db.importedSheets.splice(idx, 1)
+    }
+
+    const sheet = {
+      id: (await import('uuid')).v4(),
+      teacherId,
+      sectionId: data.sectionId,
+      subjectId: data.subjectId,
+      name: data.name,
+      headers: data.headers,
+      rows: data.rows,
+      createdAt: new Date().toISOString(),
+    }
+    db.importedSheets.push(sheet)
+    res.json(sheet)
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Delete an imported sheet
+router.delete('/sheets/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const idx = db.importedSheets.findIndex(s => s.id === req.params.id)
+    if (idx === -1) return res.status(404).json({ error: 'Sheet not found' })
+    db.importedSheets.splice(idx, 1)
+    res.json({ deleted: true })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 export default router

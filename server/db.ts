@@ -301,6 +301,17 @@ export interface PresentationMaterial {
   uploadedAt: string
 }
 
+export interface ImportedSheet {
+  id: string
+  teacherId: string
+  sectionId: string
+  subjectId?: string   // set when replacing an existing subject tab's view
+  name: string
+  headers: string[]
+  rows: string[][]
+  createdAt: string
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const db = {
@@ -326,6 +337,7 @@ export const db = {
   announcements: [] as Announcement[],
   systemSettings: [] as SystemSetting[],
   presentationMaterials: [] as PresentationMaterial[],
+  importedSheets: [] as ImportedSheet[],
 }
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────

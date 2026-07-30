@@ -99,6 +99,11 @@ export const academicApi = {
     api.post(`/academic/activities/${activityId}/scores`, scores),
   submitScore: (data: any) => api.post('/academic/scores', data),
   getAdminActivities: () => api.get('/academic/admin/activities'),
+  // Imported sheets
+  getSheets: (sectionId: string) => api.get('/academic/sheets', { params: { sectionId } }),
+  createSheet: (data: { sectionId: string; subjectId?: string; name: string; headers: string[]; rows: string[][] }) =>
+    api.post('/academic/sheets', data),
+  deleteSheet: (id: string) => api.delete(`/academic/sheets/${id}`),
 }
 
 // Structure

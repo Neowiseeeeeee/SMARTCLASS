@@ -12,6 +12,7 @@ import {
   BarChart2, ChevronLeft, ChevronRight, Plus,
   Check, Loader2, Users, BookOpen, FolderOpen,
   Trash2, Pencil, Download, Calculator, X,
+  MoreVertical, Upload, AlertTriangle, FileSpreadsheet,
 } from 'lucide-react'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -33,8 +34,80 @@ const CATEGORY_COLORS: Record<string, string> = {
 interface FormulaCol {
   id: string
   name: string
-  /** Each term: which activity and what weight percentage (0–100) */
   terms: { activityId: string; weight: number }[]
+}
+
+// ─── CSV parser (no constraints — reads any CSV as-is) ───────────────────────
+
+function parseCSVRaw(text: string): { headers: string[]; rows: string[][] } {
+  const lines = text.split(/\r?\n/).filter(l => l.trim())
+  if (lines.length < 1) return { headers: [], rows: [] }
+  const parseRow = (line: string): string[] => {
+    const values: string[] = []
+    let cur = '', inQ = false
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '"') inQ = !inQ
+      else if (line[i] === ',' && !inQ) { values.push(cur.trim()); cur = '' }
+      else cur += line[i]
+    }
+    values.push(cur.trim())
+    return values
+  }
+  const headers = parseRow(lines[0])
+  const maxCols = headers.length
+  const rows = lines.slice(1).map(line => {
+    const cells = parseRow(line)
+    // Pad or trim to match header count
+    while (cells.length < maxCols) cells.push('')
+    return cells.slice(0, maxCols)
+  })
+  return { headers, rows }
+}
+
+// ─── Imported sheet table (read-only, renders raw CSV data) ──────────────────
+
+function ImportedSheetTable({ sheet }: { sheet: any }) {
+  if (!sheet) return null
+  return (
+    <div className="overflow-x-auto rounded-xl border border-border">
+      <table className="border-collapse w-full" style={{ minWidth: Math.max(400, sheet.headers.length * 130) }}>
+        <thead>
+          <tr className="bg-surface">
+            {sheet.headers.map((h: string, i: number) => (
+              <th
+                key={i}
+                className={`px-4 py-3 text-left border-b border-r border-border text-xs font-poppins font-semibold text-text-secondary uppercase tracking-wider whitespace-nowrap ${i === 0 ? 'sticky left-0 z-10 bg-surface min-w-[160px]' : 'min-w-[120px]'}`}
+              >
+                {h || <span className="italic text-text-secondary/40">Column {i + 1}</span>}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {sheet.rows.length === 0 ? (
+            <tr>
+              <td colSpan={sheet.headers.length} className="px-4 py-8 text-center text-sm font-inter text-text-secondary italic">
+                No data rows in this sheet
+              </td>
+            </tr>
+          ) : (
+            sheet.rows.map((row: string[], ri: number) => (
+              <tr key={ri} className={`border-b border-border hover:bg-primary-light/5 transition-colors ${ri % 2 === 0 ? 'bg-white' : 'bg-background/40'}`}>
+                {row.map((cell: string, ci: number) => (
+                  <td
+                    key={ci}
+                    className={`px-4 py-2.5 border-r border-border text-sm font-inter text-text-primary ${ci === 0 ? 'sticky left-0 z-10 font-medium ' + (ri % 2 === 0 ? 'bg-white' : 'bg-background/40') : ''}`}
+                  >
+                    {cell || <span className="text-text-secondary/30">—</span>}
+                  </td>
+                ))}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -48,6 +121,64 @@ export default function TeacherAcademic() {
   // ── Navigation ──────────────────────────────────────────────────────────────
   const [selectedSection,   setSelectedSection]   = useState<any>(null)
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('')
+
+  // ── Imported sheet selection ────────────────────────────────────────────────
+  const [selectedSheetId, setSelectedSheetId] = useState<string | null>(null)
+
+  // ── Dropdown menu ───────────────────────────────────────────────────────────
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!showMenu) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showMenu])
+
+  // ── Import CSV modal ────────────────────────────────────────────────────────
+  const [showImportModal,  setShowImportModal]  = useState(false)
+  const [importMode,       setImportMode]       = useState<'new-tab' | 'replace'>('new-tab')
+  const [importStep,       setImportStep]       = useState<'setup' | 'preview'>('setup')
+  const [importTabName,    setImportTabName]    = useState('')
+  const [importFileName,   setImportFileName]   = useState('')
+  const [importHeaders,    setImportHeaders]    = useState<string[]>([])
+  const [importRows,       setImportRows]       = useState<string[][]>([])
+  const [importParseError, setImportParseError] = useState('')
+  const [importDragOver,   setImportDragOver]   = useState(false)
+  const importFileRef = useRef<HTMLInputElement>(null)
+
+  function handleImportFile(file: File) {
+    setImportParseError('')
+    setImportFileName(file.name)
+    const reader = new FileReader()
+    reader.onload = e => {
+      const { headers, rows } = parseCSVRaw(e.target?.result as string)
+      if (headers.length === 0) {
+        setImportParseError('Could not read any columns from this file.')
+        return
+      }
+      if (rows.length === 0) {
+        setImportParseError('No data rows found. Check that the file has a header row plus at least one data row.')
+        return
+      }
+      setImportHeaders(headers)
+      setImportRows(rows)
+      setImportStep('preview')
+    }
+    reader.readAsText(file)
+  }
+
+  function resetImport() {
+    setImportStep('setup')
+    setImportTabName('')
+    setImportFileName('')
+    setImportHeaders([])
+    setImportRows([])
+    setImportParseError('')
+    setImportDragOver(false)
+  }
 
   // ── Excel grid: score state ─────────────────────────────────────────────────
   const [localScores,  setLocalScores]  = useState<Record<string, Record<string, number | ''>>>({})
@@ -80,7 +211,6 @@ export default function TeacherAcademic() {
     terms: { activityId: string; weight: number }[]
   }>({ name: '', terms: [] })
 
-  // Load formula cols from localStorage when section/subject changes
   useEffect(() => {
     if (!selectedSection || !selectedSubjectId) { setFormulaCols([]); return }
     try {
@@ -131,6 +261,12 @@ export default function TeacherAcademic() {
     enabled: !!selectedSection?.id,
   })
 
+  const { data: importedSheets = [] } = useQuery({
+    queryKey: ['imported-sheets', selectedSection?.id],
+    queryFn: () => academicApi.getSheets(selectedSection!.id).then(r => r.data),
+    enabled: !!selectedSection?.id,
+  })
+
   // ── Subjects in section ─────────────────────────────────────────────────────
   const subjectsInSection = useMemo(() => {
     if (!selectedSection) return []
@@ -145,6 +281,7 @@ export default function TeacherAcademic() {
 
   useEffect(() => {
     setSelectedSubjectId(subjectsInSection.length > 0 ? subjectsInSection[0].subjectId : '')
+    setSelectedSheetId(null)
   }, [subjectsInSection])
 
   // ── Activities for current view ─────────────────────────────────────────────
@@ -154,6 +291,21 @@ export default function TeacherAcademic() {
       .filter(a => a.subjectId === selectedSubjectId && a.sectionId === selectedSection.id)
       .sort((a: any, b: any) => new Date(a.activityDate).getTime() - new Date(b.activityDate).getTime())
   }, [activities, selectedSubjectId, selectedSection])
+
+  // ── Active sheet (either free-form or replacing a subject tab) ──────────────
+  const activeSheet = useMemo(() => {
+    if (selectedSheetId)
+      return (importedSheets as any[]).find((s: any) => s.id === selectedSheetId) || null
+    if (selectedSubjectId)
+      return (importedSheets as any[]).find((s: any) => s.subjectId === selectedSubjectId) || null
+    return null
+  }, [selectedSheetId, selectedSubjectId, importedSheets])
+
+  // Free-form sheet tabs (no subjectId)
+  const freeSheets = useMemo(
+    () => (importedSheets as any[]).filter((s: any) => !s.subjectId),
+    [importedSheets],
+  )
 
   // ── Sync local scores from server ───────────────────────────────────────────
   useEffect(() => {
@@ -239,6 +391,48 @@ export default function TeacherAcademic() {
   function handleDeleteActivity(act: any) {
     if (!window.confirm(`Delete "${act.title}" and all its scores? This cannot be undone.`)) return
     deleteMutation.mutate(act.id)
+  }
+
+  // ── Imported sheets ─────────────────────────────────────────────────────────
+  const createSheetMutation = useMutation({
+    mutationFn: (data: any) => academicApi.createSheet(data),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['imported-sheets', selectedSection?.id] })
+      const sheet = res.data
+      if (sheet.subjectId) {
+        // Replace mode: stay on the subject tab, activeSheet will now show the import
+        setSelectedSheetId(null)
+      } else {
+        // New tab mode: switch to the new sheet tab
+        setSelectedSheetId(sheet.id)
+        setSelectedSubjectId('')
+      }
+      resetImport()
+      setShowImportModal(false)
+    },
+  })
+
+  const deleteSheetMutation = useMutation({
+    mutationFn: (id: string) => academicApi.deleteSheet(id),
+    onSuccess: (_data, deletedId) => {
+      qc.invalidateQueries({ queryKey: ['imported-sheets', selectedSection?.id] })
+      if (selectedSheetId === deletedId) {
+        setSelectedSheetId(null)
+        if (subjectsInSection.length > 0) setSelectedSubjectId(subjectsInSection[0].subjectId)
+      }
+    },
+  })
+
+  function handleConfirmImport() {
+    if (!selectedSection) return
+    const subjectName = subjectsInSection.find(a => a.subjectId === selectedSubjectId)?.subject?.name || 'Import'
+    createSheetMutation.mutate({
+      sectionId: selectedSection.id,
+      subjectId: importMode === 'replace' ? selectedSubjectId : undefined,
+      name: importMode === 'new-tab' ? (importTabName.trim() || importFileName.replace(/\.csv$/i, '')) : subjectName,
+      headers: importHeaders,
+      rows: importRows,
+    })
   }
 
   // ── Formula column helpers ──────────────────────────────────────────────────
@@ -330,6 +524,7 @@ export default function TeacherAcademic() {
     saveTimeoutRef.current = {}
     setSelectedSection(null); setSelectedSubjectId('')
     setLocalScores({}); setFormulaCols([])
+    setSelectedSheetId(null)
   }
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -417,67 +612,196 @@ export default function TeacherAcademic() {
         {/* Section name */}
         <p className="font-poppins font-bold text-lg text-text-primary mb-3">{selectedSection.name}</p>
 
-        {/* Subject tabs */}
-        <div className="flex items-center flex-wrap border-b border-border mb-4">
-          {subjectsInSection.map(a => (
+        {/* ── Tabs: subject tabs + free-form sheet tabs + New Tab button ── */}
+        <div className="flex items-center flex-wrap border-b border-border mb-4 gap-y-1">
+          {/* System subject tabs */}
+          {subjectsInSection.map(a => {
+            const hasSheet = (importedSheets as any[]).some(
+              (s: any) => s.subjectId === a.subjectId
+            )
+            const isActive = !selectedSheetId && selectedSubjectId === a.subjectId
+            return (
+              <button
+                key={a.subjectId}
+                onClick={() => { setSelectedSubjectId(a.subjectId); setSelectedSheetId(null) }}
+                className={`flex items-center gap-1.5 px-4 py-2.5 font-inter text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
+                  isActive
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
+                }`}
+              >
+                {a.subject?.name}
+                {hasSheet && (
+                  <span title="Has imported sheet">
+                    <FileSpreadsheet className="w-3 h-3 opacity-60" />
+                  </span>
+                )}
+              </button>
+            )
+          })}
+
+          {/* Free-form imported sheet tabs */}
+          {freeSheets.map((sheet: any) => (
             <button
-              key={a.subjectId}
-              onClick={() => setSelectedSubjectId(a.subjectId)}
-              className={`px-4 py-2.5 font-inter text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
-                selectedSubjectId === a.subjectId
-                  ? 'border-primary text-primary'
+              key={sheet.id}
+              onClick={() => { setSelectedSheetId(sheet.id); setSelectedSubjectId('') }}
+              className={`group flex items-center gap-1.5 px-4 py-2.5 font-inter text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
+                selectedSheetId === sheet.id
+                  ? 'border-secondary text-secondary'
                   : 'border-transparent text-text-secondary hover:text-text-primary hover:border-border'
               }`}
             >
-              {a.subject?.name}
+              <FileSpreadsheet className="w-3.5 h-3.5 flex-shrink-0" />
+              {sheet.name}
+              <span
+                role="button"
+                onClick={e => {
+                  e.stopPropagation()
+                  if (window.confirm(`Delete "${sheet.name}"? This cannot be undone.`)) {
+                    deleteSheetMutation.mutate(sheet.id)
+                  }
+                }}
+                className="opacity-0 group-hover:opacity-100 ml-0.5 p-0.5 rounded hover:bg-danger/10 text-text-secondary hover:text-danger transition-all"
+                title="Delete this sheet"
+              >
+                <X className="w-3 h-3" />
+              </span>
             </button>
           ))}
+
+          {/* + New Tab button */}
+          <button
+            onClick={() => { setImportMode('new-tab'); resetImport(); setShowImportModal(true) }}
+            title="Add a new grade sheet tab by importing a CSV"
+            className="ml-2 mb-px flex items-center gap-1 px-2.5 py-1.5 text-xs font-inter font-medium text-text-secondary hover:text-primary border border-dashed border-border hover:border-primary/50 rounded-lg transition-colors"
+          >
+            <Plus className="w-3 h-3" /> New Tab
+          </button>
         </div>
 
-        {/* Toolbar */}
+        {/* ── Toolbar ── */}
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-          <p className="font-inter text-sm text-text-secondary">
-            {isGridLoading ? 'Loading…' : (
-              `${(students as any[]).length} student${(students as any[]).length !== 1 ? 's' : ''}` +
-              ` · ${filteredActivities.length} activit${filteredActivities.length !== 1 ? 'ies' : 'y'}` +
-              (formulaCols.length > 0 ? ` · ${formulaCols.length} formula column${formulaCols.length !== 1 ? 's' : ''}` : '')
+          {/* Left: info strip */}
+          {activeSheet ? (
+            <p className="font-inter text-sm text-text-secondary flex items-center gap-1.5">
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span className="font-medium text-text-primary">{activeSheet.name}</span>
+              <span>·</span>
+              <span>{activeSheet.headers.length} columns · {activeSheet.rows.length} rows</span>
+            </p>
+          ) : (
+            <p className="font-inter text-sm text-text-secondary">
+              {isGridLoading ? 'Loading…' : (
+                `${(students as any[]).length} student${(students as any[]).length !== 1 ? 's' : ''}` +
+                ` · ${filteredActivities.length} activit${filteredActivities.length !== 1 ? 'ies' : 'y'}` +
+                (formulaCols.length > 0 ? ` · ${formulaCols.length} formula column${formulaCols.length !== 1 ? 's' : ''}` : '')
+              )}
+            </p>
+          )}
+
+          {/* Right: dropdown menu */}
+          <div className="flex items-center gap-2">
+            {/* Remove import button — shown when viewing a replaced subject tab */}
+            {activeSheet && activeSheet.subjectId && (
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={<X className="w-3.5 h-3.5" />}
+                onClick={() => {
+                  if (window.confirm('Remove this imported sheet? The original activity grid will be restored.')) {
+                    deleteSheetMutation.mutate(activeSheet.id)
+                  }
+                }}
+              >
+                Remove Import
+              </Button>
             )}
-          </p>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              size="sm"
-              variant="secondary"
-              icon={<Download className="w-3.5 h-3.5" />}
-              onClick={exportCSV}
-              disabled={filteredActivities.length === 0 || (students as any[]).length === 0}
-            >
-              Export CSV
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              icon={<Calculator className="w-3.5 h-3.5" />}
-              onClick={() => openFormulaModal()}
-              disabled={filteredActivities.length === 0}
-              title="Add a computed column (weighted formula)"
-            >
-              Formula
-            </Button>
-            <Button
-              size="sm"
-              icon={<Plus className="w-3.5 h-3.5" />}
-              onClick={() => setShowAddActivity(true)}
-              disabled={!selectedSubjectId}
-            >
-              Add Activity
-            </Button>
+
+            {/* ⋮ Actions dropdown */}
+            <div className="relative" ref={menuRef}>
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={<MoreVertical className="w-3.5 h-3.5" />}
+                onClick={() => setShowMenu(v => !v)}
+              >
+                Actions
+              </Button>
+
+              {showMenu && (
+                <div className="absolute right-0 top-full mt-1 bg-white border border-border rounded-xl shadow-lg z-30 min-w-[210px] py-1.5 overflow-hidden">
+                  {/* Import */}
+                  <p className="px-4 pt-1 pb-1 text-[10px] font-inter font-semibold text-text-secondary uppercase tracking-wide">
+                    Import CSV
+                  </p>
+                  <button
+                    onClick={() => { setImportMode('new-tab'); resetImport(); setShowMenu(false); setShowImportModal(true) }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-inter text-text-primary hover:bg-gray-50 transition-colors"
+                  >
+                    <Upload className="w-4 h-4 text-secondary flex-shrink-0" />
+                    <div className="text-left">
+                      <p>New Tab</p>
+                      <p className="text-[11px] text-text-secondary">Creates a new sheet tab</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { setImportMode('replace'); resetImport(); setShowMenu(false); setShowImportModal(true) }}
+                    disabled={!selectedSubjectId || !!selectedSheetId}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-inter text-text-primary hover:bg-red-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <AlertTriangle className="w-4 h-4 text-danger flex-shrink-0" />
+                    <div className="text-left">
+                      <p className="text-danger">Replace Current Tab</p>
+                      <p className="text-[11px] text-text-secondary">Overlays this subject's view</p>
+                    </div>
+                  </button>
+
+                  <div className="border-t border-border my-1.5" />
+
+                  {/* Export */}
+                  <p className="px-4 pt-0.5 pb-1 text-[10px] font-inter font-semibold text-text-secondary uppercase tracking-wide">
+                    Export
+                  </p>
+                  <button
+                    onClick={() => { exportCSV(); setShowMenu(false) }}
+                    disabled={!!activeSheet || filteredActivities.length === 0 || (students as any[]).length === 0}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-inter text-text-primary hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Download className="w-4 h-4 text-text-secondary flex-shrink-0" /> Export CSV
+                  </button>
+
+                  <div className="border-t border-border my-1.5" />
+
+                  {/* Grid tools */}
+                  <p className="px-4 pt-0.5 pb-1 text-[10px] font-inter font-semibold text-text-secondary uppercase tracking-wide">
+                    Grid Tools
+                  </p>
+                  <button
+                    onClick={() => { setShowAddActivity(true); setShowMenu(false) }}
+                    disabled={!selectedSubjectId || !!activeSheet}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-inter text-text-primary hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="w-4 h-4 text-text-secondary flex-shrink-0" /> Add Activity
+                  </button>
+                  <button
+                    onClick={() => { openFormulaModal(); setShowMenu(false) }}
+                    disabled={filteredActivities.length === 0 || !!activeSheet}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-inter text-text-primary hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Calculator className="w-4 h-4 text-text-secondary flex-shrink-0" /> Formula Column
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
         <div className="border-t border-border mb-4" />
 
-        {/* Grid */}
-        {isGridLoading ? (
+        {/* ── Content: imported sheet OR activity grid ── */}
+        {activeSheet ? (
+          <ImportedSheetTable sheet={activeSheet} />
+        ) : isGridLoading ? (
           <LoadingSpinner />
         ) : (students as any[]).length === 0 ? (
           <EmptyState title="No Students in This Section" description="Students will appear here once enrolled." />
@@ -490,14 +814,12 @@ export default function TeacherAcademic() {
               {/* ── Column headers ──────────────────────────────────────────── */}
               <thead>
                 <tr className="bg-surface">
-                  {/* Sticky student column */}
                   <th className="sticky left-0 z-20 bg-surface px-4 py-3 text-left border-b border-r border-border min-w-[180px] max-w-[220px]">
                     <span className="font-poppins font-semibold text-[11px] text-text-secondary uppercase tracking-wider">
                       Student
                     </span>
                   </th>
 
-                  {/* Activity columns */}
                   {filteredActivities.map((act: any) => {
                     const isSaving = savingSet.has(act.id)
                     const isSaved  = savedSet.has(act.id)
@@ -507,14 +829,12 @@ export default function TeacherAcademic() {
                         className="px-3 py-2 border-b border-r border-border text-center align-top min-w-[140px] group"
                       >
                         <div className="space-y-1.5">
-                          {/* Title + save indicator + edit/delete */}
                           <div className="flex items-start justify-center gap-1">
                             {isSaving && <Loader2 className="w-3 h-3 text-primary animate-spin flex-shrink-0 mt-0.5" />}
                             {isSaved && !isSaving && <Check className="w-3 h-3 text-success flex-shrink-0 mt-0.5" />}
                             <span className="font-inter font-semibold text-xs text-text-primary leading-tight line-clamp-2 flex-1 text-left">
                               {act.title}
                             </span>
-                            {/* Edit / delete — visible on hover */}
                             <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-1">
                               <button
                                 onClick={() => openEdit(act)}
@@ -532,7 +852,6 @@ export default function TeacherAcademic() {
                               </button>
                             </div>
                           </div>
-                          {/* Category badge */}
                           <div>
                             <span className={`inline-flex text-[10px] font-medium px-1.5 py-0.5 rounded-full ${CATEGORY_COLORS[act.category] || CATEGORY_COLORS.Other}`}>
                               {act.category}
@@ -605,13 +924,11 @@ export default function TeacherAcademic() {
                       key={student.id}
                       className={`border-b border-border hover:bg-primary-light/10 transition-colors ${rowBg}`}
                     >
-                      {/* Sticky name cell */}
                       <td className={`sticky left-0 z-10 ${rowBg} px-4 py-2.5 border-r border-border`}>
                         <p className="font-inter text-sm font-medium text-text-primary leading-tight">{student.fullName}</p>
                         <p className="font-inter text-[11px] text-text-secondary">{student.studentNumber}</p>
                       </td>
 
-                      {/* Score input cells */}
                       {filteredActivities.map((act: any) => {
                         const raw      = localScores[act.id]?.[student.id]
                         const hasScore = raw !== undefined && raw !== ''
@@ -641,7 +958,6 @@ export default function TeacherAcademic() {
                         )
                       })}
 
-                      {/* Formula cells (read-only, computed) */}
                       {formulaCols.map(fc => (
                         <td key={fc.id} className="border-r border-border px-2 py-3 text-center bg-purple-50/40">
                           <span className="font-poppins font-semibold text-sm text-purple-700">
@@ -650,7 +966,6 @@ export default function TeacherAcademic() {
                         </td>
                       ))}
 
-                      {/* Empty add-column spacer */}
                       <td className="bg-background/20" />
                     </tr>
                   )
@@ -701,9 +1016,15 @@ export default function TeacherAcademic() {
         )}
 
         {/* Hints */}
-        {filteredActivities.length > 0 && (students as any[]).length > 0 && (
+        {!activeSheet && filteredActivities.length > 0 && (students as any[]).length > 0 && (
           <p className="font-inter text-[11px] text-text-secondary/60 mt-3 text-right italic">
             Scores auto-save · Hover column header to edit (✏) or delete (🗑) · Purple columns are formula-computed
+          </p>
+        )}
+        {activeSheet && (
+          <p className="font-inter text-[11px] text-text-secondary/60 mt-3 text-right italic">
+            Read-only view of imported CSV
+            {activeSheet.subjectId ? ' · Original activity data preserved — click "Remove Import" to restore' : ''}
           </p>
         )}
       </div>
@@ -811,7 +1132,6 @@ export default function TeacherAcademic() {
         }
       >
         <div className="space-y-5">
-          {/* Explanation */}
           <div className="p-3 bg-purple-50 border border-purple-100 rounded-xl">
             <p className="text-sm font-inter text-purple-700 leading-relaxed">
               <span className="font-semibold">Formula columns</span> compute a weighted score from your activities.
@@ -886,6 +1206,172 @@ export default function TeacherAcademic() {
             )}
           </div>
         </div>
+      </Modal>
+
+      {/* ── Import CSV Modal ──────────────────────────────────────────────────── */}
+      <Modal
+        open={showImportModal}
+        onClose={() => { resetImport(); setShowImportModal(false) }}
+        title={importMode === 'new-tab' ? 'Import CSV — New Tab' : 'Import CSV — Replace Current Tab'}
+        size="lg"
+      >
+        {/* Replace mode warning */}
+        {importMode === 'replace' && (
+          <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl mb-5">
+            <AlertTriangle className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-inter font-semibold text-danger">
+                Replaces the view of "{subjectsInSection.find(a => a.subjectId === selectedSubjectId)?.subject?.name}"
+              </p>
+              <p className="text-xs font-inter text-red-700 mt-0.5">
+                The current activity grid will be hidden but not deleted — your original data is preserved and can be restored by clicking "Remove Import".
+              </p>
+            </div>
+          </div>
+        )}
+
+        {importStep === 'setup' && (
+          <div className="space-y-4">
+            {/* Tab name (new-tab mode only) */}
+            {importMode === 'new-tab' && (
+              <Input
+                label="Tab Name"
+                placeholder="e.g., Math Q1 Grade Sheet, Final Grades"
+                value={importTabName}
+                onChange={e => setImportTabName(e.target.value)}
+                autoFocus
+              />
+            )}
+
+            {/* Drop zone */}
+            <div>
+              {importMode === 'new-tab' && (
+                <label className="block text-sm font-medium font-inter text-text-primary mb-1.5">
+                  CSV File <span className="text-text-secondary font-normal">(any format — no restrictions)</span>
+                </label>
+              )}
+              <div
+                onDragOver={e => { e.preventDefault(); setImportDragOver(true) }}
+                onDragLeave={() => setImportDragOver(false)}
+                onDrop={e => { e.preventDefault(); setImportDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleImportFile(f) }}
+                onClick={() => importFileRef.current?.click()}
+                className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all duration-200 ${
+                  importDragOver ? 'border-primary bg-primary-light' : 'border-border hover:border-primary/50 hover:bg-gray-50'
+                }`}
+              >
+                <input
+                  ref={importFileRef}
+                  type="file"
+                  accept=".csv,.txt"
+                  className="hidden"
+                  onChange={e => { if (e.target.files?.[0]) handleImportFile(e.target.files[0]) }}
+                />
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${importDragOver ? 'bg-primary text-white' : 'bg-gray-100 text-text-secondary'}`}>
+                  <FileSpreadsheet className="w-6 h-6" />
+                </div>
+                <div className="text-center">
+                  <p className="font-inter font-medium text-text-primary text-sm">Drop your CSV file here</p>
+                  <p className="text-xs text-text-secondary font-inter mt-0.5">or click to browse · Any CSV format accepted</p>
+                </div>
+              </div>
+            </div>
+
+            {importParseError && (
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl">
+                <AlertTriangle className="w-4 h-4 text-danger mt-0.5 flex-shrink-0" />
+                <p className="text-sm font-inter text-danger">{importParseError}</p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => { resetImport(); setShowImportModal(false) }}>Cancel</Button>
+            </div>
+          </div>
+        )}
+
+        {importStep === 'preview' && (
+          <div className="space-y-4">
+            {/* Summary */}
+            <div className="flex items-center gap-3 p-3 bg-primary-light/30 rounded-xl">
+              <FileSpreadsheet className="w-5 h-5 text-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-inter font-semibold text-text-primary truncate">{importFileName}</p>
+                <p className="text-xs text-text-secondary font-inter mt-0.5">
+                  {importHeaders.length} columns · {importRows.length} rows
+                </p>
+              </div>
+              <button
+                onClick={() => setImportStep('setup')}
+                className="text-xs font-inter text-primary hover:text-primary-dark transition-colors whitespace-nowrap"
+              >
+                Change file
+              </button>
+            </div>
+
+            {/* Column preview */}
+            <div>
+              <p className="text-xs font-inter font-semibold text-text-secondary uppercase tracking-wide mb-2">
+                Column Headers Detected
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {importHeaders.map((h, i) => (
+                  <span key={i} className="inline-flex items-center px-2.5 py-1 bg-surface border border-border rounded-lg text-xs font-inter text-text-primary">
+                    {h || <span className="text-text-secondary/40 italic">empty</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Data preview */}
+            <div>
+              <p className="text-xs font-inter font-semibold text-text-secondary uppercase tracking-wide mb-2">
+                Preview (first {Math.min(5, importRows.length)} rows)
+              </p>
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="border-collapse w-full text-xs font-inter">
+                  <thead>
+                    <tr className="bg-surface">
+                      {importHeaders.map((h, i) => (
+                        <th key={i} className="px-3 py-2 text-left border-b border-r border-border font-semibold text-text-secondary uppercase tracking-wider whitespace-nowrap max-w-[120px] truncate">
+                          {h || `Col ${i + 1}`}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {importRows.slice(0, 5).map((row, ri) => (
+                      <tr key={ri} className={`border-b border-border ${ri % 2 === 0 ? 'bg-white' : 'bg-background/40'}`}>
+                        {row.map((cell, ci) => (
+                          <td key={ci} className="px-3 py-1.5 border-r border-border text-text-primary whitespace-nowrap max-w-[120px] truncate">
+                            {cell || <span className="text-text-secondary/30">—</span>}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                    {importRows.length > 5 && (
+                      <tr>
+                        <td colSpan={importHeaders.length} className="px-3 py-2 text-center text-text-secondary italic">
+                          … and {importRows.length - 5} more rows
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => { resetImport(); setShowImportModal(false) }}>Cancel</Button>
+              <Button
+                loading={createSheetMutation.isPending}
+                onClick={handleConfirmImport}
+                icon={<Upload className="w-4 h-4" />}
+              >
+                {importMode === 'new-tab' ? 'Create Tab' : 'Import & Replace View'}
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   )
