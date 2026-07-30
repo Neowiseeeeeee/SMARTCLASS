@@ -193,4 +193,21 @@ router.post('/schedules', requireAuth, requireRole('ADMIN'), async (req: Request
   }
 })
 
+// Students in a section — accessible by any authenticated user (teacher-friendly)
+router.get('/section-students/:sectionId', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { sectionId } = req.params
+    const studentIds = new Set(
+      db.studentSectionAssignments
+        .filter(a => a.sectionId === sectionId)
+        .map(a => a.studentId)
+    )
+    const students = db.students
+      .filter(s => studentIds.has(s.id) && s.status !== 'archived')
+      .sort((a, b) => a.fullName.localeCompare(b.fullName))
+      .map(s => ({ id: s.id, fullName: s.fullName, studentNumber: s.studentNumber, status: s.status }))
+    res.json(students)
+  } catch (err) { res.status(500).json({ error: 'Server error' }) }
+})
+
 export default router

@@ -112,6 +112,7 @@ export const structureApi = {
   createSubject: (data: any) => api.post('/structure/subjects', data),
   getSchedules: (params?: any) => api.get('/structure/schedules', { params }),
   createSchedule: (data: any) => api.post('/structure/schedules', data),
+  getSectionStudents: (sectionId: string) => api.get(`/structure/section-students/${sectionId}`),
 }
 
 // Presentation Materials
