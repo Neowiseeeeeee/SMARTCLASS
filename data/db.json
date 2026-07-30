@@ -1,0 +1,376 @@
+{
+  "users": [
+    {
+      "id": "6583f34e-6116-4e63-bcf3-e5e1343c2019",
+      "username": "admin",
+      "passwordHash": "$2a$12$QMmdcUYq1ZVoTF7V/19esOvD5kGhr9cg8BwmdDZtsuCCXshpzl17C",
+      "role": "ADMIN",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "35c331a8-efe2-4797-8a6d-25654f175258",
+      "email": "teacher@erlhs.edu.ph",
+      "passwordHash": "$2a$12$HsTxArFMHpEx/fvzVwmp6Op7j7tU3zlL3E9EXg7o//8oIoTz1SO7G",
+      "role": "TEACHER",
+      "status": "active",
+      "isFirstLogin": false,
+      "createdAt": "2026-07-30T16:46:59.689Z",
+      "lastLogin": "2026-07-30T16:47:52.923Z"
+    },
+    {
+      "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
+      "email": "student@erlhs.edu.ph",
+      "passwordHash": "$2a$12$NQRSFrgu94OaMYQSANrzGOhvcXbnmdu/.hc/Y6pNJo9xx1DEzuHE6",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "admins": [
+    {
+      "id": "0875c496-2509-48a6-b684-5bafac1e5a93",
+      "userId": "6583f34e-6116-4e63-bcf3-e5e1343c2019",
+      "fullName": "System Administrator",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "students": [
+    {
+      "id": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "userId": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
+      "studentNumber": "2024-00001",
+      "studentCode": "SC-DEMO01",
+      "fullName": "Juan Dela Cruz",
+      "gender": "Male",
+      "email": "student@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "studentProfiles": [
+    {
+      "id": "36866456-55c2-47ae-8cab-e8e997dda069",
+      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "teachers": [
+    {
+      "id": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "userId": "35c331a8-efe2-4797-8a6d-25654f175258",
+      "employeeId": "EMP-001",
+      "fullName": "Maria Santos",
+      "email": "teacher@erlhs.edu.ph",
+      "department": "Science Department",
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "teacherProfiles": [
+    {
+      "id": "dcc0a1e0-f1a2-4c5a-9857-962b89a01adb",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "academicYears": [
+    {
+      "id": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "name": "2024-2025",
+      "isCurrent": true,
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "gradeLevels": [
+    {
+      "id": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "name": "Grade 11",
+      "order": 11
+    },
+    {
+      "id": "888022a4-eacc-46e0-a7d6-0075998be86b",
+      "name": "Grade 12",
+      "order": 12
+    }
+  ],
+  "strands": [
+    {
+      "id": "74f0fa42-e159-469b-8c3a-df85659e3e1f",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "name": "STEM"
+    },
+    {
+      "id": "bfa98c69-910d-45ff-8971-4b5f5be474b4",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "name": "ABM"
+    }
+  ],
+  "sections": [
+    {
+      "id": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "strandId": "74f0fa42-e159-469b-8c3a-df85659e3e1f",
+      "name": "Section A",
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "strandId": "bfa98c69-910d-45ff-8971-4b5f5be474b4",
+      "name": "Section B",
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "subjects": [
+    {
+      "id": "52fbc147-474b-4592-a823-876a50571c22",
+      "name": "General Mathematics",
+      "code": "MATH-GEN-11",
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "81809b84-9042-4503-b8a0-908472fc194b",
+      "name": "Oral Communication",
+      "code": "ENG-ORAL-11",
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "ced59eba-bf32-439d-9d9a-0b3d64a2506b",
+      "name": "General Chemistry",
+      "code": "SCI-CHEM-11",
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "c5adce98-91ae-4d07-9db8-23065f20f5b6",
+      "name": "Physical Education",
+      "code": "PE-11",
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "studentSectionAssignments": [
+    {
+      "id": "2c03b82a-c152-4aa3-8a6d-b9d409409e56",
+      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "teacherSubjectAssignments": [
+    {
+      "id": "6e3d000d-67b1-4d66-9ed3-a10076b5505c",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "0fb60c3a-a152-40db-9153-cc328f86437c",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "81809b84-9042-4503-b8a0-908472fc194b",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "classSchedules": [
+    {
+      "id": "05b35732-dfec-4b69-868c-f1022c7cd053",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "dayOfWeek": "Monday",
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "uploadedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "5ab83f86-1a14-41f3-b7f7-64375a6d6dc4",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "dayOfWeek": "Wednesday",
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "uploadedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "591b2869-32f2-4c3b-87ce-31dd8e13a30d",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "81809b84-9042-4503-b8a0-908472fc194b",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "dayOfWeek": "Tuesday",
+      "startTime": "10:00",
+      "endTime": "11:30",
+      "uploadedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "5b03c902-6918-4f9d-b270-b95a096a042e",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "81809b84-9042-4503-b8a0-908472fc194b",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "dayOfWeek": "Thursday",
+      "startTime": "10:00",
+      "endTime": "11:30",
+      "uploadedAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "attendanceSessions": [
+    {
+      "id": "4a9f0c4a-e4a3-4aaf-8722-7799e7e2e35e",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "attendanceDate": "2026-07-30T16:46:59.689Z",
+      "sessionStatus": "closed",
+      "createdAt": "2026-07-30T16:46:59.689Z",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "attendanceRecords": [
+    {
+      "id": "f8bda48e-e300-4488-ab39-57b1f78689cf",
+      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "sessionId": "4a9f0c4a-e4a3-4aaf-8722-7799e7e2e35e",
+      "status": "present",
+      "timeRecorded": "2026-07-30T16:46:59.689Z",
+      "verificationStatus": "verified"
+    }
+  ],
+  "academicActivities": [
+    {
+      "id": "ed3ab1f2-257f-4aa9-8b16-0d619d940779",
+      "title": "Unit 1 Quiz",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "category": "Quiz",
+      "totalScore": 50,
+      "activityDate": "2026-07-30T16:46:59.689Z",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "studentScores": [
+    {
+      "id": "09df0c5d-b7ec-4f4e-b702-fe0252dd9e8c",
+      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "activityId": "ed3ab1f2-257f-4aa9-8b16-0d619d940779",
+      "scoreObtained": 45,
+      "totalScore": 50,
+      "dateRecorded": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "announcementCategories": [
+    {
+      "id": "2d844a3e-3112-41a9-a323-0fde811a440b",
+      "name": "School Announcements",
+      "icon": "📢",
+      "order": 1,
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "deb0881a-f1ba-4a8e-a006-b621ebac2776",
+      "name": "Upcoming Events",
+      "icon": "📅",
+      "order": 2,
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "51696093-aa1c-41cf-b8f2-45b926cb8340",
+      "name": "Class Schedule",
+      "icon": "📚",
+      "order": 3,
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "d5826e3e-ec5b-4f5e-9dd9-27e96937c5b6",
+      "name": "Emergency Hotlines",
+      "icon": "📞",
+      "order": 4,
+      "status": "active",
+      "createdAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "announcements": [
+    {
+      "id": "f2cadf3b-52ff-4060-8fee-aae4d03053ac",
+      "title": "Welcome to SMARTCLASS!",
+      "categoryId": "2d844a3e-3112-41a9-a323-0fde811a440b",
+      "description": "SMARTCLASS is now live! Students and teachers can log in using their assigned credentials.",
+      "publishStatus": "published",
+      "displayPriority": 10,
+      "publishedAt": "2026-07-30T16:46:59.689Z",
+      "createdAt": "2026-07-30T16:46:59.689Z",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "76b356b1-af08-40f7-aafc-3c3b84c345d7",
+      "title": "1st Quarter Examinations",
+      "categoryId": "deb0881a-f1ba-4a8e-a006-b621ebac2776",
+      "description": "First quarter exams scheduled for next week. Please review your study materials.",
+      "publishStatus": "published",
+      "displayPriority": 8,
+      "publishedAt": "2026-07-30T16:46:59.689Z",
+      "createdAt": "2026-07-30T16:46:59.689Z",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    }
+  ],
+  "systemSettings": [
+    {
+      "id": "04bd6bd2-b27c-4a8b-82fa-308a51ee8666",
+      "key": "schoolName",
+      "value": "Exequiel R. Lina High School",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "d743f2bc-879a-4f6f-899a-528b61424cd7",
+      "key": "currentAcademicYear",
+      "value": "2024-2025",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "d7a49aea-5456-454b-ae17-c5967efccb76",
+      "key": "currentSemester",
+      "value": "1st Semester",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "7ceaf27d-aca5-4219-af4a-7b4e7b120cdb",
+      "key": "systemVersion",
+      "value": "v1.0.0",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "fabda392-1e62-4af8-8a54-7ec8adc37f68",
+      "key": "inactivityTimeout",
+      "value": "10",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "09e56b6b-8654-4f6c-9680-50bd1ef82b4e",
+      "key": "sessionCodeExpiry",
+      "value": "30",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    }
+  ]
+}

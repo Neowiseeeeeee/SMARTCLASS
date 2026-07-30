@@ -1,83 +1,79 @@
 import React, { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { format, getDay } from 'date-fns'
+import { format, getDay, parse, isWithinInterval } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../lib/auth'
 import { announcementsApi, structureApi } from '../../lib/api'
 import { formatDate } from '../../lib/utils'
 import {
   ClipboardList, BookOpen, LayoutDashboard,
-  Megaphone, Calendar, ChevronRight, GraduationCap,
+  Megaphone, Calendar, ChevronRight, GraduationCap, Clock,
 } from 'lucide-react'
 
-// ─── Calendar constants ───────────────────────────────────────────────────────
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
-const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI']
-const HOUR_START = 7    // 7 AM
-const HOUR_END   = 18   // 6 PM
-const SLOT_MIN   = 30   // 30-min increments
-const TOTAL_SLOTS = ((HOUR_END - HOUR_START) * 60) / SLOT_MIN // 22 slots
-const SLOT_H     = 36   // px per slot
+// Day names matching DB values
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-// Subject colour palette (cycled by subject index)
-const SUBJECT_COLORS: { bg: string; text: string; shadow: string }[] = [
-  { bg: 'bg-primary',   text: 'text-white', shadow: 'shadow-primary/30' },
-  { bg: 'bg-accent',    text: 'text-white', shadow: 'shadow-accent/30'  },
-  { bg: 'bg-secondary', text: 'text-white', shadow: 'shadow-yellow-400/30' },
-  { bg: 'bg-info',      text: 'text-white', shadow: 'shadow-blue-400/30' },
-  { bg: 'bg-success',   text: 'text-white', shadow: 'shadow-green-400/30' },
+const SUBJECT_COLORS = [
+  { bg: 'bg-primary',   text: 'text-white',  light: 'bg-primary-light',   accent: 'text-primary-dark' },
+  { bg: 'bg-accent',    text: 'text-white',  light: 'bg-orange-50',        accent: 'text-accent' },
+  { bg: 'bg-secondary', text: 'text-white',  light: 'bg-yellow-50',        accent: 'text-secondary' },
+  { bg: 'bg-info',      text: 'text-white',  light: 'bg-blue-50',          accent: 'text-info' },
+  { bg: 'bg-success',   text: 'text-white',  light: 'bg-green-50',         accent: 'text-success' },
 ]
 
-function timeToSlot(time: string): number {
-  const [hStr, mStr = '0'] = time.split(':')
-  const h = parseInt(hStr, 10)
-  const m = parseInt(mStr, 10)
-  return ((h - HOUR_START) * 60 + m) / SLOT_MIN
-}
-
-function slotLabel(slotIdx: number): string {
-  const totalMins = slotIdx * SLOT_MIN + HOUR_START * 60
-  const h = Math.floor(totalMins / 60)
-  const m = totalMins % 60
-  const period = h >= 12 ? 'PM' : 'AM'
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
-  return `${h12}:${m.toString().padStart(2, '0')} ${period}`
-}
-
 function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .map(w => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
+  return name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-export default function TeacherDashboard() {
-  const { user } = useAuth()
-  const navigate  = useNavigate()
-  const teacher   = user?.profile
+/** Returns true if current time is between startTime and endTime ("HH:mm") */
+function isCurrentClass(startTime: string, endTime: string): boolean {
+  try {
+    const now   = new Date()
+    const base  = format(now, 'yyyy-MM-dd')
+    const start = parse(`${base} ${startTime}`, 'yyyy-MM-dd HH:mm', new Date())
+    const end   = parse(`${base} ${endTime}`,   'yyyy-MM-dd HH:mm', new Date())
+    return isWithinInterval(now, { start, end })
+  } catch { return false }
+}
 
-  // Which column (0-4) is today? -1 for weekends
-  const todayDayIndex = useMemo(() => {
-    const d = getDay(new Date()) // 0=Sun … 6=Sat
-    return d >= 1 && d <= 5 ? d - 1 : -1
-  }, [])
+function fmt12(time: string): string {
+  try {
+    const [hStr, mStr = '0'] = time.split(':')
+    const h  = parseInt(hStr, 10)
+    const m  = parseInt(mStr, 10)
+    const ap = h >= 12 ? 'PM' : 'AM'
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+    return `${h12}:${m.toString().padStart(2, '0')} ${ap}`
+  } catch { return time }
+}
+
+export default function TeacherDashboard() {
+  const { user }   = useAuth()
+  const navigate   = useNavigate()
+  const teacher    = user?.profile
+
+  const todayName = DAYS[getDay(new Date())] // e.g. "Wednesday"
 
   const { data: schedules = [] } = useQuery({
     queryKey: ['teacher-schedules-dash', teacher?.id],
-    queryFn: () => structureApi.getSchedules({ teacherId: teacher?.id }).then(r => r.data),
-    enabled: !!teacher?.id,
+    queryFn:  () => structureApi.getSchedules({ teacherId: teacher?.id }).then(r => r.data),
+    enabled:  !!teacher?.id,
   })
 
   const { data: announcements = [] } = useQuery({
     queryKey: ['public-announcements'],
-    queryFn: () => announcementsApi.getPublic().then(r => r.data),
+    queryFn:  () => announcementsApi.getPublic().then(r => r.data),
   })
 
-  // Assign a stable colour index to each unique subject
+  // Today's classes sorted by start time
+  const todaySchedule = useMemo(() =>
+    schedules
+      .filter((s: any) => s.dayOfWeek === todayName && s.startTime)
+      .sort((a: any, b: any) => a.startTime.localeCompare(b.startTime)),
+    [schedules, todayName]
+  )
+
+  // Stable colour per subject
   const subjectColorMap = useMemo(() => {
     const map: Record<string, number> = {}
     let idx = 0
@@ -89,11 +85,10 @@ export default function TeacherDashboard() {
 
   const recentAnnouncements = announcements.flatMap((c: any) => c.announcements).slice(0, 3)
 
-  // Safe fallbacks so the card never appears empty
-  const teacherName  = teacher?.fullName  || user?.name || 'Teacher'
-  const department   = teacher?.department || 'Faculty'
-  const employeeId   = teacher?.employeeId
-  const assignments  = teacher?.subjectAssignments ?? []
+  const teacherName = teacher?.fullName  || user?.name || 'Teacher'
+  const department  = teacher?.department || 'Faculty'
+  const employeeId  = teacher?.employeeId
+  const assignments = teacher?.subjectAssignments ?? []
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -108,17 +103,15 @@ export default function TeacherDashboard() {
 
       {/* ── Faculty info card ── */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white shadow-card-hover p-6">
-        {/* Decorative circles */}
         <div className="pointer-events-none absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
         <div className="pointer-events-none absolute -bottom-16 -right-4  w-64 h-64 rounded-full bg-white/5" />
 
         <div className="relative flex items-center gap-5">
-          {/* Avatar */}
+          {/* Initials avatar */}
           <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-white/20 border border-white/25 flex items-center justify-center">
             <span className="font-poppins font-bold text-2xl">{getInitials(teacherName)}</span>
           </div>
 
-          {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-poppins font-bold text-xl leading-tight">{teacherName}</h2>
@@ -149,167 +142,82 @@ export default function TeacherDashboard() {
         </div>
       </div>
 
-      {/* ── Weekly Schedule Calendar ── */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h3 className="font-poppins font-semibold text-lg text-text-primary flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" />
-              Weekly Schedule
+      {/* ── Three-column row ── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        {/* Today's Schedule */}
+        <div className="card flex flex-col">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-poppins font-semibold flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-primary" /> Today's Schedule
             </h3>
-            <p className="text-text-secondary font-inter text-xs mt-0.5">
-              {schedules.length > 0
-                ? `${schedules.length} class${schedules.length !== 1 ? 'es' : ''} scheduled this week`
-                : 'No schedule assigned yet — contact the administrator'}
-            </p>
+            <button
+              onClick={() => navigate('/teacher/schedule')}
+              className="flex items-center gap-0.5 text-primary text-xs font-inter font-medium hover:text-primary-dark transition-colors"
+            >
+              Full <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/teacher/schedule')}
-            className="flex items-center gap-1 text-primary text-sm font-inter font-medium hover:text-primary-dark transition-colors"
-          >
-            Full schedule <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
 
-        <div className="overflow-x-auto -mx-2">
-          <div className="min-w-[580px] px-2">
-
-            {/* Day header row */}
-            <div className="flex mb-2">
-              <div className="w-14 flex-shrink-0" />
-              {DAY_LABELS.map((label, i) => (
-                <div
-                  key={label}
-                  className={`flex-1 mx-0.5 py-2 rounded-xl text-center ${
-                    i === todayDayIndex
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'bg-background text-text-secondary'
-                  }`}
-                >
-                  <p className="font-poppins font-semibold text-xs">{label}</p>
-                  {i === todayDayIndex && (
-                    <p className="font-inter text-[10px] opacity-75 mt-0.5">Today</p>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Grid body */}
-            <div className="flex" style={{ height: TOTAL_SLOTS * SLOT_H }}>
-
-              {/* Time labels column */}
-              <div className="w-14 flex-shrink-0 relative select-none">
-                {Array.from({ length: TOTAL_SLOTS + 1 }).map((_, i) =>
-                  i % 2 === 0 ? (
-                    <div
-                      key={i}
-                      className="absolute right-2 text-right leading-none"
-                      style={{ top: i * SLOT_H - 7 }}
-                    >
-                      <span className="text-[10px] text-text-secondary font-inter">{slotLabel(i)}</span>
-                    </div>
-                  ) : null
-                )}
+          {todaySchedule.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-center py-6 gap-2">
+              <div className="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center">
+                <Calendar className="w-5 h-5 text-primary" />
               </div>
-
-              {/* One column per day */}
-              {DAYS.map((day, dayIdx) => {
-                const daySchedules = schedules.filter((s: any) => s.dayOfWeek === day)
-                const isToday = dayIdx === todayDayIndex
+              <p className="font-inter text-sm text-text-secondary">
+                {['Saturday', 'Sunday'].includes(todayName) ? 'No classes on weekends' : 'No classes today'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2 flex-1">
+              {todaySchedule.map((s: any) => {
+                const col     = SUBJECT_COLORS[(subjectColorMap[s.subjectId] ?? 0) % SUBJECT_COLORS.length]
+                const ongoing = isCurrentClass(s.startTime, s.endTime)
 
                 return (
                   <div
-                    key={day}
-                    className={`flex-1 relative mx-0.5 rounded-xl overflow-hidden ${
-                      isToday ? 'bg-primary-light/50' : 'bg-background/70'
+                    key={s.id}
+                    className={`flex items-stretch gap-3 p-3 rounded-xl transition-colors ${
+                      ongoing ? col.light + ' ring-1 ring-inset ring-current/20' : 'bg-background'
                     }`}
                   >
-                    {/* Horizontal grid lines */}
-                    {Array.from({ length: TOTAL_SLOTS }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={`absolute left-0 right-0 border-t ${
-                          i % 2 === 0 ? 'border-border/50' : 'border-border/20'
-                        }`}
-                        style={{ top: i * SLOT_H }}
-                      />
-                    ))}
+                    {/* Colour bar */}
+                    <div className={`w-1 rounded-full flex-shrink-0 ${col.bg}`} />
 
-                    {/* No-class placeholder */}
-                    {daySchedules.length === 0 && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <span className="text-[10px] text-text-secondary/30 font-inter">no class</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-poppins font-semibold text-sm text-text-primary truncate">
+                          {s.subject?.code}
+                        </p>
+                        {ongoing && (
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${col.bg} ${col.text}`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                            Now
+                          </span>
+                        )}
                       </div>
-                    )}
+                      <p className="font-inter text-xs text-text-secondary truncate mt-0.5">
+                        {s.subject?.name}
+                      </p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Clock className="w-3 h-3 text-text-secondary flex-shrink-0" />
+                        <p className="font-inter text-xs text-text-secondary">
+                          {fmt12(s.startTime)} – {fmt12(s.endTime)}
+                        </p>
+                      </div>
+                    </div>
 
-                    {/* Schedule blocks */}
-                    {daySchedules.map((s: any) => {
-                      const startSlot = timeToSlot(s.startTime ?? '0:0')
-                      const endSlot   = timeToSlot(s.endTime   ?? '0:0')
-                      const span      = Math.max(1, endSlot - startSlot)
-                      const col = SUBJECT_COLORS[
-                        (subjectColorMap[s.subjectId] ?? 0) % SUBJECT_COLORS.length
-                      ]
-
-                      return (
-                        <div
-                          key={s.id}
-                          className={`absolute inset-x-1 ${col.bg} ${col.text} rounded-lg overflow-hidden shadow-sm`}
-                          style={{
-                            top:    startSlot * SLOT_H + 1,
-                            height: span * SLOT_H - 2,
-                          }}
-                        >
-                          <div className="p-1.5 h-full flex flex-col justify-center">
-                            <p className="font-poppins font-bold text-[11px] leading-tight truncate">
-                              {s.subject?.code}
-                            </p>
-                            <p className="font-inter text-[10px] opacity-85 leading-tight mt-0.5 line-clamp-2">
-                              {s.subject?.name}
-                            </p>
-                            {span >= 3 && (
-                              <p className="font-inter text-[10px] opacity-70 leading-tight mt-0.5">
-                                {s.section?.name}
-                              </p>
-                            )}
-                            {span >= 4 && (
-                              <p className="font-inter text-[10px] opacity-65 leading-tight">
-                                {s.startTime} – {s.endTime}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
+                    <div className="flex-shrink-0 flex items-center">
+                      <span className="badge bg-border text-text-secondary text-[10px]">
+                        {s.section?.name}
+                      </span>
+                    </div>
                   </div>
                 )
               })}
             </div>
-
-            {/* Legend */}
-            {schedules.length > 0 && (
-              <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-border">
-                {Object.entries(subjectColorMap).map(([subjectId, idx]) => {
-                  const s = schedules.find((sc: any) => sc.subjectId === subjectId)
-                  if (!s) return null
-                  const col = SUBJECT_COLORS[idx % SUBJECT_COLORS.length]
-                  return (
-                    <div key={subjectId} className="flex items-center gap-1.5">
-                      <div className={`w-3 h-3 rounded-sm ${col.bg}`} />
-                      <span className="font-inter text-xs text-text-secondary">
-                        {s.subject?.code} — {s.subject?.name}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+          )}
         </div>
-      </div>
-
-      {/* ── Bottom row: Quick Actions + Announcements ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         {/* Quick Actions */}
         <div className="card">
@@ -317,25 +225,25 @@ export default function TeacherDashboard() {
           <div className="space-y-2">
             {[
               {
-                label: 'Take Attendance',
-                sub: 'Open or create a session',
-                icon: <ClipboardList className="w-4 h-4 text-success" />,
+                label:  'Take Attendance',
+                sub:    'Open or create a session',
+                icon:   <ClipboardList className="w-4 h-4 text-success" />,
                 iconBg: 'bg-success/10',
-                path: '/teacher/attendance',
+                path:   '/teacher/attendance',
               },
               {
-                label: 'Start Presentation',
-                sub: 'Display slides for classroom',
-                icon: <BookOpen className="w-4 h-4 text-info" />,
+                label:  'Start Presentation',
+                sub:    'Display slides for class',
+                icon:   <BookOpen className="w-4 h-4 text-info" />,
                 iconBg: 'bg-info/10',
-                path: '/teacher/presentation',
+                path:   '/teacher/presentation',
               },
               {
-                label: 'Record Grades',
-                sub: 'Activities & scores',
-                icon: <LayoutDashboard className="w-4 h-4 text-secondary" />,
+                label:  'Record Grades',
+                sub:    'Activities & scores',
+                icon:   <LayoutDashboard className="w-4 h-4 text-secondary" />,
                 iconBg: 'bg-secondary/10',
-                path: '/teacher/academic',
+                path:   '/teacher/academic',
               },
             ].map(action => (
               <button
