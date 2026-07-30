@@ -14,6 +14,7 @@ import announcementRoutes from './routes/announcements.js'
 import academicRoutes from './routes/academic.js'
 import structureRoutes from './routes/structure.js'
 import settingsRoutes from './routes/settings.js'
+import presentationRoutes from './routes/presentations.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -56,6 +57,7 @@ app.use('/api/announcements', announcementRoutes)
 app.use('/api/academic', academicRoutes)
 app.use('/api/structure', structureRoutes)
 app.use('/api/settings', settingsRoutes)
+app.use('/api/presentations', presentationRoutes)
 
 // Health check
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', time: new Date().toISOString() }))

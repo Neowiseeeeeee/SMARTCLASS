@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { getDay } from 'date-fns'
 import { useAuth } from '../../lib/auth'
 import { structureApi } from '../../lib/api'
@@ -13,7 +14,7 @@ const HOUR_START  = 7
 const HOUR_END    = 18
 const SLOT_MIN    = 30
 const TOTAL_SLOTS = ((HOUR_END - HOUR_START) * 60) / SLOT_MIN // 22
-const SLOT_H      = 40 // px per slot — slightly taller on the dedicated page
+const SLOT_H      = 40 // px per slot
 
 const SUBJECT_COLORS = [
   { bg: 'bg-primary',   text: 'text-white' },
@@ -39,7 +40,8 @@ function slotLabel(i: number): string {
 
 export default function TeacherSchedule() {
   const { user } = useAuth()
-  const teacher   = user?.profile
+  const teacher  = user?.profile
+  const navigate = useNavigate()
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ['teacher-schedules', teacher?.id],
@@ -63,6 +65,12 @@ export default function TeacherSchedule() {
     return map
   }, [schedules])
 
+  function handleBlockClick(s: any) {
+    if (s.subjectId && s.sectionId) {
+      navigate(`/teacher/subjects?sectionId=${s.sectionId}&subjectId=${s.subjectId}`)
+    }
+  }
+
   if (isLoading) return <LoadingSpinner />
 
   return (
@@ -70,7 +78,7 @@ export default function TeacherSchedule() {
       <div>
         <h1 className="page-title">Class Schedule</h1>
         <p className="text-text-secondary font-inter text-sm mt-1">
-          Your weekly teaching schedule for the current academic year
+          Your weekly teaching schedule. Click any subject block to manage its presentation materials.
         </p>
       </div>
 
@@ -172,7 +180,7 @@ export default function TeacherSchedule() {
                         </div>
                       )}
 
-                      {/* Schedule blocks */}
+                      {/* Schedule blocks — clickable */}
                       {daySched.map((s: any) => {
                         const start = timeToSlot(s.startTime ?? '0:0')
                         const end   = timeToSlot(s.endTime   ?? '0:0')
@@ -182,9 +190,13 @@ export default function TeacherSchedule() {
                         ]
 
                         return (
-                          <div
+                          <button
                             key={s.id}
-                            className={`absolute inset-x-1 ${col.bg} ${col.text} rounded-lg overflow-hidden shadow-sm`}
+                            onClick={() => handleBlockClick(s)}
+                            title={`${s.subject?.name} — click to manage materials`}
+                            className={`absolute inset-x-1 ${col.bg} ${col.text} rounded-lg overflow-hidden shadow-sm
+                              cursor-pointer hover:brightness-110 hover:shadow-md active:scale-[0.98]
+                              transition-all duration-150 text-left w-[calc(100%-8px)]`}
                             style={{ top: start * SLOT_H + 1, height: span * SLOT_H - 2 }}
                           >
                             <div className="p-2 h-full flex flex-col justify-center">
@@ -205,7 +217,7 @@ export default function TeacherSchedule() {
                                 </p>
                               )}
                             </div>
-                          </div>
+                          </button>
                         )
                       })}
                     </div>
@@ -215,6 +227,9 @@ export default function TeacherSchedule() {
 
               {/* Legend */}
               <div className="flex flex-wrap gap-4 mt-5 pt-4 border-t border-border">
+                <p className="w-full text-[11px] text-text-secondary font-inter italic">
+                  💡 Click any subject block to go directly to its presentation materials.
+                </p>
                 {Object.entries(subjectColorMap).map(([subjectId, idx]) => {
                   const s = schedules.find((sc: any) => sc.subjectId === subjectId)
                   if (!s) return null

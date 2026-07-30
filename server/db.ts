@@ -289,6 +289,18 @@ export interface SystemSetting {
   updatedAt: string
 }
 
+export interface PresentationMaterial {
+  id: string
+  teacherId: string
+  subjectId: string
+  sectionId: string
+  title: string
+  filePath: string
+  fileType: string   // 'image' | 'pdf' | 'pptx' | 'other'
+  originalName: string
+  uploadedAt: string
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const db = {
@@ -313,6 +325,7 @@ export const db = {
   announcementCategories: [] as AnnouncementCategory[],
   announcements: [] as Announcement[],
   systemSettings: [] as SystemSetting[],
+  presentationMaterials: [] as PresentationMaterial[],
 }
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────

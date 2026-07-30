@@ -114,6 +114,16 @@ export const structureApi = {
   createSchedule: (data: any) => api.post('/structure/schedules', data),
 }
 
+// Presentation Materials
+export const presentationsApi = {
+  getAll: (params?: any) => api.get('/presentations', { params }),
+  upload: (formData: FormData) =>
+    api.post('/presentations/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  delete: (id: string) => api.delete(`/presentations/${id}`),
+}
+
 // Settings
 export const settingsApi = {
   getPublic: () => api.get('/settings/public'),
