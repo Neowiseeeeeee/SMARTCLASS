@@ -3,11 +3,12 @@
     {
       "id": "6583f34e-6116-4e63-bcf3-e5e1343c2019",
       "username": "admin",
-      "passwordHash": "$2a$12$QMmdcUYq1ZVoTF7V/19esOvD5kGhr9cg8BwmdDZtsuCCXshpzl17C",
+      "passwordHash": "$2a$12$dZH/uXRNDrVFQEisSatu/eqKlBTuSP8CnBI3nB8oyWbyyjWSH6cE6",
       "role": "ADMIN",
       "status": "active",
-      "isFirstLogin": true,
-      "createdAt": "2026-07-30T16:46:59.689Z"
+      "isFirstLogin": false,
+      "createdAt": "2026-07-30T16:46:59.689Z",
+      "lastLogin": "2026-07-30T16:56:04.220Z"
     },
     {
       "id": "35c331a8-efe2-4797-8a6d-25654f175258",
@@ -17,7 +18,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-07-30T16:47:52.923Z"
+      "lastLogin": "2026-07-30T16:56:41.431Z"
     },
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
