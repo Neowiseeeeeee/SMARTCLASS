@@ -8,7 +8,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-07-30T19:24:00.742Z"
+      "lastLogin": "2026-07-30T19:41:37.825Z"
     },
     {
       "id": "35c331a8-efe2-4797-8a6d-25654f175258",
@@ -18,7 +18,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-07-30T19:36:41.160Z"
+      "lastLogin": "2026-07-30T19:54:40.407Z"
     },
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
@@ -955,14 +955,14 @@
   ],
   "attendanceSessions": [
     {
-      "id": "4a9f0c4a-e4a3-4aaf-8722-7799e7e2e35e",
+      "id": "0da1b41d-0e5e-46f5-8803-76bedf253d2e",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
       "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
       "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
-      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
-      "attendanceDate": "2026-07-30T16:46:59.689Z",
-      "sessionStatus": "closed",
-      "createdAt": "2026-07-30T16:46:59.689Z",
-      "updatedAt": "2026-07-30T16:46:59.689Z"
+      "attendanceDate": "2026-08-01T00:00:00.000Z",
+      "sessionStatus": "open",
+      "createdAt": "2026-07-30T18:15:09.003Z",
+      "updatedAt": "2026-07-30T18:15:09.003Z"
     },
     {
       "id": "9194f706-9b5e-446e-bc2e-d115dad9271d",
@@ -975,14 +975,26 @@
       "updatedAt": "2026-07-30T18:14:44.581Z"
     },
     {
-      "id": "0da1b41d-0e5e-46f5-8803-76bedf253d2e",
+      "id": "4a9f0c4a-e4a3-4aaf-8722-7799e7e2e35e",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "attendanceDate": "2026-07-30T16:46:59.689Z",
+      "sessionStatus": "closed",
+      "createdAt": "2026-07-30T16:46:59.689Z",
+      "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "311311b0-c269-45de-962c-f1ebd8097e97",
       "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
       "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
       "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
-      "attendanceDate": "2026-08-01T00:00:00.000Z",
+      "attendanceDate": "2026-08-02T00:00:00.000Z",
       "sessionStatus": "open",
-      "createdAt": "2026-07-30T18:15:09.003Z",
-      "updatedAt": "2026-07-30T18:15:09.003Z"
+      "createdAt": "2026-07-30T19:53:07.019Z",
+      "updatedAt": "2026-07-30T19:53:55.482Z",
+      "sessionCode": "AIW11P",
+      "sessionExpiry": "2026-07-30T20:23:55.482Z"
     }
   ],
   "attendanceRecords": [
@@ -1008,6 +1020,94 @@
       "sessionId": "0da1b41d-0e5e-46f5-8803-76bedf253d2e",
       "status": "absent",
       "timeRecorded": "2026-07-30T18:15:09.003Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "c69bdfdf-b1b7-45e1-901f-2b36a9f75b37",
+      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "4ec6efc5-17a8-4b02-a1c6-3be06493bac7",
+      "studentId": "4b5d25c0-17a4-4d43-850d-0dfb2bb7b3fc",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "late",
+      "timeRecorded": "2026-07-30T19:53:31.257Z",
+      "verificationStatus": "verified"
+    },
+    {
+      "id": "1054b2e1-5273-4f5d-9dab-fb90307a67c9",
+      "studentId": "b1cb870e-ec70-458d-ae03-3eac489d9e2b",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "18c55b2c-cab4-49d2-a941-bcf0c2ab25f0",
+      "studentId": "c54420da-9729-48f5-95f4-8ccf8d9e1a22",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "88be874a-71cd-4f6d-96f1-b4a5099f74c1",
+      "studentId": "cf6c3c02-8068-44b7-b223-9fdb06285e35",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "68ee40ce-5ad1-492f-9f82-5c7dccae3e66",
+      "studentId": "43ef77d6-a098-476e-9647-368d848de2b1",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "fbc5fb2a-bd54-46ac-89b7-ac24100b891d",
+      "studentId": "6a8c2f17-3609-466f-8874-c0289eff66dd",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "f68af036-af31-405e-a4d7-f32cd76eac7e",
+      "studentId": "40170e10-66a9-43ce-8b3b-d1fa4ec53638",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "122f1499-084b-4ff8-8204-c26e9c3ccc37",
+      "studentId": "cc8e3f9d-dd65-480d-adde-4270aeed6c69",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "f832e7a7-0be9-4b22-b638-cf5e5d31b3bc",
+      "studentId": "e58c789d-da91-4af0-94a1-9f53a81bc200",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "4c801b73-5383-47ec-93ef-3faefa258f00",
+      "studentId": "700b5295-bb6e-4155-a439-b16bd7db4bcc",
+      "sessionId": "311311b0-c269-45de-962c-f1ebd8097e97",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T19:53:07.019Z",
       "verificationStatus": "pending"
     }
   ],
