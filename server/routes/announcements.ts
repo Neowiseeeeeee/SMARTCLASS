@@ -127,7 +127,7 @@ router.post('/categories', requireAuth, requireRole('ADMIN'), async (req: Reques
     db.announcementCategories.push(cat)
     res.json(cat)
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     console.error(err)
     res.status(500).json({ error: 'Server error' })
   }
@@ -168,7 +168,7 @@ router.post('/', requireAuth, requireRole('ADMIN'), async (req: Request, res: Re
     db.announcements.push(ann)
     res.json(withCategory(ann))
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     console.error(err)
     res.status(500).json({ error: 'Server error' })
   }

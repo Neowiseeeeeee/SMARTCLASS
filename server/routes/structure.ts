@@ -37,7 +37,7 @@ router.post('/academic-years', requireAuth, requireRole('ADMIN'), async (req: Re
     db.academicYears.push(year)
     res.json(year)
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -65,7 +65,7 @@ router.post('/grade-levels', requireAuth, requireRole('ADMIN'), async (req: Requ
     db.gradeLevels.push(level)
     res.json(level)
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -78,7 +78,7 @@ router.post('/strands', requireAuth, requireRole('ADMIN'), async (req: Request, 
     db.strands.push(strand)
     res.json(strand)
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -106,7 +106,7 @@ router.post('/sections', requireAuth, requireRole('ADMIN'), async (req: Request,
     db.sections.push(section)
     res.json(expandSection(section))
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -135,7 +135,7 @@ router.post('/subjects', requireAuth, requireRole('ADMIN'), async (req: Request,
     db.subjects.push(subject)
     res.json(subject)
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -188,7 +188,7 @@ router.post('/schedules', requireAuth, requireRole('ADMIN'), async (req: Request
       academicYear: db.academicYears.find(y => y.id === data.academicYearId) || null,
     })
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })

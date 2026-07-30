@@ -59,7 +59,7 @@ router.post('/sessions', requireAuth, requireRole('TEACHER'), async (req: Reques
 
     res.json(expandAttendanceSession(session, { includeRecords: true }))
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     console.error(err)
     res.status(500).json({ error: 'Server error' })
   }
@@ -140,7 +140,7 @@ router.post('/sessions/:id/generate-code', requireAuth, requireRole('TEACHER'), 
 
     res.json({ sessionCode: session.sessionCode, expiresAt: session.sessionExpiry })
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -224,7 +224,7 @@ router.post('/public/submit', async (req: Request, res: Response) => {
 
     res.json({ success: true, record })
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     console.error(err)
     res.status(500).json({ error: 'Server error' })
   }

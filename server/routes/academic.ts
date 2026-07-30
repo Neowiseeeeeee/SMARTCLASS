@@ -44,7 +44,7 @@ router.post('/activities', requireAuth, requireRole('TEACHER', 'ADMIN'), async (
     db.academicActivities.push(activity)
     res.json(expandActivity(activity))
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -98,7 +98,7 @@ router.post('/activities/:id/scores', requireAuth, requireRole('TEACHER', 'ADMIN
     })
     res.json(results)
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -138,7 +138,7 @@ router.post('/scores', requireAuth, requireRole('STUDENT'), async (req: Request,
     db.studentScores.push(score)
     res.json(score)
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -169,7 +169,7 @@ router.patch('/activities/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), as
 
     res.json(expandActivity(activity))
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })
@@ -256,7 +256,7 @@ router.post('/sheets', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req:
     db.importedSheets.push(sheet)
     res.json(sheet)
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })

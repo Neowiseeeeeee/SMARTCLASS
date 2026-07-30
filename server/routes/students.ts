@@ -122,7 +122,7 @@ router.post('/', requireAuth, requireRole('ADMIN'), async (req: Request, res: Re
 
     res.json({ student, tempPassword })
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     console.error(err)
     res.status(500).json({ error: 'Server error' })
   }
@@ -281,7 +281,7 @@ router.post('/import', requireAuth, requireRole('ADMIN'), async (req: Request, r
 
     res.json({ imported: credentials.length, skipped: results.filter(r => r.status !== 'valid').length, credentials })
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     console.error(err)
     res.status(500).json({ error: 'Server error' })
   }
@@ -312,7 +312,7 @@ router.patch('/:id/section', requireAuth, requireRole('ADMIN'), async (req: Requ
 
     res.json(expandStudent(s, { includeUser: true }))
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })

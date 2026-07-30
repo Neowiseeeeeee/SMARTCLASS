@@ -58,7 +58,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     res.json({ user: { id: user.id, role: user.role, name, isFirstLogin: user.isFirstLogin } })
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     console.error(err)
     res.status(500).json({ error: 'Server error' })
   }
@@ -147,7 +147,7 @@ router.post('/change-password', requireAuth, async (req: Request, res: Response)
 
     res.json({ success: true })
   } catch (err: any) {
-    if (err.name === 'ZodError') return res.status(400).json({ error: err.errors[0].message })
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
 })

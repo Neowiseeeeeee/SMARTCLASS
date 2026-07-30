@@ -18,7 +18,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-07-30T19:21:15.221Z"
+      "lastLogin": "2026-07-30T19:36:41.160Z"
     },
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
@@ -845,6 +845,22 @@
       "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
       "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
       "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "73ca70de-25cf-4618-8294-06fa25014afb",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "createdAt": "2026-07-30T19:33:44.571877Z"
+    },
+    {
+      "id": "f8931cae-cae4-4289-bb2d-c2c2661c291f",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "81809b84-9042-4503-b8a0-908472fc194b",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "createdAt": "2026-07-30T19:33:44.571877Z"
     }
   ],
   "classSchedules": [
@@ -891,6 +907,50 @@
       "startTime": "10:00",
       "endTime": "11:30",
       "uploadedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "12f25900-7a74-43e1-a58e-2ed284d40933",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "dayOfWeek": "Tuesday",
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "uploadedAt": "2026-07-30T19:33:44.571877Z"
+    },
+    {
+      "id": "92952db3-42ff-482f-897b-5e4ceada9dc9",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "dayOfWeek": "Thursday",
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "uploadedAt": "2026-07-30T19:33:44.571877Z"
+    },
+    {
+      "id": "e76ca6d2-db26-4d09-87e0-bc1c61daba5e",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "81809b84-9042-4503-b8a0-908472fc194b",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "dayOfWeek": "Monday",
+      "startTime": "10:00",
+      "endTime": "11:30",
+      "uploadedAt": "2026-07-30T19:33:44.571877Z"
+    },
+    {
+      "id": "544df2d9-0123-46da-9be8-bd7ea65d91e3",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "81809b84-9042-4503-b8a0-908472fc194b",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "dayOfWeek": "Wednesday",
+      "startTime": "10:00",
+      "endTime": "11:30",
+      "uploadedAt": "2026-07-30T19:33:44.571877Z"
     }
   ],
   "attendanceSessions": [
@@ -975,6 +1035,42 @@
       "activityDate": "2026-07-31T00:00:00.000Z",
       "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
       "createdAt": "2026-07-30T17:55:28.932Z"
+    },
+    {
+      "id": "6efc9ca5-2fb8-4fa6-b008-bd81aa902b5e",
+      "title": "Unit 1 Quiz",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "category": "Quiz",
+      "totalScore": 50,
+      "activityDate": "2026-07-30T19:33:44.571877Z",
+      "createdAt": "2026-07-30T19:33:44.571877Z"
+    },
+    {
+      "id": "11c864a9-8643-40d7-86df-e9e21e410330",
+      "title": "Quiz 1",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "category": "Examination",
+      "totalScore": 50,
+      "activityDate": "2026-07-30T19:33:44.571877Z",
+      "createdAt": "2026-07-30T19:33:44.571877Z"
+    },
+    {
+      "id": "6f4efcac-8e58-432e-9fdf-b8e7193a463f",
+      "title": "Unit 1 Quiz",
+      "subjectId": "81809b84-9042-4503-b8a0-908472fc194b",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "category": "Quiz",
+      "totalScore": 50,
+      "activityDate": "2026-07-30T19:33:44.571877Z",
+      "createdAt": "2026-07-30T19:33:44.571877Z"
     }
   ],
   "studentScores": [
@@ -999,7 +1095,7 @@
     {
       "id": "2d844a3e-3112-41a9-a323-0fde811a440b",
       "name": "School Announcements",
-      "icon": "\ud83d\udce2",
+      "icon": "📢",
       "order": 1,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -1007,7 +1103,7 @@
     {
       "id": "deb0881a-f1ba-4a8e-a006-b621ebac2776",
       "name": "Upcoming Events",
-      "icon": "\ud83d\udcc5",
+      "icon": "📅",
       "order": 2,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -1015,7 +1111,7 @@
     {
       "id": "51696093-aa1c-41cf-b8f2-45b926cb8340",
       "name": "Class Schedule",
-      "icon": "\ud83d\udcda",
+      "icon": "📚",
       "order": 3,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -1023,7 +1119,7 @@
     {
       "id": "d5826e3e-ec5b-4f5e-9dd9-27e96937c5b6",
       "name": "Emergency Hotlines",
-      "icon": "\ud83d\udcde",
+      "icon": "📞",
       "order": 4,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
