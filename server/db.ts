@@ -427,6 +427,14 @@ export async function seedDatabase() {
     { id: ta2Id, teacherId, subjectId: engId, sectionId: sectionAId, academicYearId: yearId, createdAt: now },
   )
 
+  // ── Class schedules ──
+  db.classSchedules.push(
+    { id: uuidv4(), teacherId, subjectId: mathId, sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Monday',    startTime: '08:00', endTime: '09:30', uploadedAt: now },
+    { id: uuidv4(), teacherId, subjectId: mathId, sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Wednesday', startTime: '08:00', endTime: '09:30', uploadedAt: now },
+    { id: uuidv4(), teacherId, subjectId: engId,  sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Tuesday',   startTime: '10:00', endTime: '11:30', uploadedAt: now },
+    { id: uuidv4(), teacherId, subjectId: engId,  sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Thursday',  startTime: '10:00', endTime: '11:30', uploadedAt: now },
+  )
+
   // ── Student ──
   const studentId = uuidv4()
   db.students.push({
