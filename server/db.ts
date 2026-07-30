@@ -35,11 +35,39 @@ export function loadDb(): boolean {
       if (Array.isArray(data[key])) (db as any)[key] = data[key]
     })
     console.log('[db] Loaded persisted data from', DB_FILE)
+    // Scrub stale media references at boot (files may have been deleted externally)
+    _sanitiseMediaRefs()
     return true
   } catch (err) {
     console.error('[db] Failed to load persisted data:', err)
     return false
   }
+}
+
+/**
+ * Internal helper: strips image/pdf fields that reference files no longer on disk.
+ * Exported for use in route handlers that need to call it directly.
+ * Returns true if any record was mutated.
+ */
+export function _sanitiseMediaRefs(): boolean {
+  const uploadsBase = path.join(__dirname, '../uploads')
+  let dirty = false
+  db.announcements.forEach((a: any, idx: number) => {
+    for (const field of ['image', 'pdf'] as const) {
+      const val: string | undefined = a[field]
+      if (!val) continue
+      // Strip leading slash and resolve against project root
+      const rel = val.replace(/^\//, '')
+      const abs = path.join(__dirname, '../', rel)
+      if (!fs.existsSync(abs)) {
+        ;(db.announcements[idx] as any)[field] = undefined
+        dirty = true
+        console.log(`[db] Cleared missing ${field} ref on announcement "${a.title}":`, val)
+      }
+    }
+  })
+  if (dirty) saveDb()
+  return dirty
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────

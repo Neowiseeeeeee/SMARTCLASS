@@ -37,6 +37,7 @@ export default function IdleScreen() {
   const [slideIndex, setSlideIndex] = useState(0)
   const [autoRotateTab, setAutoRotateTab] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [imgError, setImgError] = useState(false)   // true when current slide's image fails to load
   const menuRef = useRef<HTMLDivElement>(null)
 
   // Touch-swipe state
@@ -75,6 +76,9 @@ export default function IdleScreen() {
     const t = setInterval(() => setSlideIndex(i => (i + 1) % slides.length), 6000)
     return () => clearInterval(t)
   }, [slides.length, activeTab])
+
+  // Reset image-error flag whenever the visible slide changes
+  useEffect(() => { setImgError(false) }, [slideIndex, activeTab])
 
   // Auto-rotate tabs
   useEffect(() => {
@@ -300,12 +304,13 @@ export default function IdleScreen() {
                 </div>
 
               /* ── Image only: fill the card ── */
-              ) : currentSlide.image && !currentSlide.description ? (
+              ) : currentSlide.image && !currentSlide.description && !imgError ? (
                 <div className="relative flex-1 min-h-0">
                   <img
                     src={currentSlide.image}
                     alt={currentSlide.title}
                     className="w-full h-full object-contain bg-gray-900"
+                    onError={() => setImgError(true)}
                   />
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-4 sm:px-8 py-4 sm:py-6 pointer-events-none">
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full mb-2 w-fit">
@@ -324,13 +329,14 @@ export default function IdleScreen() {
                 </div>
 
               /* ── Image + text: stack on mobile, side-by-side on md+ ── */
-              ) : currentSlide.image && currentSlide.description ? (
+              ) : currentSlide.image && currentSlide.description && !imgError ? (
                 <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-auto md:overflow-hidden">
                   <div className="w-full md:w-1/2 flex-shrink-0 min-h-[200px] sm:min-h-[260px] md:min-h-0">
                     <img
                       src={currentSlide.image}
                       alt={currentSlide.title}
                       className="w-full h-full object-cover"
+                      onError={() => setImgError(true)}
                     />
                   </div>
                   <div className="flex flex-col justify-center p-5 sm:p-7 lg:p-10 md:w-1/2 overflow-y-auto">

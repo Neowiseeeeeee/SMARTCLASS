@@ -47,11 +47,48 @@ function deleteFile(filePath?: string) {
   } catch { /* ignore */ }
 }
 
+/** Returns the path only if the file actually exists on disk; otherwise undefined. */
+function verifyFile(filePath?: string): string | undefined {
+  if (!filePath) return undefined
+  try {
+    const abs = path.join(__dirname, '../../', filePath.replace(/^\//, ''))
+    return fs.existsSync(abs) ? filePath : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Strip any image/pdf references that point to missing files — called on both
+ * the /public endpoint and during db startup to keep records clean.
+ */
+export function sanitiseMediaRefs() {
+  let dirty = false
+  db.announcements.forEach((a, idx) => {
+    const cleanImage = verifyFile((a as any).image)
+    const cleanPdf   = verifyFile((a as any).pdf)
+    if (cleanImage !== (a as any).image || cleanPdf !== (a as any).pdf) {
+      ;(db.announcements[idx] as any).image = cleanImage
+      ;(db.announcements[idx] as any).pdf   = cleanPdf
+      dirty = true
+    }
+  })
+  return dirty
+}
+
 // ── Routes ────────────────────────────────────────────────────────────────────
 
 // Public: get all published announcements with categories
 router.get('/public', async (_req, res: Response) => {
   try {
+    // Clean up any stale file references before serving
+    const dirty = sanitiseMediaRefs()
+    if (dirty) {
+      // Persist the cleaned records so the next boot is already clean
+      const { saveDb } = await import('../db.js')
+      saveDb()
+    }
+
     const categories = db.announcementCategories
       .filter(c => c.status === 'active')
       .sort((a, b) => a.order - b.order)
