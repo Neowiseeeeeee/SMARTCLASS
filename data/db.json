@@ -242,6 +242,26 @@
       "sessionStatus": "closed",
       "createdAt": "2026-07-30T16:46:59.689Z",
       "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "9194f706-9b5e-446e-bc2e-d115dad9271d",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "81809b84-9042-4503-b8a0-908472fc194b",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "attendanceDate": "2026-07-31T00:00:00.000Z",
+      "sessionStatus": "open",
+      "createdAt": "2026-07-30T18:14:44.581Z",
+      "updatedAt": "2026-07-30T18:14:44.581Z"
+    },
+    {
+      "id": "0da1b41d-0e5e-46f5-8803-76bedf253d2e",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "attendanceDate": "2026-08-01T00:00:00.000Z",
+      "sessionStatus": "open",
+      "createdAt": "2026-07-30T18:15:09.003Z",
+      "updatedAt": "2026-07-30T18:15:09.003Z"
     }
   ],
   "attendanceRecords": [
@@ -250,8 +270,24 @@
       "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
       "sessionId": "4a9f0c4a-e4a3-4aaf-8722-7799e7e2e35e",
       "status": "present",
-      "timeRecorded": "2026-07-30T16:46:59.689Z",
+      "timeRecorded": "2026-07-30T18:13:11.138Z",
       "verificationStatus": "verified"
+    },
+    {
+      "id": "76340314-94f8-4dd4-85a5-e7dcbdef0ab7",
+      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "sessionId": "9194f706-9b5e-446e-bc2e-d115dad9271d",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T18:14:44.581Z",
+      "verificationStatus": "pending"
+    },
+    {
+      "id": "368f199a-2ea5-4288-a6eb-06289af478d2",
+      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "sessionId": "0da1b41d-0e5e-46f5-8803-76bedf253d2e",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T18:15:09.003Z",
+      "verificationStatus": "pending"
     }
   ],
   "academicActivities": [
