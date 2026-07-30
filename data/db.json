@@ -266,6 +266,18 @@
       "totalScore": 50,
       "activityDate": "2026-07-30T16:46:59.689Z",
       "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "6d5a87ed-400f-4596-89fe-a4d29783d7ad",
+      "title": "Quiz 1",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "category": "Examination",
+      "totalScore": 50,
+      "activityDate": "2026-07-31T00:00:00.000Z",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "createdAt": "2026-07-30T17:55:28.932Z"
     }
   ],
   "studentScores": [
@@ -276,6 +288,14 @@
       "scoreObtained": 45,
       "totalScore": 50,
       "dateRecorded": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "d1e045b5-7423-473d-a338-005686c9f7c4",
+      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "activityId": "6d5a87ed-400f-4596-89fe-a4d29783d7ad",
+      "scoreObtained": 45,
+      "totalScore": 50,
+      "dateRecorded": "2026-07-30T17:55:52.217Z"
     }
   ],
   "announcementCategories": [
