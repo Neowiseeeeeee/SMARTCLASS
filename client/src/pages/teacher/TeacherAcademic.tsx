@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { useAuth } from '../../lib/auth'
-import { academicApi, structureApi } from '../../lib/api'
+import { academicApi, structureApi, attendanceApi } from '../../lib/api'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Modal } from '../../components/ui/Modal'
@@ -12,7 +12,7 @@ import {
   BarChart2, ChevronLeft, ChevronRight, Plus,
   Check, Loader2, Users, BookOpen, FolderOpen,
   Trash2, Pencil, Download, Calculator, X,
-  MoreVertical, Upload, AlertTriangle, FileSpreadsheet,
+  MoreVertical, Upload, AlertTriangle, FileSpreadsheet, CalendarCheck,
 } from 'lucide-react'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -224,6 +224,21 @@ export default function TeacherAcademic() {
     try { localStorage.setItem(formulaKey, JSON.stringify(cols)) } catch {}
   }, [formulaKey])
 
+  // ── Attendance column (stored in localStorage per section+subject) ───────────
+  const attendanceColKey = `smartclass_attendance_${selectedSection?.id ?? ''}_${selectedSubjectId}`
+  const [showAttendanceCol, setShowAttendanceCol] = useState(false)
+
+  useEffect(() => {
+    if (!selectedSection || !selectedSubjectId) { setShowAttendanceCol(false); return }
+    setShowAttendanceCol(localStorage.getItem(attendanceColKey) === 'true')
+  }, [attendanceColKey, selectedSection, selectedSubjectId])
+
+  function toggleAttendanceCol(val: boolean) {
+    setShowAttendanceCol(val)
+    if (val) localStorage.setItem(attendanceColKey, 'true')
+    else localStorage.removeItem(attendanceColKey)
+  }
+
   // ── Section groups ──────────────────────────────────────────────────────────
   const sectionGroups = useMemo(() => {
     const map: Record<string, { section: any; subjects: any[] }> = {}
@@ -267,6 +282,12 @@ export default function TeacherAcademic() {
     enabled: !!selectedSection?.id,
   })
 
+  const { data: attendanceSessions = [] } = useQuery({
+    queryKey: ['attendance-sessions'],
+    queryFn: () => attendanceApi.getSessions().then(r => r.data),
+    enabled: showAttendanceCol && !!selectedSection?.id,
+  })
+
   // ── Subjects in section ─────────────────────────────────────────────────────
   const subjectsInSection = useMemo(() => {
     if (!selectedSection) return []
@@ -291,6 +312,32 @@ export default function TeacherAcademic() {
       .filter(a => a.subjectId === selectedSubjectId && a.sectionId === selectedSection.id)
       .sort((a: any, b: any) => new Date(a.activityDate).getTime() - new Date(b.activityDate).getTime())
   }, [activities, selectedSubjectId, selectedSection])
+
+  // ── Attendance % per student for current section+subject ───────────────────
+  const attendancePct = useMemo<Record<string, number>>(() => {
+    if (!showAttendanceCol || !selectedSection || !selectedSubjectId) return {}
+    const sessions = (attendanceSessions as any[]).filter(
+      s => s.sectionId === selectedSection.id && s.subjectId === selectedSubjectId
+    )
+    if (sessions.length === 0) return {}
+    const result: Record<string, number> = {};
+    (students as any[]).forEach(student => {
+      const presentCount = sessions.filter(s =>
+        (s.attendanceRecords ?? []).some(
+          (r: any) => r.studentId === student.id && (r.status === 'present' || r.status === 'late')
+        )
+      ).length
+      result[student.id] = (presentCount / sessions.length) * 100
+    })
+    return result
+  }, [showAttendanceCol, attendanceSessions, selectedSection, selectedSubjectId, students])
+
+  const attendanceSessionCount = useMemo(() => {
+    if (!selectedSection || !selectedSubjectId) return 0
+    return (attendanceSessions as any[]).filter(
+      s => s.sectionId === selectedSection.id && s.subjectId === selectedSubjectId
+    ).length
+  }, [attendanceSessions, selectedSection, selectedSubjectId])
 
   // ── Active sheet (either free-form or replacing a subject tab) ──────────────
   const activeSheet = useMemo(() => {
@@ -490,7 +537,8 @@ export default function TeacherAcademic() {
     const subjectName = subjectsInSection.find(a => a.subjectId === selectedSubjectId)?.subject?.name || 'Subject'
     const actHeaders  = filteredActivities.map((a: any) => `${a.title} (/${a.totalScore} ${a.category})`)
     const fmtHeaders  = formulaCols.map(c => c.name)
-    const headers     = ['Student Name', 'Student No.', ...actHeaders, ...fmtHeaders]
+    const attHeader   = showAttendanceCol ? ['Attendance %'] : []
+    const headers     = ['Student Name', 'Student No.', ...actHeaders, ...fmtHeaders, ...attHeader]
 
     const rows = (students as any[]).map(student => {
       const scores   = filteredActivities.map((act: any) => {
@@ -498,13 +546,20 @@ export default function TeacherAcademic() {
         return (v !== undefined && v !== '') ? String(v) : ''
       })
       const formulas = formulaCols.map(c => computeFormula(c, student.id))
-      return [student.fullName, student.studentNumber, ...scores, ...formulas]
+      const att = showAttendanceCol
+        ? [attendancePct[student.id] !== undefined ? `${attendancePct[student.id].toFixed(1)}%` : '']
+        : []
+      return [student.fullName, student.studentNumber, ...scores, ...formulas, ...att]
     })
+
+    const attAvg = showAttendanceCol && Object.keys(attendancePct).length > 0
+      ? [`${(Object.values(attendancePct).reduce((a, b) => a + b, 0) / Object.values(attendancePct).length).toFixed(1)}%`]
+      : showAttendanceCol ? [''] : []
 
     const avgRow = ['CLASS AVERAGE', '', ...filteredActivities.map((act: any) => {
       const vals = (students as any[]).map(s => localScores[act.id]?.[s.id]).filter(v => v !== undefined && v !== '') as number[]
       return vals.length > 0 ? (vals.reduce((a, b) => a + Number(b), 0) / vals.length).toFixed(1) : ''
-    }), ...formulaCols.map(() => '')]
+    }), ...formulaCols.map(() => ''), ...attAvg]
 
     const csv = [headers, ...rows, avgRow]
       .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
@@ -524,7 +579,7 @@ export default function TeacherAcademic() {
     saveTimeoutRef.current = {}
     setSelectedSection(null); setSelectedSubjectId('')
     setLocalScores({}); setFormulaCols([])
-    setSelectedSheetId(null)
+    setSelectedSheetId(null); setShowAttendanceCol(false)
   }
 
   // ────────────────────────────────────────────────────────────────────────────
