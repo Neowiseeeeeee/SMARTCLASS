@@ -39,6 +39,10 @@ export default function IdleScreen() {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  // Touch-swipe state
+  const touchStartX = useRef<number | null>(null)
+  const touchStartY = useRef<number | null>(null)
+
   const { data: categories = [] } = useQuery({
     queryKey: ['public-announcements'],
     queryFn: () => announcementsApi.getPublic().then(r => r.data),
@@ -65,10 +69,10 @@ export default function IdleScreen() {
   const activeCategory = categories[activeTab]
   const slides = activeCategory?.announcements || []
 
-  // Auto-rotate slides
+  // Auto-rotate slides every 6 s
   useEffect(() => {
     if (!slides.length) return
-    const t = setInterval(() => setSlideIndex(i => (i + 1) % slides.length), 8000)
+    const t = setInterval(() => setSlideIndex(i => (i + 1) % slides.length), 6000)
     return () => clearInterval(t)
   }, [slides.length, activeTab])
 
@@ -91,6 +95,25 @@ export default function IdleScreen() {
 
   const prevSlide = () => setSlideIndex(i => (i - 1 + slides.length) % slides.length)
   const nextSlide = () => setSlideIndex(i => (i + 1) % slides.length)
+
+  // Touch-swipe handlers (horizontal swipe → prev/next, vertical → scroll)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    const dy = e.changedTouches[0].clientY - touchStartY.current
+    // Only treat as a horizontal swipe if horizontal movement dominates
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+      if (dx < 0) nextSlide()   // swipe left → next
+      else prevSlide()           // swipe right → prev
+    }
+    touchStartX.current = null
+    touchStartY.current = null
+  }
 
   const currentSlide = slides[slideIndex]
 
@@ -244,8 +267,12 @@ export default function IdleScreen() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col gap-3 sm:gap-5 lg:gap-6 min-h-0">
-            {/* Slide card */}
-            <div className="flex-1 bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-200 shadow-sm flex min-h-0">
+            {/* Slide card — touch-swipeable */}
+            <div
+              className="flex-1 bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-200 shadow-sm flex min-h-0 touch-pan-y"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
 
               {/* ── PDF: full-height embed ── */}
               {currentSlide.pdf ? (

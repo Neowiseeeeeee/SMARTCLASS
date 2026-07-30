@@ -3,11 +3,12 @@
     {
       "id": "f24bf33a-ff8d-407a-9b01-2a4437a50e2c",
       "username": "admin",
-      "passwordHash": "$2a$12$xWGZRn97EfJXQu5EqO1/zeZA/iNMW9byuxyivVtUCa2oWEG4fDDei",
+      "passwordHash": "$2a$12$aDa6gCV.UTuQnLmGTviHXeVajXLLiEQ/F.uMi/QTG8uhIB.80aouS",
       "role": "ADMIN",
       "status": "active",
-      "isFirstLogin": true,
-      "createdAt": "2026-07-29T19:09:20.294Z"
+      "isFirstLogin": false,
+      "createdAt": "2026-07-29T19:09:20.294Z",
+      "lastLogin": "2026-07-30T09:57:46.047Z"
     },
     {
       "id": "3a7d880b-7d5c-41f4-851d-767a6572f77d",
@@ -298,8 +299,7 @@
       "displayPriority": 0,
       "publishedAt": "2026-07-29T19:10:43.826Z",
       "createdAt": "2026-07-29T19:10:43.826Z",
-      "updatedAt": "2026-07-29T19:10:44.253Z",
-      "image": "/uploads/announcements/4389d041-233a-4652-9065-9c029784915f.jpg"
+      "updatedAt": "2026-07-30T09:59:34.478Z"
     }
   ],
   "systemSettings": [
