@@ -8,25 +8,27 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-29T19:09:20.294Z",
-      "lastLogin": "2026-07-30T11:08:09.280Z"
+      "lastLogin": "2026-07-30T11:16:14.940Z"
     },
     {
       "id": "3a7d880b-7d5c-41f4-851d-767a6572f77d",
       "email": "teacher@erlhs.edu.ph",
-      "passwordHash": "$2a$12$.Y4rluA7UuGIJM/5tGHFuuiuFnpvjNuvXhFEMlx9beeveb4MaOCYa",
+      "passwordHash": "$2a$12$VCCKLvUpspLSoyhsvKTQs.xPlY5rDH0lSSUF9z1lmblrVrb2F1mrC",
       "role": "TEACHER",
       "status": "active",
-      "isFirstLogin": true,
-      "createdAt": "2026-07-29T19:09:20.294Z"
+      "isFirstLogin": false,
+      "createdAt": "2026-07-29T19:09:20.294Z",
+      "lastLogin": "2026-07-30T11:19:46.553Z"
     },
     {
       "id": "4302f867-f1be-43a6-b179-be4bea5e7e11",
       "email": "student@erlhs.edu.ph",
-      "passwordHash": "$2a$12$WGcy3jTRA5a0v217ZX.kG.5kVnF22H27sfRQw4HZkvyDCb3c7pffK",
+      "passwordHash": "$2a$12$gs5Qo9v63lv4nmqbr9EcE.Mzd7KFnRRbe.VJklzY1ihfmnai.SkYi",
       "role": "STUDENT",
       "status": "active",
-      "isFirstLogin": true,
-      "createdAt": "2026-07-29T19:09:20.294Z"
+      "isFirstLogin": false,
+      "createdAt": "2026-07-29T19:09:20.294Z",
+      "lastLogin": "2026-07-30T11:17:46.657Z"
     }
   ],
   "admins": [
@@ -196,6 +198,16 @@
       "sessionStatus": "closed",
       "createdAt": "2026-07-29T19:09:20.294Z",
       "updatedAt": "2026-07-29T19:09:20.294Z"
+    },
+    {
+      "id": "2cf02bf6-91f8-4406-900a-a0524458b192",
+      "teacherId": "5fe308be-5a9b-419a-8e4f-103d85b8b534",
+      "subjectId": "f929586e-bf7a-440e-96f4-116732dd22ec",
+      "sectionId": "a5a13f3a-3339-4c30-9491-6ced117859e2",
+      "attendanceDate": "2026-07-30T00:00:00.000Z",
+      "sessionStatus": "closed",
+      "createdAt": "2026-07-30T11:36:30.026Z",
+      "updatedAt": "2026-07-30T11:37:24.340Z"
     }
   ],
   "attendanceRecords": [
@@ -206,6 +218,14 @@
       "status": "present",
       "timeRecorded": "2026-07-29T19:09:20.294Z",
       "verificationStatus": "verified"
+    },
+    {
+      "id": "da16267d-e77b-42df-bfda-78ea6ab0c45c",
+      "studentId": "8e759e3d-bb02-45a3-8290-70a7d2c87fa9",
+      "sessionId": "2cf02bf6-91f8-4406-900a-a0524458b192",
+      "status": "absent",
+      "timeRecorded": "2026-07-30T11:36:30.026Z",
+      "verificationStatus": "pending"
     }
   ],
   "academicActivities": [
@@ -288,18 +308,6 @@
       "publishedAt": "2026-07-29T19:09:20.294Z",
       "createdAt": "2026-07-29T19:09:20.294Z",
       "updatedAt": "2026-07-29T19:09:20.294Z"
-    },
-    {
-      "id": "518cc763-9f63-42be-9b81-990f0c0370a2",
-      "title": "Emergency Hotlines",
-      "categoryId": "e1a4cb73-cdbb-4a4e-bb74-a5c4366b3212",
-      "description": "",
-      "content": "",
-      "publishStatus": "published",
-      "displayPriority": 0,
-      "publishedAt": "2026-07-29T19:10:43.826Z",
-      "createdAt": "2026-07-29T19:10:43.826Z",
-      "updatedAt": "2026-07-30T09:59:34.478Z"
     },
     {
       "id": "0589dc8b-b0eb-4b52-b007-d73e6ded2bd8",
