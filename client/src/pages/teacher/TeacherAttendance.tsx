@@ -214,6 +214,35 @@ export default function TeacherAttendance() {
     setSelectedSubjectId(group?.subjects[0]?.subjectId || '')
   }
 
+  // ── Derived data (must be above all early returns — Rules of Hooks) ─────────
+
+  // Status lookup: sessionId → studentId → { id, status }
+  const statusMap = useMemo(() => {
+    const m: Record<string, Record<string, { id: string; status: AttendanceStatus }>> = {}
+    sessionsForSubject.forEach((sess: any) => {
+      m[sess.id] = {}
+      sess.attendanceRecords?.forEach((r: any) => {
+        m[sess.id][r.studentId] = { id: r.id, status: r.status as AttendanceStatus }
+      })
+    })
+    return m
+  }, [sessionsForSubject])
+
+  // Summary counts per session column
+  const sessionSummaries = useMemo(() =>
+    sessionsForSubject.map((sess: any) => {
+      const records = sess.attendanceRecords || []
+      return {
+        present: records.filter((r: any) => r.status === 'present').length,
+        absent:  records.filter((r: any) => r.status === 'absent').length,
+        late:    records.filter((r: any) => r.status === 'late').length,
+        excused: records.filter((r: any) => r.status === 'excused').length,
+        total:   records.length,
+      }
+    }),
+    [sessionsForSubject],
+  )
+
   // ── Loading ─────────────────────────────────────────────────────────────────
   if (loadingSessions) return <LoadingSpinner />
 
@@ -298,33 +327,6 @@ export default function TeacherAttendance() {
   // RENDER: Section detail — subject tabs + attendance spreadsheet
   // ────────────────────────────────────────────────────────────────────────────
   const isSheetLoading = loadingStudents || loadingSessions
-
-  // Build the status lookup: sessionId → studentId → status
-  const statusMap = useMemo(() => {
-    const m: Record<string, Record<string, { id: string; status: AttendanceStatus }>> = {}
-    sessionsForSubject.forEach((sess: any) => {
-      m[sess.id] = {}
-      sess.attendanceRecords?.forEach((r: any) => {
-        m[sess.id][r.studentId] = { id: r.id, status: r.status as AttendanceStatus }
-      })
-    })
-    return m
-  }, [sessionsForSubject])
-
-  // Summary counts per session (for column header)
-  const sessionSummaries = useMemo(() =>
-    sessionsForSubject.map((sess: any) => {
-      const records = sess.attendanceRecords || []
-      return {
-        present: records.filter((r: any) => r.status === 'present').length,
-        absent:  records.filter((r: any) => r.status === 'absent').length,
-        late:    records.filter((r: any) => r.status === 'late').length,
-        excused: records.filter((r: any) => r.status === 'excused').length,
-        total:   records.length,
-      }
-    }),
-    [sessionsForSubject],
-  )
 
   return (
     <div className="space-y-6 animate-fade-in">
