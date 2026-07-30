@@ -18,7 +18,7 @@ export default function TeacherAttendance() {
   const { user } = useAuth()
   const qc = useQueryClient()
   const teacher = user?.profile
-  const assignments: any[] = teacher?.subjectAssignments || []
+  const assignments: any[] = useMemo(() => teacher?.subjectAssignments || [], [teacher])
 
   // ── Navigation ──────────────────────────────────────────────────────────────
   const [selectedSection, setSelectedSection] = useState<any>(null)

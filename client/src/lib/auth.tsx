@@ -49,9 +49,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [fetchMe])
 
   const login = async (identifier: string, password: string, role: string): Promise<AuthUser> => {
-    const res = await authApi.login({ identifier, password, role })
-    const { user: u } = res.data
-    const authUser: AuthUser = { id: u.id, role: u.role, name: u.name, isFirstLogin: u.isFirstLogin }
+    await authApi.login({ identifier, password, role })
+    // Fetch the full profile (with subjectAssignments, sectionAssignments, etc.)
+    // so all portal pages have data immediately after login.
+    const meRes = await authApi.me()
+    const data = meRes.data
+    const authUser: AuthUser = {
+      id: data.id,
+      role: data.role,
+      name: data.profile?.fullName || data.profile?.student?.fullName || 'User',
+      isFirstLogin: data.isFirstLogin,
+      profile: data.profile,
+    }
     setUser(authUser)
     return authUser
   }
