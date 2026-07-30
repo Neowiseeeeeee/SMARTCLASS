@@ -8,7 +8,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-07-30T16:56:04.220Z"
+      "lastLogin": "2026-07-30T19:24:00.742Z"
     },
     {
       "id": "35c331a8-efe2-4797-8a6d-25654f175258",
@@ -18,7 +18,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-07-30T18:22:04.206Z"
+      "lastLogin": "2026-07-30T19:21:15.221Z"
     },
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
@@ -28,6 +28,187 @@
       "status": "active",
       "isFirstLogin": true,
       "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "fa98bf85-a0a8-4a83-a342-e71e1ffc6f36",
+      "email": "ana.reyes@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z",
+      "lastLogin": "2026-07-30T19:24:36.792Z"
+    },
+    {
+      "id": "b5ea9a7b-742d-49f9-9a36-84cc38f96348",
+      "email": "carlo.mendoza@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "427456a4-8dd7-4b7d-b315-0ae26ac39718",
+      "email": "diana.santos@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "fdaaab4d-ddda-4646-bdb4-9a9deec8ead7",
+      "email": "eduardo.garcia@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "369f8983-e089-4b22-8111-e17c2ea011d4",
+      "email": "fe.cruz@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "f4e48e0b-506b-4f80-88ac-376834e0c5af",
+      "email": "gabriel.torres@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "e76a62bf-38c1-4b65-bae9-3341d3c38ab4",
+      "email": "hannah.villanueva@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "04664c32-e425-49f6-947e-60cac8b6e0aa",
+      "email": "ivan.ramos@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "7a62ebd6-e59e-4447-aa5f-384657095c12",
+      "email": "jasmine.aquino@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "834e16a2-fc64-43aa-a9d6-a4c41c10c679",
+      "email": "kevin.bautista@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "70323b7e-3933-4531-b6b6-d3d1944ff253",
+      "email": "liza.fernandez@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "564a5eb2-8acd-458d-b6e4-6df039d390e8",
+      "email": "miguel.castillo@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "202f0934-8ffe-478f-aa07-ee9d4e930475",
+      "email": "nora.delacruz@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "3785f363-ade2-4871-b244-f077acc40de7",
+      "email": "oscar.romero@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "bf968dd7-e49c-4f89-9554-4dbeb584014b",
+      "email": "patricia.gonzales@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "15554d66-f740-4cee-b1ee-d7abb503d1eb",
+      "email": "ramon.flores@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "78e2ef17-4ef2-4285-bd73-27579c196148",
+      "email": "sandra.lopez@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "23701422-bdbf-45da-b352-43dd6ed53aad",
+      "email": "teodoro.morales@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "aad148bb-a546-466f-8b98-12f84ca5dd08",
+      "email": "ursula.espinoza@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "2176e89d-7cac-4dc2-a93f-e0b4ab7d76be",
+      "email": "vicente.navarro@erlhs.edu.ph",
+      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "role": "STUDENT",
+      "status": "active",
+      "isFirstLogin": true,
+      "createdAt": "2026-07-30T19:22:54.207Z"
     }
   ],
   "admins": [
@@ -49,6 +230,226 @@
       "email": "student@erlhs.edu.ph",
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "4b5d25c0-17a4-4d43-850d-0dfb2bb7b3fc",
+      "userId": "fa98bf85-a0a8-4a83-a342-e71e1ffc6f36",
+      "studentNumber": "2024-00002",
+      "studentCode": "SC-00002",
+      "fullName": "Ana Marie Reyes",
+      "gender": "Female",
+      "email": "ana.reyes@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "b1cb870e-ec70-458d-ae03-3eac489d9e2b",
+      "userId": "b5ea9a7b-742d-49f9-9a36-84cc38f96348",
+      "studentNumber": "2024-00003",
+      "studentCode": "SC-00003",
+      "fullName": "Carlo Miguel Mendoza",
+      "gender": "Male",
+      "email": "carlo.mendoza@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "c54420da-9729-48f5-95f4-8ccf8d9e1a22",
+      "userId": "427456a4-8dd7-4b7d-b315-0ae26ac39718",
+      "studentNumber": "2024-00004",
+      "studentCode": "SC-00004",
+      "fullName": "Diana Grace Santos",
+      "gender": "Female",
+      "email": "diana.santos@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "cf6c3c02-8068-44b7-b223-9fdb06285e35",
+      "userId": "fdaaab4d-ddda-4646-bdb4-9a9deec8ead7",
+      "studentNumber": "2024-00005",
+      "studentCode": "SC-00005",
+      "fullName": "Eduardo Luis Garcia",
+      "gender": "Male",
+      "email": "eduardo.garcia@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "43ef77d6-a098-476e-9647-368d848de2b1",
+      "userId": "369f8983-e089-4b22-8111-e17c2ea011d4",
+      "studentNumber": "2024-00006",
+      "studentCode": "SC-00006",
+      "fullName": "Fe Angelica Cruz",
+      "gender": "Female",
+      "email": "fe.cruz@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "6a8c2f17-3609-466f-8874-c0289eff66dd",
+      "userId": "f4e48e0b-506b-4f80-88ac-376834e0c5af",
+      "studentNumber": "2024-00007",
+      "studentCode": "SC-00007",
+      "fullName": "Gabriel Jose Torres",
+      "gender": "Male",
+      "email": "gabriel.torres@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "40170e10-66a9-43ce-8b3b-d1fa4ec53638",
+      "userId": "e76a62bf-38c1-4b65-bae9-3341d3c38ab4",
+      "studentNumber": "2024-00008",
+      "studentCode": "SC-00008",
+      "fullName": "Hannah Joy Villanueva",
+      "gender": "Female",
+      "email": "hannah.villanueva@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "cc8e3f9d-dd65-480d-adde-4270aeed6c69",
+      "userId": "04664c32-e425-49f6-947e-60cac8b6e0aa",
+      "studentNumber": "2024-00009",
+      "studentCode": "SC-00009",
+      "fullName": "Ivan Paolo Ramos",
+      "gender": "Male",
+      "email": "ivan.ramos@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "e58c789d-da91-4af0-94a1-9f53a81bc200",
+      "userId": "7a62ebd6-e59e-4447-aa5f-384657095c12",
+      "studentNumber": "2024-00010",
+      "studentCode": "SC-00010",
+      "fullName": "Jasmine Rose Aquino",
+      "gender": "Female",
+      "email": "jasmine.aquino@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "700b5295-bb6e-4155-a439-b16bd7db4bcc",
+      "userId": "834e16a2-fc64-43aa-a9d6-a4c41c10c679",
+      "studentNumber": "2024-00011",
+      "studentCode": "SC-00011",
+      "fullName": "Kevin James Bautista",
+      "gender": "Male",
+      "email": "kevin.bautista@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "34505e2b-f804-4c29-a6f9-0793e1b77b20",
+      "userId": "70323b7e-3933-4531-b6b6-d3d1944ff253",
+      "studentNumber": "2024-00012",
+      "studentCode": "SC-00012",
+      "fullName": "Liza Mae Fernandez",
+      "gender": "Female",
+      "email": "liza.fernandez@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "87672dc3-3ce1-43c9-a976-ad87bd911617",
+      "userId": "564a5eb2-8acd-458d-b6e4-6df039d390e8",
+      "studentNumber": "2024-00013",
+      "studentCode": "SC-00013",
+      "fullName": "Miguel Angel Castillo",
+      "gender": "Male",
+      "email": "miguel.castillo@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "e200a462-c530-4636-b446-6486ce8b58fe",
+      "userId": "202f0934-8ffe-478f-aa07-ee9d4e930475",
+      "studentNumber": "2024-00014",
+      "studentCode": "SC-00014",
+      "fullName": "Nora Elena Dela Cruz",
+      "gender": "Female",
+      "email": "nora.delacruz@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "a5ffb65e-3d78-4e03-8d84-704fe8592bbb",
+      "userId": "3785f363-ade2-4871-b244-f077acc40de7",
+      "studentNumber": "2024-00015",
+      "studentCode": "SC-00015",
+      "fullName": "Oscar Ray Romero",
+      "gender": "Male",
+      "email": "oscar.romero@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "40e06a2e-7809-470d-8da1-9191b86c6bf5",
+      "userId": "bf968dd7-e49c-4f89-9554-4dbeb584014b",
+      "studentNumber": "2024-00016",
+      "studentCode": "SC-00016",
+      "fullName": "Patricia Anne Gonzales",
+      "gender": "Female",
+      "email": "patricia.gonzales@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "6764e45c-a536-4545-8135-de0bbca178ba",
+      "userId": "15554d66-f740-4cee-b1ee-d7abb503d1eb",
+      "studentNumber": "2024-00017",
+      "studentCode": "SC-00017",
+      "fullName": "Ramon Carlo Flores",
+      "gender": "Male",
+      "email": "ramon.flores@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "9b171579-9745-4714-bfbb-6ab540b7f1be",
+      "userId": "78e2ef17-4ef2-4285-bd73-27579c196148",
+      "studentNumber": "2024-00018",
+      "studentCode": "SC-00018",
+      "fullName": "Sandra Claire Lopez",
+      "gender": "Female",
+      "email": "sandra.lopez@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "165fb7c2-a02f-43e8-a431-acad073f43a5",
+      "userId": "23701422-bdbf-45da-b352-43dd6ed53aad",
+      "studentNumber": "2024-00019",
+      "studentCode": "SC-00019",
+      "fullName": "Teodoro Rex Morales",
+      "gender": "Male",
+      "email": "teodoro.morales@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "0889cfe6-e18a-400b-ab3b-210293c33220",
+      "userId": "aad148bb-a546-466f-8b98-12f84ca5dd08",
+      "studentNumber": "2024-00020",
+      "studentCode": "SC-00020",
+      "fullName": "Ursula Mae Espinoza",
+      "gender": "Female",
+      "email": "ursula.espinoza@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "6e35a55f-2b9b-4caf-a2b6-8f0c9e1027cc",
+      "userId": "2176e89d-7cac-4dc2-a93f-e0b4ab7d76be",
+      "studentNumber": "2024-00021",
+      "studentCode": "SC-00021",
+      "fullName": "Vicente Leon Navarro",
+      "gender": "Male",
+      "email": "vicente.navarro@erlhs.edu.ph",
+      "status": "active",
+      "createdAt": "2026-07-30T19:22:54.207Z"
     }
   ],
   "studentProfiles": [
@@ -56,6 +457,106 @@
       "id": "36866456-55c2-47ae-8cab-e8e997dda069",
       "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
       "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "d0fc24c0-d84b-4fd0-ba98-fe3001679d49",
+      "studentId": "4b5d25c0-17a4-4d43-850d-0dfb2bb7b3fc",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "42dcbb70-8a0c-4920-aec2-36256371f9d2",
+      "studentId": "b1cb870e-ec70-458d-ae03-3eac489d9e2b",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "9f22c131-1675-4a77-a82e-e8ba735b1444",
+      "studentId": "c54420da-9729-48f5-95f4-8ccf8d9e1a22",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "61bb551b-7f1b-4068-aefe-24efe0eb69f6",
+      "studentId": "cf6c3c02-8068-44b7-b223-9fdb06285e35",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "838c5141-c473-479e-9071-52988fc74857",
+      "studentId": "43ef77d6-a098-476e-9647-368d848de2b1",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "f05c68ba-f607-4f5b-af4f-8b4bc6bc03f5",
+      "studentId": "6a8c2f17-3609-466f-8874-c0289eff66dd",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "c51f8166-e7cb-4a92-8953-bdefb751f5cc",
+      "studentId": "40170e10-66a9-43ce-8b3b-d1fa4ec53638",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "69375017-da88-4c43-b901-57b3de8e0333",
+      "studentId": "cc8e3f9d-dd65-480d-adde-4270aeed6c69",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "3bd38f49-33a3-4430-a13a-0f4007abaa45",
+      "studentId": "e58c789d-da91-4af0-94a1-9f53a81bc200",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "730bb5cb-a18b-4371-bb3b-d2391a862d3f",
+      "studentId": "700b5295-bb6e-4155-a439-b16bd7db4bcc",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "66134bc0-6869-4f5b-98c3-cf4f61f9e276",
+      "studentId": "34505e2b-f804-4c29-a6f9-0793e1b77b20",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "a87dd736-30c8-48af-a52b-96dffb4ba2c7",
+      "studentId": "87672dc3-3ce1-43c9-a976-ad87bd911617",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "6b1e08e5-77ae-4704-a918-dad3a64fd3e0",
+      "studentId": "e200a462-c530-4636-b446-6486ce8b58fe",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "0f6b19f8-0308-49b4-b058-855b5adf5569",
+      "studentId": "a5ffb65e-3d78-4e03-8d84-704fe8592bbb",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "80421913-8944-4192-b878-411870c9d0bb",
+      "studentId": "40e06a2e-7809-470d-8da1-9191b86c6bf5",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "5ab97068-91ae-4109-932b-94343bf090b0",
+      "studentId": "6764e45c-a536-4545-8135-de0bbca178ba",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "900195db-f16d-447b-b194-1df83ef1d339",
+      "studentId": "9b171579-9745-4714-bfbb-6ab540b7f1be",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "4d46067b-510e-4235-82bb-a6948d24d5ae",
+      "studentId": "165fb7c2-a02f-43e8-a431-acad073f43a5",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "9ae36880-0e21-40e2-a5f2-6de4ac5d8bc3",
+      "studentId": "0889cfe6-e18a-400b-ab3b-210293c33220",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "514948b7-21bb-4fb0-b9e4-63c4b29133cc",
+      "studentId": "6e35a55f-2b9b-4caf-a2b6-8f0c9e1027cc",
+      "updatedAt": "2026-07-30T19:22:54.207Z"
     }
   ],
   "teachers": [
@@ -166,6 +667,166 @@
       "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
       "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
       "createdAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "dd385b73-7b77-423b-bbb5-eb44a43c23f5",
+      "studentId": "4b5d25c0-17a4-4d43-850d-0dfb2bb7b3fc",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "769294ac-344b-4711-bc21-a2ac01c433c7",
+      "studentId": "b1cb870e-ec70-458d-ae03-3eac489d9e2b",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "83e6a16f-de34-4a58-9cb1-69f082ab9933",
+      "studentId": "c54420da-9729-48f5-95f4-8ccf8d9e1a22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "b0d127b3-2d4a-4828-a30d-c82fb0f2b669",
+      "studentId": "cf6c3c02-8068-44b7-b223-9fdb06285e35",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "b9b840cf-044a-4a7b-a903-efcd487289cd",
+      "studentId": "43ef77d6-a098-476e-9647-368d848de2b1",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "de38658b-3acc-4e49-a0d2-2dc67a23347a",
+      "studentId": "6a8c2f17-3609-466f-8874-c0289eff66dd",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "9bb4214c-37ee-4c64-a4a1-be50a652aa73",
+      "studentId": "40170e10-66a9-43ce-8b3b-d1fa4ec53638",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "60eb46c0-12f8-49ee-b574-d2e3f4a1be0f",
+      "studentId": "cc8e3f9d-dd65-480d-adde-4270aeed6c69",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "b120f204-6ff6-410a-9951-9c06866388b7",
+      "studentId": "e58c789d-da91-4af0-94a1-9f53a81bc200",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "f6e4384e-0742-4757-b381-1fe9992c8256",
+      "studentId": "700b5295-bb6e-4155-a439-b16bd7db4bcc",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "15c0e1f0-af4b-4626-9527-e796b51dde72",
+      "studentId": "34505e2b-f804-4c29-a6f9-0793e1b77b20",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "e18dde8f-fe92-4343-a4bb-a2d139f7c3c8",
+      "studentId": "87672dc3-3ce1-43c9-a976-ad87bd911617",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "c16a3e14-0b29-454b-aead-16031bd6bfdc",
+      "studentId": "e200a462-c530-4636-b446-6486ce8b58fe",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "9ae94735-7e69-421f-af52-279b389079fe",
+      "studentId": "a5ffb65e-3d78-4e03-8d84-704fe8592bbb",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "6cd4f204-2bb2-4265-96c2-34ebd36132f9",
+      "studentId": "40e06a2e-7809-470d-8da1-9191b86c6bf5",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "c648a68a-7b1e-4ec2-a9ea-85378aa2dc86",
+      "studentId": "6764e45c-a536-4545-8135-de0bbca178ba",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "e6a09846-5ad6-4fab-8ff6-53206e4707e4",
+      "studentId": "9b171579-9745-4714-bfbb-6ab540b7f1be",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "d290bc28-3239-488e-a0fa-7cf7f34738c4",
+      "studentId": "165fb7c2-a02f-43e8-a431-acad073f43a5",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "e3bf025e-886f-4503-a8eb-ddc86e4a9584",
+      "studentId": "0889cfe6-e18a-400b-ab3b-210293c33220",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
+    },
+    {
+      "id": "6d85a68a-5488-4240-b761-b53b6450577c",
+      "studentId": "6e35a55f-2b9b-4caf-a2b6-8f0c9e1027cc",
+      "sectionId": "a4864930-e27d-4a99-b25f-f47c9a30f5f5",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradeLevelId": "9666bc62-6db0-44b1-93f1-b64715759d55",
+      "createdAt": "2026-07-30T19:22:54.207Z"
     }
   ],
   "teacherSubjectAssignments": [
@@ -338,7 +999,7 @@
     {
       "id": "2d844a3e-3112-41a9-a323-0fde811a440b",
       "name": "School Announcements",
-      "icon": "📢",
+      "icon": "\ud83d\udce2",
       "order": 1,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -346,7 +1007,7 @@
     {
       "id": "deb0881a-f1ba-4a8e-a006-b621ebac2776",
       "name": "Upcoming Events",
-      "icon": "📅",
+      "icon": "\ud83d\udcc5",
       "order": 2,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -354,7 +1015,7 @@
     {
       "id": "51696093-aa1c-41cf-b8f2-45b926cb8340",
       "name": "Class Schedule",
-      "icon": "📚",
+      "icon": "\ud83d\udcda",
       "order": 3,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -362,7 +1023,7 @@
     {
       "id": "d5826e3e-ec5b-4f5e-9dd9-27e96937c5b6",
       "name": "Emergency Hotlines",
-      "icon": "📞",
+      "icon": "\ud83d\udcde",
       "order": 4,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -390,6 +1051,19 @@
       "publishedAt": "2026-07-30T16:46:59.689Z",
       "createdAt": "2026-07-30T16:46:59.689Z",
       "updatedAt": "2026-07-30T16:46:59.689Z"
+    },
+    {
+      "id": "a09c7a60-2662-4099-baee-15690f8e9ae8",
+      "title": "Emergency Hotlines",
+      "categoryId": "d5826e3e-ec5b-4f5e-9dd9-27e96937c5b6",
+      "description": "",
+      "content": "",
+      "publishStatus": "published",
+      "displayPriority": 0,
+      "publishedAt": "2026-07-30T19:25:16.817Z",
+      "createdAt": "2026-07-30T19:25:16.817Z",
+      "updatedAt": "2026-07-30T19:25:17.150Z",
+      "image": "/uploads/announcements/2abbcf8d-c78d-4c02-955d-5b6e08c24b95.jpg"
     }
   ],
   "systemSettings": [
