@@ -157,7 +157,7 @@ function MiniGraph({ formula, onClick }: { formula: Formula; onClick: () => void
           width={320} height={180}
           className="w-full rounded-xl bg-white border border-gray-200 group-hover:border-primary/40 transition-colors"
         />
-      </canvas>
+      </button>
     </div>
   )
 }
