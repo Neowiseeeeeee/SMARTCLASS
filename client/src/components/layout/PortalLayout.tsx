@@ -166,8 +166,8 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
       {/* ── Sidebar ── */}
       <aside className={cn(
         'fixed lg:static inset-y-0 left-0 z-30 flex flex-col bg-primary-dark shadow-sidebar transition-transform duration-300',
-        /* width: 72 (18rem) on mobile overlay, 72 on lg desktop */
-        'w-72 lg:w-72',
+        /* width: 72 (18rem) on mobile overlay, 80 (20rem) on lg desktop */
+        'w-72 lg:w-80',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}>
         {/* Logo + close button */}
@@ -211,14 +211,14 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  'flex items-center gap-3 px-4 rounded-xl font-poppins font-medium text-nav transition-all duration-150 cursor-pointer touch-manipulation whitespace-nowrap',
+                  'flex items-center gap-3 px-4 rounded-xl font-poppins font-medium text-nav transition-all duration-150 cursor-pointer touch-manipulation',
                   'py-3.5',
                   isActive ? 'bg-primary text-white shadow-sm' : 'text-white/70 hover:bg-white/10 hover:text-white'
                 )}
               >
                 <span className="flex-shrink-0">{item.icon}</span>
-                <span>{item.label}</span>
-                {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+                <span className="flex-1 min-w-0 truncate">{item.label}</span>
+                {isActive && <ChevronRight className="w-4 h-4 flex-shrink-0" />}
               </Link>
             )
           })}
