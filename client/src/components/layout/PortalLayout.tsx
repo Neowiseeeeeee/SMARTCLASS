@@ -166,8 +166,8 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
       {/* ── Sidebar ── */}
       <aside className={cn(
         'fixed lg:static inset-y-0 left-0 z-30 flex flex-col bg-primary-dark shadow-sidebar transition-transform duration-300',
-        /* width: full on tiny, 72 (18rem) on sm, 64 (16rem) on lg */
-        'w-72 sm:w-72 lg:w-64',
+        /* width: 72 (18rem) on mobile overlay, 72 on lg desktop */
+        'w-72 lg:w-72',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}>
         {/* Logo + close button */}
