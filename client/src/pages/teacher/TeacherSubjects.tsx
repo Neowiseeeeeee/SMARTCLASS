@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../lib/auth'
@@ -19,6 +19,31 @@ function PresentOverlay({
   material: any
   onClose: () => void
 }) {
+  // Fetch PDFs as a blob: URL so Chrome's PDF viewer renders them inline
+  // regardless of sandbox/iframe restrictions on the server URL.
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfError, setPdfError] = useState(false)
+
+  useEffect(() => {
+    if (material.fileType !== 'pdf') return
+    let revoked = false
+    setPdfLoading(true)
+    setPdfError(false)
+    fetch(material.filePath)
+      .then(r => r.blob())
+      .then(blob => {
+        if (revoked) return
+        setPdfBlobUrl(URL.createObjectURL(blob))
+        setPdfLoading(false)
+      })
+      .catch(() => { if (!revoked) { setPdfError(true); setPdfLoading(false) } })
+    return () => {
+      revoked = true
+      setPdfBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null })
+    }
+  }, [material.filePath, material.fileType])
+
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
       <div className="flex items-center justify-between px-5 py-3 bg-black/80 backdrop-blur-sm">
@@ -42,17 +67,14 @@ function PresentOverlay({
             className="w-full h-full object-contain"
           />
         ) : material.fileType === 'pdf' ? (
-          // <object> is more reliable than <iframe> for PDFs in Chrome.
-          // The inner link acts as a fallback when the browser blocks embedded PDFs.
-          <object
-            data={material.filePath}
-            type="application/pdf"
-            className="w-full h-full"
-          >
+          pdfLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            </div>
+          ) : pdfError || !pdfBlobUrl ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
               <FileText className="w-20 h-20" />
               <p className="font-poppins text-lg text-white">{material.title}</p>
-              <p className="font-inter text-sm text-white/50">PDF cannot be displayed inline.</p>
               <a
                 href={material.filePath}
                 target="_blank"
@@ -62,7 +84,16 @@ function PresentOverlay({
                 Open PDF in New Tab
               </a>
             </div>
-          </object>
+          ) : (
+            <object
+              data={pdfBlobUrl}
+              type="application/pdf"
+              className="w-full h-full"
+            >
+              <a href={material.filePath} target="_blank" rel="noopener noreferrer"
+                className="block text-center text-white mt-10">Open PDF</a>
+            </object>
+          )
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
             <FileText className="w-20 h-20" />
