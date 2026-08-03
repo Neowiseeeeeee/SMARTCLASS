@@ -6,6 +6,16 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+// When posting FormData (file uploads), axios's default Content-Type: application/json
+// must be removed so the browser can set multipart/form-data with the correct boundary.
+// Without this, multer on the server cannot parse the body and returns 400.
+api.interceptors.request.use(config => {
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type']
+  }
+  return config
+})
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {

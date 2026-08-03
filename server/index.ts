@@ -5,7 +5,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
 
-import { seedDatabase, saveDb } from './db.js'
+import { seedDatabase, saveDb, db } from './db.js'
 import authRoutes from './routes/auth.js'
 import studentRoutes from './routes/students.js'
 import teacherRoutes from './routes/teachers.js'
@@ -64,6 +64,21 @@ app.get('/api/health', (_req, res) => res.json({ status: 'ok', time: new Date().
 
 // Seed mock data then start server
 seedDatabase().then(() => {
+  // Remove presentation records whose files were lost on container restart.
+  // Container restarts wipe the uploads/ dir; stale records cause permanent 404s.
+  const presentationsUploadDir = path.join(__dirname, '../uploads/presentations')
+  const before = db.presentationMaterials.length
+  db.presentationMaterials = db.presentationMaterials.filter(m => {
+    const filename = m.filePath.split('/').pop()
+    if (!filename) return false
+    return fs.existsSync(path.join(presentationsUploadDir, filename))
+  })
+  if (db.presentationMaterials.length < before) {
+    const removed = before - db.presentationMaterials.length
+    console.log(`🧹 Removed ${removed} stale presentation record(s) (files missing from disk)`)
+    saveDb()
+  }
+
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 SMARTCLASS API running on port ${PORT}`)
     console.log('📦 Using in-memory mock database (no external DB required)')

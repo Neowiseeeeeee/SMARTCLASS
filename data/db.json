@@ -18,7 +18,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-03T15:01:15.310Z"
+      "lastLogin": "2026-08-03T16:07:48.840Z"
     },
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
@@ -1402,37 +1402,37 @@
   ],
   "presentationMaterials": [
     {
-      "id": "6edb5619-82f7-4f8d-b3a2-a3a5f9973d87",
+      "id": "e37242a9-8597-4b06-ae51-0a8be5836777",
       "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
-      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
-      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
-      "title": "Test Slide",
-      "filePath": "/uploads/presentations/86b1391a-4ff7-4647-b975-750b55b62cc3.png",
-      "fileType": "image",
-      "originalName": "test_slide.png",
-      "uploadedAt": "2026-08-03T14:50:46.259Z"
+      "subjectId": "testSubject",
+      "sectionId": "testSection",
+      "title": "Test Doc",
+      "filePath": "/uploads/presentations/fd3e727c-2fa8-4c11-aefe-8ff7dae91016.pdf",
+      "fileType": "pdf",
+      "originalName": "test.pdf",
+      "uploadedAt": "2026-08-03T16:07:56.904Z"
     },
     {
-      "id": "7e6ac6db-eb72-473f-af0a-34db370b2a55",
+      "id": "183d7403-44c2-4c86-8c56-54471a841288",
       "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
       "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
       "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
-      "title": "Page",
-      "filePath": "/uploads/presentations/5f5e3719-9fcb-42ae-a296-f29ef09c8d23.pdf",
+      "title": "Test Title",
+      "filePath": "/uploads/presentations/0f87a8c6-8941-47e0-b1e7-077623f2e0da.pdf",
       "fileType": "pdf",
-      "originalName": "Home.pdf",
-      "uploadedAt": "2026-08-03T14:55:32.949Z"
+      "originalName": "real.pdf",
+      "uploadedAt": "2026-08-03T16:10:03.271Z"
     },
     {
-      "id": "33ac0098-9c81-424b-914f-956a45a4ea2f",
+      "id": "3d84c102-fc7f-4829-b333-a93818d0d3fc",
       "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
       "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
       "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
-      "title": "Home Page",
-      "filePath": "/uploads/presentations/60196286-fb04-4d1e-9521-6fccff3e20dd.pdf",
+      "title": "ViaProxy",
+      "filePath": "/uploads/presentations/fdbe4ded-5aca-4b06-93f1-fd2025d14a40.pdf",
       "fileType": "pdf",
-      "originalName": "Home.pdf",
-      "uploadedAt": "2026-08-03T14:57:33.836Z"
+      "originalName": "real2.pdf",
+      "uploadedAt": "2026-08-03T16:10:05.986Z"
     }
   ],
   "importedSheets": []
