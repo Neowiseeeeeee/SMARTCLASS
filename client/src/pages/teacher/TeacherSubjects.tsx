@@ -5,12 +5,11 @@ import { useAuth } from '../../lib/auth'
 import { presentationsApi } from '../../lib/api'
 import {
   BookOpen, Upload, FileText, ImageIcon, Trash2,
-  ChevronRight, ChevronDown, FolderOpen, Play, Monitor, Clock,
+  ChevronRight, ChevronDown, FolderOpen, Play, Monitor, Clock, Video,
 } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { EmptyState, LoadingSpinner } from '../../components/ui/EmptyState'
 import { formatDateTime, timeAgo } from '../../lib/utils'
-import PDFViewer from '../../components/ui/PDFViewer'
 
 // ─── Presentation overlay ─────────────────────────────────────────────────────
 function PresentOverlay({
@@ -20,8 +19,6 @@ function PresentOverlay({
   material: any
   onClose: () => void
 }) {
-  // Fetch PDFs as a blob: URL so Chrome's PDF viewer renders them inline
-  // regardless of sandbox/iframe restrictions on the server URL.
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState(false)
@@ -47,7 +44,8 @@ function PresentOverlay({
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      <div className="flex items-center justify-between px-5 py-3 bg-black/80 backdrop-blur-sm">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 py-3 bg-black/80 backdrop-blur-sm flex-shrink-0">
         <div>
           <p className="text-white font-poppins font-semibold">{material.title}</p>
           <p className="text-white/50 font-inter text-xs mt-0.5">{material.originalName}</p>
@@ -60,14 +58,31 @@ function PresentOverlay({
         </button>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      {/* Content area */}
+      <div className="flex-1 min-h-0 overflow-auto">
         {material.fileType === 'image' ? (
+          /* ── Image ── */
           <img
             src={material.filePath}
             alt={material.title}
             className="w-full h-full object-contain"
           />
+        ) : material.fileType === 'video' ? (
+          /* ── Video — native player with full controls ── */
+          <div className="flex items-center justify-center w-full h-full bg-black">
+            <video
+              src={material.filePath}
+              controls
+              autoPlay
+              playsInline
+              className="max-w-full max-h-full"
+              style={{ maxHeight: 'calc(100vh - 56px)' }}
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
         ) : material.fileType === 'pdf' ? (
+          /* ── PDF — embedded & scrollable ── */
           pdfLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -86,19 +101,52 @@ function PresentOverlay({
               </a>
             </div>
           ) : (
-            <object
-              data={pdfBlobUrl}
-              type="application/pdf"
-              className="w-full h-full"
-            >
-              <a href={material.filePath} target="_blank" rel="noopener noreferrer"
-                className="block text-center text-white mt-10">Open PDF</a>
-            </object>
+            <iframe
+              src={pdfBlobUrl}
+              title={material.title}
+              className="w-full h-full border-0"
+              style={{ minHeight: 'calc(100vh - 56px)' }}
+            />
           )
+        ) : material.fileType === 'pptx' || material.fileType === 'doc' ? (
+          /* ── Office documents — scrollable info + download ── */
+          <div className="flex flex-col items-center justify-center min-h-full gap-6 py-12 px-6 text-white/70">
+            <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center">
+              <FileText className="w-10 h-10 text-white" />
+            </div>
+            <div className="text-center">
+              <p className="font-poppins text-xl text-white font-semibold">{material.title}</p>
+              <p className="font-inter text-sm mt-1">{material.originalName}</p>
+              <p className="font-inter text-xs mt-2 text-white/40">
+                {material.fileType === 'pptx' ? 'PowerPoint Presentation' : 'Word Document'}
+              </p>
+            </div>
+            <p className="font-inter text-sm text-white/50 text-center max-w-xs">
+              Office documents can't be rendered in the browser. Download the file to open it in Microsoft Office or Google Docs.
+            </p>
+            <div className="flex gap-3">
+              <a
+                href={material.filePath}
+                download
+                className="px-5 py-2.5 bg-primary rounded-xl text-white font-poppins text-sm hover:bg-primary-dark transition-colors"
+              >
+                Download File
+              </a>
+              <a
+                href={material.filePath}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 bg-white/10 rounded-xl text-white font-poppins text-sm hover:bg-white/20 transition-colors"
+              >
+                Open in Browser
+              </a>
+            </div>
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
+          /* ── Generic fallback ── */
+          <div className="flex flex-col items-center justify-center min-h-full gap-4 py-12 text-white/60">
             <FileText className="w-20 h-20" />
-            <p className="font-poppins text-xl">{material.title}</p>
+            <p className="font-poppins text-xl text-white">{material.title}</p>
             <p className="font-inter text-sm">{material.originalName}</p>
             <a
               href={material.filePath}
@@ -130,6 +178,8 @@ export default function TeacherSubjects() {
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [presentingMaterial, setPresentingMaterial] = useState<any | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadFile, setUploadFile] = useState<{ name: string; size: number } | null>(null)
 
   // Group assignments by section
   const sectionGroups = useMemo(() => {
@@ -185,19 +235,25 @@ export default function TeacherSubjects() {
     }
     setUploading(true)
     setUploadError(null)
+    setUploadProgress(0)
+    setUploadFile({ name: file.name, size: file.size })
     try {
       const fd = new FormData()
       fd.append('file', file)
       fd.append('title', uploadTitle.trim())
       fd.append('subjectId', selectedAssignment.subjectId)
       fd.append('sectionId', selectedAssignment.sectionId)
-      await presentationsApi.upload(fd)
+      await presentationsApi.upload(fd, (e) => {
+        if (e.total) setUploadProgress(Math.round((e.loaded / e.total) * 100))
+      })
       setUploadTitle('')
       queryClient.invalidateQueries({ queryKey: ['presentation-materials'] })
     } catch (err: any) {
       setUploadError(err.response?.data?.error || 'Upload failed. Please try again.')
     } finally {
       setUploading(false)
+      setUploadProgress(0)
+      setUploadFile(null)
     }
   }
 
@@ -389,39 +445,70 @@ export default function TeacherSubjects() {
               <p className="font-poppins font-semibold text-sm text-text-primary">
                 Upload New Material
               </p>
-              <div className="flex gap-3 flex-wrap items-end">
-                <div className="flex-1 min-w-[200px]">
-                  <input
-                    type="text"
-                    placeholder="Material title (e.g. Chapter 1 Slides)"
-                    value={uploadTitle}
-                    onChange={e => setUploadTitle(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && fileInputRef.current?.click()}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-surface font-inter text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 text-text-primary placeholder:text-text-secondary"
-                  />
+
+              {uploading ? (
+                /* ── Progress state ── */
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-inter">
+                    <span className="text-text-primary font-medium truncate max-w-[200px]" title={uploadFile?.name}>
+                      {uploadFile?.name ?? 'Uploading…'}
+                    </span>
+                    <span className="text-primary font-semibold flex-shrink-0 ml-2">
+                      {uploadProgress}%
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-border rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-primary rounded-full transition-all duration-200"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] font-inter text-text-secondary">
+                    <span>
+                      {uploadFile
+                        ? `${(((uploadFile.size * uploadProgress) / 100) / (1024 * 1024)).toFixed(1)} MB / ${(uploadFile.size / (1024 * 1024)).toFixed(1)} MB`
+                        : '…'}
+                    </span>
+                    <span className="text-primary">Uploading, please wait…</span>
+                  </div>
                 </div>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  icon={<Upload className="w-3.5 h-3.5" />}
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={!uploadTitle.trim() || uploading}
-                  loading={uploading}
-                >
-                  {uploading ? 'Uploading…' : 'Choose File'}
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.ppt,.pptx,.doc,.docx,.mp4,.webm,.mov"
-                  className="hidden"
-                  onChange={e => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFileChosen(file)
-                    e.target.value = ''
-                  }}
-                />
-              </div>
+              ) : (
+                /* ── Normal state ── */
+                <div className="flex gap-3 flex-wrap items-end">
+                  <div className="flex-1 min-w-[200px]">
+                    <input
+                      type="text"
+                      placeholder="Material title (e.g. Chapter 1 Slides)"
+                      value={uploadTitle}
+                      onChange={e => setUploadTitle(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && fileInputRef.current?.click()}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-surface font-inter text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 text-text-primary placeholder:text-text-secondary"
+                    />
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    icon={<Upload className="w-3.5 h-3.5" />}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!uploadTitle.trim()}
+                  >
+                    Choose File
+                  </Button>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.ppt,.pptx,.doc,.docx,.mp4,.webm,.mov"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  if (file) handleFileChosen(file)
+                  e.target.value = ''
+                }}
+              />
+
               {uploadError && (
                 <p className="text-red-500 text-xs font-inter">{uploadError}</p>
               )}
@@ -454,6 +541,8 @@ export default function TeacherSubjects() {
                     <div className="w-10 h-10 bg-primary-light rounded-lg flex items-center justify-center flex-shrink-0">
                       {m.fileType === 'image' ? (
                         <ImageIcon className="w-5 h-5 text-primary" />
+                      ) : m.fileType === 'video' ? (
+                        <Video className="w-5 h-5 text-primary" />
                       ) : (
                         <FileText className="w-5 h-5 text-primary" />
                       )}

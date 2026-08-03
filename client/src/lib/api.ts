@@ -127,8 +127,8 @@ export const presentationsApi = {
   getAll: (params?: any) => api.get('/presentations', { params }),
   // Do NOT set Content-Type manually — axios must auto-set multipart/form-data
   // with the boundary param, otherwise multer cannot parse the body.
-  upload: (formData: FormData) =>
-    api.post('/presentations/upload', formData),
+  upload: (formData: FormData, onUploadProgress?: (e: { loaded: number; total?: number }) => void) =>
+    api.post('/presentations/upload', formData, { onUploadProgress }),
   delete: (id: string) => api.delete(`/presentations/${id}`),
 }
 

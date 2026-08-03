@@ -26,7 +26,7 @@ const upload = multer({
   storage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
   fileFilter: (_req, file, cb) => {
-    const allowed = [
+    const allowedMimes = [
       // Images
       'image/jpeg', 'image/png', 'image/gif', 'image/webp',
       // PDF
@@ -39,9 +39,25 @@ const upload = multer({
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       // Video
       'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo',
+      // Some browsers/OS send octet-stream for office docs — allow and check extension below
+      'application/octet-stream',
     ]
-    if (allowed.includes(file.mimetype)) cb(null, true)
-    else cb(new Error('Allowed types: images, PDF, PowerPoint, Word documents, and videos'))
+    const allowedExts = [
+      '.jpg', '.jpeg', '.png', '.gif', '.webp',
+      '.pdf',
+      '.ppt', '.pptx',
+      '.doc', '.docx',
+      '.mp4', '.webm', '.mov', '.avi',
+    ]
+    const ext = path.extname(file.originalname).toLowerCase()
+    if (allowedMimes.includes(file.mimetype) && allowedExts.includes(ext)) {
+      cb(null, true)
+    } else if (allowedExts.includes(ext)) {
+      // Extension is valid even if MIME is unexpected
+      cb(null, true)
+    } else {
+      cb(new Error('Allowed types: images, PDF, PowerPoint, Word documents, and videos'))
+    }
   },
 })
 

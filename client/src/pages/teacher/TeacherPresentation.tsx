@@ -1,15 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../lib/auth'
 import { presentationsApi } from '../../lib/api'
 import {
-  Monitor, BookOpen, FileText, ImageIcon, Play, X, ChevronRight, FolderOpen, Clock,
+  Monitor, BookOpen, FileText, ImageIcon, Play, X, ChevronRight, FolderOpen, Clock, Video,
 } from 'lucide-react'
 import { EmptyState, LoadingSpinner } from '../../components/ui/EmptyState'
 import { Button } from '../../components/ui/Button'
 import { formatDateTime, timeAgo } from '../../lib/utils'
-import PDFViewer from '../../components/ui/PDFViewer'
 
 // ─── Full-screen presentation overlay ────────────────────────────────────────
 function PresentOverlay({
@@ -19,8 +18,6 @@ function PresentOverlay({
   material: any
   onClose: () => void
 }) {
-  // Fetch PDFs as a blob: URL so Chrome's PDF viewer renders them inline
-  // regardless of sandbox/iframe restrictions on the server URL.
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState(false)
@@ -46,7 +43,8 @@ function PresentOverlay({
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      <div className="flex items-center justify-between px-5 py-3 bg-black/80 backdrop-blur-sm">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 py-3 bg-black/80 backdrop-blur-sm flex-shrink-0">
         <div>
           <p className="text-white font-poppins font-semibold">{material.title}</p>
           <p className="text-white/50 font-inter text-xs mt-0.5">
@@ -62,14 +60,31 @@ function PresentOverlay({
         </button>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      {/* Content area */}
+      <div className="flex-1 min-h-0 overflow-auto">
         {material.fileType === 'image' ? (
+          /* ── Image ── */
           <img
             src={material.filePath}
             alt={material.title}
             className="w-full h-full object-contain"
           />
+        ) : material.fileType === 'video' ? (
+          /* ── Video — native player with full controls ── */
+          <div className="flex items-center justify-center w-full h-full bg-black">
+            <video
+              src={material.filePath}
+              controls
+              autoPlay
+              playsInline
+              className="max-w-full max-h-full"
+              style={{ maxHeight: 'calc(100vh - 56px)' }}
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
         ) : material.fileType === 'pdf' ? (
+          /* ── PDF — embedded & scrollable ── */
           pdfLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -88,18 +103,50 @@ function PresentOverlay({
               </a>
             </div>
           ) : (
-            <object
-              data={pdfBlobUrl}
-              type="application/pdf"
-              className="w-full h-full"
-            >
-              {/* inner fallback — should never be reached since we have a blob URL */}
-              <a href={material.filePath} target="_blank" rel="noopener noreferrer"
-                className="block text-center text-white mt-10">Open PDF</a>
-            </object>
+            <iframe
+              src={pdfBlobUrl}
+              title={material.title}
+              className="w-full h-full border-0"
+              style={{ minHeight: 'calc(100vh - 56px)' }}
+            />
           )
+        ) : material.fileType === 'pptx' || material.fileType === 'doc' ? (
+          /* ── Office documents — scrollable info + download ── */
+          <div className="flex flex-col items-center justify-center min-h-full gap-6 py-12 px-6 text-white/70">
+            <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center">
+              <FileText className="w-10 h-10 text-white" />
+            </div>
+            <div className="text-center">
+              <p className="font-poppins text-xl text-white font-semibold">{material.title}</p>
+              <p className="font-inter text-sm mt-1">{material.originalName}</p>
+              <p className="font-inter text-xs mt-2 text-white/40">
+                {material.fileType === 'pptx' ? 'PowerPoint Presentation' : 'Word Document'}
+              </p>
+            </div>
+            <p className="font-inter text-sm text-white/50 text-center max-w-xs">
+              Office documents can't be rendered in the browser. Download the file to open it in Microsoft Office or Google Docs.
+            </p>
+            <div className="flex gap-3">
+              <a
+                href={material.filePath}
+                download
+                className="px-5 py-2.5 bg-primary rounded-xl text-white font-poppins text-sm hover:bg-primary-dark transition-colors"
+              >
+                Download File
+              </a>
+              <a
+                href={material.filePath}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-5 py-2.5 bg-white/10 rounded-xl text-white font-poppins text-sm hover:bg-white/20 transition-colors"
+              >
+                Open in Browser
+              </a>
+            </div>
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
+          /* ── Generic fallback ── */
+          <div className="flex flex-col items-center justify-center min-h-full gap-4 py-12 text-white/60">
             <FileText className="w-20 h-20" />
             <p className="font-poppins text-xl text-white">{material.title}</p>
             <p className="font-inter text-sm">{material.originalName}</p>
@@ -296,6 +343,8 @@ export default function TeacherPresentation() {
                               <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center flex-shrink-0">
                                 {m.fileType === 'image' ? (
                                   <ImageIcon className="w-4 h-4 text-primary" />
+                                ) : m.fileType === 'video' ? (
+                                  <Video className="w-4 h-4 text-primary" />
                                 ) : (
                                   <FileText className="w-4 h-4 text-primary" />
                                 )}
