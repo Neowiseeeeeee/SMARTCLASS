@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../lib/auth'
@@ -10,6 +10,7 @@ import {
 import { Button } from '../../components/ui/Button'
 import { EmptyState, LoadingSpinner } from '../../components/ui/EmptyState'
 import { formatDateTime, timeAgo } from '../../lib/utils'
+import PDFViewer from '../../components/ui/PDFViewer'
 
 // ─── Presentation overlay ─────────────────────────────────────────────────────
 function PresentOverlay({
@@ -412,7 +413,7 @@ export default function TeacherSubjects() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.ppt,.pptx"
+                  accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.ppt,.pptx,.doc,.docx,.mp4,.webm,.mov"
                   className="hidden"
                   onChange={e => {
                     const file = e.target.files?.[0]
@@ -425,7 +426,7 @@ export default function TeacherSubjects() {
                 <p className="text-red-500 text-xs font-inter">{uploadError}</p>
               )}
               <p className="text-text-secondary font-inter text-xs">
-                Accepted: Images (JPG, PNG, GIF, WebP), PDF, PowerPoint (.ppt/.pptx) · Max 50 MB
+                Accepted: Images, PDF, PowerPoint, Word (.doc/.docx), Video (.mp4/.webm/.mov) · Max 50 MB
               </p>
             </div>
 

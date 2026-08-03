@@ -27,13 +27,21 @@ const upload = multer({
   limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
   fileFilter: (_req, file, cb) => {
     const allowed = [
+      // Images
       'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      // PDF
       'application/pdf',
+      // PowerPoint
       'application/vnd.ms-powerpoint',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      // Word documents
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      // Video
+      'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo',
     ]
     if (allowed.includes(file.mimetype)) cb(null, true)
-    else cb(new Error('Only images (JPG/PNG/GIF/WebP), PDF, and PowerPoint files are allowed'))
+    else cb(new Error('Allowed types: images, PDF, PowerPoint, Word documents, and videos'))
   },
 })
 
@@ -88,6 +96,8 @@ router.post(
       if (['.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) fileType = 'image'
       else if (ext === '.pdf') fileType = 'pdf'
       else if (['.ppt', '.pptx'].includes(ext)) fileType = 'pptx'
+      else if (['.doc', '.docx'].includes(ext)) fileType = 'doc'
+      else if (['.mp4', '.webm', '.mov', '.avi'].includes(ext)) fileType = 'video'
       else fileType = 'other'
 
       const material = {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../lib/auth'
@@ -9,6 +9,7 @@ import {
 import { EmptyState, LoadingSpinner } from '../../components/ui/EmptyState'
 import { Button } from '../../components/ui/Button'
 import { formatDateTime, timeAgo } from '../../lib/utils'
+import PDFViewer from '../../components/ui/PDFViewer'
 
 // ─── Full-screen presentation overlay ────────────────────────────────────────
 function PresentOverlay({
