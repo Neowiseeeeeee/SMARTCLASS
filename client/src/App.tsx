@@ -8,6 +8,11 @@ import AdminLogin from './pages/admin/AdminLogin'
 import StudentPortal from './pages/student/StudentPortal'
 import TeacherPortal from './pages/teacher/TeacherPortal'
 import AdminPortal from './pages/admin/AdminPortal'
+import SmartboardPage from './pages/tools/SmartboardPage'
+import CanvasModePage from './pages/tools/CanvasModePage'
+import SplitScreenPage from './pages/tools/SplitScreenPage'
+import FormulaFinderPage from './pages/tools/FormulaFinderPage'
+import HealthPage from './pages/tools/HealthPage'
 import { LoadingSpinner } from './components/ui/EmptyState'
 
 function RequireAuth({ children, role }: { children: React.ReactNode; role: string }) {
@@ -80,6 +85,13 @@ export default function App() {
               </RequireAdminAuth>
             }
           />
+
+          {/* Public tools */}
+          <Route path="/health"      element={<HealthPage />} />
+          <Route path="/smartboard"  element={<SmartboardPage />} />
+          <Route path="/canvas"      element={<CanvasModePage />} />
+          <Route path="/splitscreen" element={<SplitScreenPage />} />
+          <Route path="/formula"     element={<FormulaFinderPage />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

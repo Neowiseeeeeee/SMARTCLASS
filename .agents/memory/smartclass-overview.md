@@ -31,11 +31,30 @@ Roles: Admin, Teacher, Student. Also has an unauthenticated Idle/Announcement sc
 - `client/src/pages/teacher/` — teacher portal pages
 - `client/src/pages/student/` — student portal pages
 - `client/src/pages/IdleScreen.tsx` — kiosk idle/announcement board (unauthenticated home screen)
-- `client/src/components/layout/PortalLayout.tsx` — shared sidebar/navbar
+- `client/src/pages/tools/` — public interactive tools (Smartboard, Canvas, Split-Screen, Formula, Health)
+- `client/src/components/layout/PortalLayout.tsx` — shared sidebar/navbar for portals
+- `client/src/components/layout/LandingSidebar.tsx` — slide-in sidebar on the landing page
+- `client/src/components/layout/ToolLayout.tsx` — shared header wrapper for tool pages
 - `client/src/components/ui/` — atomic UI components (Avatar, Badge, Button, Input, Modal, EmptyState)
 - `server/routes/` — all API route handlers
 - `server/db.ts` — in-memory store + seed + expand helpers (no Prisma at runtime despite schema existing)
 - `prisma/schema.prisma` — schema exists for potential future PostgreSQL migration
+
+## Sidebar Navigation Module (Landing Page)
+- Hamburger (☰) icon in the header top-left replaces the old Login button
+- Clicking opens `LandingSidebar` which slides in from the left
+- Sidebar items: Login (→ /login), Health (→ /health), Interactive Learning (collapsible group)
+- Interactive Learning sub-items: SMARTBOARD (→ /smartboard), Canvas Mode (→ /canvas), Split-Screen (→ /splitscreen), Formula/Graph Finder (→ /formula)
+- If a user is already logged in, the sidebar shows their info + Go to Dashboard + Logout instead of Login
+- A logged-in user chip also appears in the header right — tapping it opens the sidebar
+
+## Public Tool Routes
+All tools are publicly accessible (no login required):
+- `/health` — Student Wellness Tools (Health Tips carousel, BMI Calculator, Water Intake, Sleep Recommendation)
+- `/smartboard` — Digital whiteboard with freehand, shapes, text, undo/redo, PNG download
+- `/canvas` — Infinite canvas with sticky notes, text boxes, shapes, pan/zoom
+- `/splitscreen` — Split-screen teaching: file upload on left + annotation canvas on right
+- `/formula` — Formula/Graph Finder: 19 STEM formulas across Algebra, Geometry, Trig, Physics, Chemistry with graph previews
 
 ## Database notes
 `server/db.ts` uses plain JS arrays as the store, serialized to `data/db.json`.
