@@ -10,6 +10,7 @@ import {
 import { Button } from '../../components/ui/Button'
 import { EmptyState, LoadingSpinner } from '../../components/ui/EmptyState'
 import { formatDateTime, timeAgo } from '../../lib/utils'
+import OfficeViewer from '../../components/ui/OfficeViewer'
 
 // ─── Presentation overlay ─────────────────────────────────────────────────────
 function PresentOverlay({
@@ -109,39 +110,8 @@ function PresentOverlay({
             />
           )
         ) : material.fileType === 'pptx' || material.fileType === 'doc' ? (
-          /* ── Office documents — scrollable info + download ── */
-          <div className="flex flex-col items-center justify-center min-h-full gap-6 py-12 px-6 text-white/70">
-            <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center">
-              <FileText className="w-10 h-10 text-white" />
-            </div>
-            <div className="text-center">
-              <p className="font-poppins text-xl text-white font-semibold">{material.title}</p>
-              <p className="font-inter text-sm mt-1">{material.originalName}</p>
-              <p className="font-inter text-xs mt-2 text-white/40">
-                {material.fileType === 'pptx' ? 'PowerPoint Presentation' : 'Word Document'}
-              </p>
-            </div>
-            <p className="font-inter text-sm text-white/50 text-center max-w-xs">
-              Office documents can't be rendered in the browser. Download the file to open it in Microsoft Office or Google Docs.
-            </p>
-            <div className="flex gap-3">
-              <a
-                href={material.filePath}
-                download
-                className="px-5 py-2.5 bg-primary rounded-xl text-white font-poppins text-sm hover:bg-primary-dark transition-colors"
-              >
-                Download File
-              </a>
-              <a
-                href={material.filePath}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2.5 bg-white/10 rounded-xl text-white font-poppins text-sm hover:bg-white/20 transition-colors"
-              >
-                Open in Browser
-              </a>
-            </div>
-          </div>
+          /* ── Office documents — embedded viewer (read-only, like Google Drive) ── */
+          <OfficeViewer material={material} />
         ) : (
           /* ── Generic fallback ── */
           <div className="flex flex-col items-center justify-center min-h-full gap-4 py-12 text-white/60">
