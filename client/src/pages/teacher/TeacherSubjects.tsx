@@ -42,11 +42,27 @@ function PresentOverlay({
             className="w-full h-full object-contain"
           />
         ) : material.fileType === 'pdf' ? (
-          <iframe
-            src={material.filePath}
+          // <object> is more reliable than <iframe> for PDFs in Chrome.
+          // The inner link acts as a fallback when the browser blocks embedded PDFs.
+          <object
+            data={material.filePath}
+            type="application/pdf"
             className="w-full h-full"
-            title={material.title}
-          />
+          >
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
+              <FileText className="w-20 h-20" />
+              <p className="font-poppins text-lg text-white">{material.title}</p>
+              <p className="font-inter text-sm text-white/50">PDF cannot be displayed inline.</p>
+              <a
+                href={material.filePath}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 px-5 py-2.5 bg-primary rounded-xl text-white font-poppins text-sm hover:bg-primary-dark transition-colors"
+              >
+                Open PDF in New Tab
+              </a>
+            </div>
+          </object>
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-white/60">
             <FileText className="w-20 h-20" />

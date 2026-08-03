@@ -18,7 +18,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-03T14:50:45.858Z"
+      "lastLogin": "2026-08-03T15:01:15.310Z"
     },
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
@@ -1296,7 +1296,7 @@
     {
       "id": "2d844a3e-3112-41a9-a323-0fde811a440b",
       "name": "School Announcements",
-      "icon": "\ud83d\udce2",
+      "icon": "📢",
       "order": 1,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -1304,7 +1304,7 @@
     {
       "id": "deb0881a-f1ba-4a8e-a006-b621ebac2776",
       "name": "Upcoming Events",
-      "icon": "\ud83d\udcc5",
+      "icon": "📅",
       "order": 2,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -1312,7 +1312,7 @@
     {
       "id": "51696093-aa1c-41cf-b8f2-45b926cb8340",
       "name": "Class Schedule",
-      "icon": "\ud83d\udcda",
+      "icon": "📚",
       "order": 3,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -1320,7 +1320,7 @@
     {
       "id": "d5826e3e-ec5b-4f5e-9dd9-27e96937c5b6",
       "name": "Emergency Hotlines",
-      "icon": "\ud83d\udcde",
+      "icon": "📞",
       "order": 4,
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z"
@@ -1401,6 +1401,40 @@
       "updatedAt": "2026-07-30T16:46:59.689Z"
     }
   ],
-  "presentationMaterials": [],
+  "presentationMaterials": [
+    {
+      "id": "6edb5619-82f7-4f8d-b3a2-a3a5f9973d87",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "title": "Test Slide",
+      "filePath": "/uploads/presentations/86b1391a-4ff7-4647-b975-750b55b62cc3.png",
+      "fileType": "image",
+      "originalName": "test_slide.png",
+      "uploadedAt": "2026-08-03T14:50:46.259Z"
+    },
+    {
+      "id": "7e6ac6db-eb72-473f-af0a-34db370b2a55",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "title": "Page",
+      "filePath": "/uploads/presentations/5f5e3719-9fcb-42ae-a296-f29ef09c8d23.pdf",
+      "fileType": "pdf",
+      "originalName": "Home.pdf",
+      "uploadedAt": "2026-08-03T14:55:32.949Z"
+    },
+    {
+      "id": "33ac0098-9c81-424b-914f-956a45a4ea2f",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "title": "Home Page",
+      "filePath": "/uploads/presentations/60196286-fb04-4d1e-9521-6fccff3e20dd.pdf",
+      "fileType": "pdf",
+      "originalName": "Home.pdf",
+      "uploadedAt": "2026-08-03T14:57:33.836Z"
+    }
+  ],
   "importedSheets": []
 }

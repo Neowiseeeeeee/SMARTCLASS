@@ -40,9 +40,9 @@ export const announcementsApi = {
   uploadMedia: (id: string, file: File) => {
     const fd = new FormData()
     fd.append('media', file)
-    return api.post(`/announcements/${id}/upload`, fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    // Do NOT set Content-Type manually — axios must auto-set multipart/form-data
+    // with the boundary param, otherwise multer cannot parse the body.
+    return api.post(`/announcements/${id}/upload`, fd)
   },
   removeMedia: (id: string) => api.delete(`/announcements/${id}/media`),
 }
@@ -125,10 +125,10 @@ export const structureApi = {
 // Presentation Materials
 export const presentationsApi = {
   getAll: (params?: any) => api.get('/presentations', { params }),
+  // Do NOT set Content-Type manually — axios must auto-set multipart/form-data
+  // with the boundary param, otherwise multer cannot parse the body.
   upload: (formData: FormData) =>
-    api.post('/presentations/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    api.post('/presentations/upload', formData),
   delete: (id: string) => api.delete(`/presentations/${id}`),
 }
 
