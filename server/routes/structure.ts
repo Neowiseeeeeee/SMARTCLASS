@@ -140,15 +140,38 @@ router.post('/subjects', requireAuth, requireRole('ADMIN'), async (req: Request,
   }
 })
 
-// Schedules
+// Schedules — publish endpoint must come BEFORE /:id routes
+router.post('/schedules/publish', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const { sectionId, academicYearId } = z.object({
+      sectionId: z.string(),
+      academicYearId: z.string(),
+    }).parse(req.body)
+
+    let count = 0
+    db.classSchedules.forEach(s => {
+      if (s.sectionId === sectionId && s.academicYearId === academicYearId) {
+        s.status = 'published'
+        count++
+      }
+    })
+    res.json({ published: count })
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 router.get('/schedules', requireAuth, async (req: Request, res: Response) => {
   try {
-    const { teacherId, sectionId, academicYearId } = req.query
+    const { teacherId, sectionId, academicYearId, status } = req.query
     let schedules = db.classSchedules
 
     if (teacherId) schedules = schedules.filter(s => s.teacherId === String(teacherId))
     if (sectionId) schedules = schedules.filter(s => s.sectionId === String(sectionId))
     if (academicYearId) schedules = schedules.filter(s => s.academicYearId === String(academicYearId))
+    // Treat missing status as 'published' for backward-compat (seed data)
+    if (status) schedules = schedules.filter(s => (s.status ?? 'published') === String(status))
 
     const result = [...schedules]
       .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())
@@ -178,7 +201,7 @@ router.post('/schedules', requireAuth, requireRole('ADMIN'), async (req: Request
     }).parse(req.body)
 
     const now = new Date().toISOString()
-    const schedule = { id: uuidv4(), ...data, uploadedAt: now }
+    const schedule = { id: uuidv4(), ...data, status: 'draft' as const, uploadedAt: now }
     db.classSchedules.push(schedule)
 
     res.json({

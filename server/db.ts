@@ -209,6 +209,7 @@ export interface ClassSchedule {
   startTime?: string
   endTime?: string
   color?: string
+  status?: 'draft' | 'published'
   uploadedAt: string
 }
 
@@ -455,10 +456,10 @@ export async function seedDatabase() {
 
   // ── Class schedules ──
   db.classSchedules.push(
-    { id: uuidv4(), teacherId, subjectId: mathId, sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Monday',    startTime: '08:00', endTime: '09:30', uploadedAt: now },
-    { id: uuidv4(), teacherId, subjectId: mathId, sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Wednesday', startTime: '08:00', endTime: '09:30', uploadedAt: now },
-    { id: uuidv4(), teacherId, subjectId: engId,  sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Tuesday',   startTime: '10:00', endTime: '11:30', uploadedAt: now },
-    { id: uuidv4(), teacherId, subjectId: engId,  sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Thursday',  startTime: '10:00', endTime: '11:30', uploadedAt: now },
+    { id: uuidv4(), teacherId, subjectId: mathId, sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Monday',    startTime: '08:00', endTime: '09:30', color: '#6366f1', status: 'published', uploadedAt: now },
+    { id: uuidv4(), teacherId, subjectId: mathId, sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Wednesday', startTime: '08:00', endTime: '09:30', color: '#6366f1', status: 'published', uploadedAt: now },
+    { id: uuidv4(), teacherId, subjectId: engId,  sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Tuesday',   startTime: '10:00', endTime: '11:30', color: '#22c55e', status: 'published', uploadedAt: now },
+    { id: uuidv4(), teacherId, subjectId: engId,  sectionId: sectionAId, academicYearId: yearId, dayOfWeek: 'Thursday',  startTime: '10:00', endTime: '11:30', color: '#22c55e', status: 'published', uploadedAt: now },
   )
 
   // ── Student ──

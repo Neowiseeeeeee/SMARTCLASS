@@ -45,7 +45,7 @@ export default function TeacherSchedule() {
 
   const { data: schedules = [], isLoading } = useQuery({
     queryKey: ['teacher-schedules', teacher?.id],
-    queryFn:  () => structureApi.getSchedules({ teacherId: teacher?.id }).then(r => r.data),
+    queryFn:  () => structureApi.getSchedules({ teacherId: teacher?.id, status: 'published' }).then(r => r.data),
     enabled:  !!teacher?.id,
   })
 

@@ -131,6 +131,8 @@ export const structureApi = {
   createSchedule: (data: any) => api.post('/structure/schedules', data),
   updateSchedule: (id: string, data: any) => api.put(`/structure/schedules/${id}`, data),
   deleteSchedule: (id: string) => api.delete(`/structure/schedules/${id}`),
+  publishSchedules: (data: { sectionId: string; academicYearId: string }) =>
+    api.post('/structure/schedules/publish', data),
   getSectionStudents: (sectionId: string) => api.get(`/structure/section-students/${sectionId}`),
 }
 
