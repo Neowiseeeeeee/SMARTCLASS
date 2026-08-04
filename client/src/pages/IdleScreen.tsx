@@ -208,11 +208,11 @@ export default function IdleScreen() {
 
           {/* Weather */}
           {weather && (
-            <div className="flex flex-col items-center leading-none hidden sm:flex">
-              <p className="text-white font-poppins font-semibold text-[11px] sm:text-xs leading-snug">
-                <span className="mr-1">{weather.emoji}</span>{weather.temp}°C
+            <div className="flex items-center gap-1.5 leading-none hidden sm:flex">
+              <span className="text-xl">{weather.emoji}</span>
+              <p className="text-white font-poppins font-bold text-base sm:text-lg leading-none tabular-nums">
+                {weather.temp}°C
               </p>
-              <p className="text-white/55 font-inter text-[10px] leading-snug">{weather.label}</p>
             </div>
           )}
 
