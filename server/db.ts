@@ -208,6 +208,7 @@ export interface ClassSchedule {
   dayOfWeek?: string
   startTime?: string
   endTime?: string
+  color?: string
   uploadedAt: string
 }
 

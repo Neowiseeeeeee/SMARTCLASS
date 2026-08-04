@@ -174,6 +174,7 @@ router.post('/schedules', requireAuth, requireRole('ADMIN'), async (req: Request
       startTime: z.string().optional(),
       endTime: z.string().optional(),
       description: z.string().optional(),
+      color: z.string().optional(),
     }).parse(req.body)
 
     const now = new Date().toISOString()
@@ -191,6 +192,50 @@ router.post('/schedules', requireAuth, requireRole('ADMIN'), async (req: Request
     if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     res.status(500).json({ error: 'Server error' })
   }
+})
+
+router.put('/schedules/:id', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const idx = db.classSchedules.findIndex(s => s.id === id)
+    if (idx === -1) return res.status(404).json({ error: 'Schedule not found' })
+
+    const data = z.object({
+      subjectId: z.string().optional(),
+      teacherId: z.string().optional(),
+      sectionId: z.string().optional(),
+      academicYearId: z.string().optional(),
+      dayOfWeek: z.string().optional(),
+      startTime: z.string().optional(),
+      endTime: z.string().optional(),
+      description: z.string().optional(),
+      color: z.string().optional(),
+    }).parse(req.body)
+
+    db.classSchedules[idx] = { ...db.classSchedules[idx], ...data }
+    const s = db.classSchedules[idx]
+
+    res.json({
+      ...s,
+      subject: db.subjects.find(sub => sub.id === s.subjectId) || null,
+      teacher: db.teachers.find(t => t.id === s.teacherId) || null,
+      section: expandSection(db.sections.find(sec => sec.id === s.sectionId)!),
+      academicYear: db.academicYears.find(y => y.id === s.academicYearId) || null,
+    })
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+router.delete('/schedules/:id', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const idx = db.classSchedules.findIndex(s => s.id === id)
+    if (idx === -1) return res.status(404).json({ error: 'Schedule not found' })
+    db.classSchedules.splice(idx, 1)
+    res.json({ ok: true })
+  } catch (err) { res.status(500).json({ error: 'Server error' }) }
 })
 
 // Students in a section — accessible by any authenticated user (teacher-friendly)

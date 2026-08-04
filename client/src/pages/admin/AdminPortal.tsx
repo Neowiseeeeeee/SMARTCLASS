@@ -2,7 +2,7 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen, Calendar,
-  Megaphone, ClipboardList, BarChart2, FileText, Settings
+  Megaphone, ClipboardList, BarChart2, FileText, Settings, CalendarDays
 } from 'lucide-react'
 import PortalLayout from '../../components/layout/PortalLayout'
 import AdminDashboard from './AdminDashboard'
@@ -12,12 +12,14 @@ import AdminAcademicStructure from './AdminAcademicStructure'
 import AdminAnnouncements from './AdminAnnouncements'
 import AdminAttendance from './AdminAttendance'
 import AdminSettings from './AdminSettings'
+import AdminSchedule from './AdminSchedule'
 
 const navItems = [
   { label: 'Dashboard', path: '/admin', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
   { label: 'Students', path: '/admin/students', icon: <GraduationCap className="w-5 h-5" /> },
   { label: 'Teachers', path: '/admin/teachers', icon: <Users className="w-5 h-5" /> },
   { label: 'Academic Structure', path: '/admin/structure', icon: <BookOpen className="w-5 h-5" /> },
+  { label: 'Class Schedules', path: '/admin/schedules', icon: <CalendarDays className="w-5 h-5" /> },
   { label: 'Announcements', path: '/admin/announcements', icon: <Megaphone className="w-5 h-5" /> },
   { label: 'Attendance', path: '/admin/attendance', icon: <ClipboardList className="w-5 h-5" /> },
   { label: 'System Settings', path: '/admin/settings', icon: <Settings className="w-5 h-5" /> },
@@ -31,6 +33,7 @@ export default function AdminPortal() {
         <Route path="students" element={<AdminStudents />} />
         <Route path="teachers" element={<AdminTeachers />} />
         <Route path="structure" element={<AdminAcademicStructure />} />
+        <Route path="schedules" element={<AdminSchedule />} />
         <Route path="announcements" element={<AdminAnnouncements />} />
         <Route path="attendance" element={<AdminAttendance />} />
         <Route path="settings" element={<AdminSettings />} />
