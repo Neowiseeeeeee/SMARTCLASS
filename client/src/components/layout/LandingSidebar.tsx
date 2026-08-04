@@ -56,7 +56,6 @@ export default function LandingSidebar({ open, onClose }: LandingSidebarProps) {
   const learningItems = [
     { label: 'SMARTBOARD',              icon: <PenLine      className="w-5 h-5" />, path: '/smartboard'   },
     { label: 'Canvas Mode',             icon: <LayoutTemplate className="w-5 h-5" />, path: '/canvas'     },
-    { label: 'Split-Screen Teaching',   icon: <Columns2     className="w-5 h-5" />, path: '/splitscreen'  },
     { label: 'Formula / Graph Finder',  icon: <Calculator   className="w-5 h-5" />, path: '/formula'      },
   ]
 

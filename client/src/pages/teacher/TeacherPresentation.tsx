@@ -4,12 +4,13 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../../lib/auth'
 import { presentationsApi } from '../../lib/api'
 import {
-  Monitor, BookOpen, FileText, ImageIcon, Play, X, ChevronRight, FolderOpen, Clock, Video,
+  Monitor, BookOpen, FileText, ImageIcon, Play, X, ChevronRight, FolderOpen, Clock, Video, Columns2,
 } from 'lucide-react'
 import { EmptyState, LoadingSpinner } from '../../components/ui/EmptyState'
 import { Button } from '../../components/ui/Button'
 import { formatDateTime, timeAgo } from '../../lib/utils'
 import OfficeViewer from '../../components/ui/OfficeViewer'
+import SplitScreenPanel from './SplitScreenPanel'
 
 // ─── Full-screen presentation overlay ────────────────────────────────────────
 function PresentOverlay({
@@ -134,12 +135,15 @@ function PresentOverlay({
   )
 }
 
+type TabView = 'present' | 'splitscreen'
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function TeacherPresentation() {
   const { user } = useAuth()
   const teacher = user?.profile
   const assignments: any[] = teacher?.subjectAssignments || []
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState<TabView>('present')
   const [presentingMaterial, setPresentingMaterial] = useState<any | null>(null)
   const [expandedAssignmentKey, setExpandedAssignmentKey] = useState<string | null>(null)
 
@@ -177,13 +181,48 @@ export default function TeacherPresentation() {
       )}
 
       <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div>
-          <h1 className="page-title">Instructional Presentation</h1>
-          <p className="text-text-secondary font-inter text-sm mt-1">
-            Browse and present uploaded materials. To upload new materials, go to the Subjects tab.
-          </p>
+        {/* Header + tab switcher */}
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+          <div className="flex-1">
+            <h1 className="page-title">Instructional Presentation</h1>
+            <p className="text-text-secondary font-inter text-sm mt-1">
+              {activeTab === 'present'
+                ? 'Browse and present uploaded materials. To upload new materials, go to the Subjects tab.'
+                : 'Present a file on the left while annotating on the right. Drag the divider to resize.'}
+            </p>
+          </div>
+          {/* Sub-tab pills */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 self-start sm:self-auto flex-shrink-0">
+            <button
+              onClick={() => setActiveTab('present')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-poppins font-semibold transition-all ${
+                activeTab === 'present'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              Presentations
+            </button>
+            <button
+              onClick={() => setActiveTab('splitscreen')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-poppins font-semibold transition-all ${
+                activeTab === 'splitscreen'
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <Columns2 className="w-4 h-4" />
+              Split-Screen
+            </button>
+          </div>
         </div>
+
+        {/* Split-Screen sub-tab */}
+        {activeTab === 'splitscreen' && <SplitScreenPanel />}
+
+        {/* Presentations content — hidden when split-screen is active */}
+        {activeTab === 'present' && <>
 
         {/* Mode cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -363,6 +402,7 @@ export default function TeacherPresentation() {
             })}
           </div>
         )}
+        </>}
       </div>
     </>
   )
