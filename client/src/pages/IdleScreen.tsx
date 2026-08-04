@@ -30,6 +30,20 @@ const ROLE_LABEL: Record<string, string> = {
   STUDENT: 'Student',
 }
 
+// WMO weather code → label + emoji
+function decodeWeather(code: number): { label: string; emoji: string } {
+  if (code === 0)                           return { label: 'Clear Sky',    emoji: '☀️' }
+  if (code <= 2)                            return { label: 'Partly Cloudy', emoji: '⛅' }
+  if (code === 3)                           return { label: 'Overcast',      emoji: '☁️' }
+  if (code <= 48)                           return { label: 'Foggy',         emoji: '🌫️' }
+  if (code <= 55)                           return { label: 'Drizzle',       emoji: '🌦️' }
+  if (code <= 65)                           return { label: 'Rain',          emoji: '🌧️' }
+  if (code <= 77)                           return { label: 'Snow',          emoji: '❄️' }
+  if (code <= 82)                           return { label: 'Showers',       emoji: '🌦️' }
+  if (code <= 99)                           return { label: 'Thunderstorm',  emoji: '⛈️' }
+  return { label: 'Unknown', emoji: '🌡️' }
+}
+
 export default function IdleScreen() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
@@ -38,7 +52,37 @@ export default function IdleScreen() {
   const [slideIndex, setSlideIndex] = useState(0)
   const [autoRotateTab, setAutoRotateTab] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [imgError, setImgError] = useState(false)   // true when current slide's image fails to load
+  const [imgError, setImgError] = useState(false)
+  const [weather, setWeather] = useState<{ temp: number; label: string; emoji: string } | null>(null)
+
+  // Fetch weather via Open-Meteo (free, no key). Try geolocation, fall back to Manila.
+  useEffect(() => {
+    const fetchWeather = (lat: number, lon: number) => {
+      fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`
+      )
+        .then(r => r.json())
+        .then(d => {
+          const temp = Math.round(d.current.temperature_2m)
+          const { label, emoji } = decodeWeather(d.current.weather_code)
+          setWeather({ temp, label, emoji })
+        })
+        .catch(() => {})
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+        ()  => fetchWeather(14.5995, 120.9842), // fallback: Manila
+      )
+    } else {
+      fetchWeather(14.5995, 120.9842)
+    }
+
+    // Refresh weather every 10 min
+    const t = setInterval(() => fetchWeather(14.5995, 120.9842), 600_000)
+    return () => clearInterval(t)
+  }, [])
 
   // Touch-swipe state
   const touchStartX = useRef<number | null>(null)
@@ -124,9 +168,8 @@ export default function IdleScreen() {
       {/* ── Header ── */}
       <header className="flex items-center justify-between px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5 bg-primary-dark border-b border-white/10 gap-3 shadow-sm">
 
-        {/* Left: hamburger + logo + date & time stack */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          {/* Hamburger */}
+        {/* Left: hamburger + logo + SMARTCLASS label (same row height as logo) */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors touch-manipulation flex-shrink-0 min-w-[40px] min-h-[40px] flex items-center justify-center"
@@ -135,26 +178,48 @@ export default function IdleScreen() {
             <Menu className="w-5 h-5" />
           </button>
 
-          {/* Logo */}
           <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-xl flex items-center justify-center shadow flex-shrink-0">
             <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
           </div>
 
+          {/* SMARTCLASS — vertically centered to match logo height */}
+          <p className="text-white font-poppins font-bold text-sm sm:text-base leading-none hidden sm:block">
+            SMARTCLASS
+          </p>
+        </div>
+
+        {/* Right: date+time stack · weather · user chip */}
+        <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
+
           {/* Date + time stacked */}
-          <div className="flex flex-col leading-none min-w-0">
-            <p className="text-white/40 text-[9px] font-inter uppercase tracking-widest hidden sm:block">SMARTCLASS</p>
-            <p className="text-white/75 font-inter text-[10px] sm:text-[11px] leading-snug">
+          <div className="flex flex-col items-end leading-none">
+            <p className="text-white/70 font-inter text-[10px] sm:text-[11px] leading-snug">
               {dayNames[now.getDay()]}, {monthNames[now.getMonth()]} {now.getDate()}, {now.getFullYear()}
             </p>
             <p className="text-white font-poppins font-semibold text-[11px] sm:text-xs tabular-nums leading-snug">
-              {format(now, 'hh:mm')}<span className="text-[10px] sm:text-[11px] ml-0.5">{format(now, ':ss')}</span>
-              <span className="text-white/60 font-inter font-normal ml-1 text-[10px] sm:text-[11px]">{format(now, 'a')}</span>
+              {format(now, 'hh:mm')}
+              <span className="text-white/60 text-[10px] sm:text-[11px]">{format(now, ':ss')}</span>
+              <span className="text-white/50 font-inter font-normal ml-1 text-[10px] sm:text-[11px]">{format(now, 'a')}</span>
             </p>
           </div>
-        </div>
 
-        {/* Right: (if logged in) user chip */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          {/* Divider */}
+          <div className="w-px h-7 bg-white/20 hidden sm:block flex-shrink-0" />
+
+          {/* Weather */}
+          {weather && (
+            <div className="flex flex-col items-center leading-none hidden sm:flex">
+              <p className="text-white font-poppins font-semibold text-[11px] sm:text-xs leading-snug">
+                <span className="mr-1">{weather.emoji}</span>{weather.temp}°C
+              </p>
+              <p className="text-white/55 font-inter text-[10px] leading-snug">{weather.label}</p>
+            </div>
+          )}
+
+          {/* Divider before user chip */}
+          {user && <div className="w-px h-7 bg-white/20 hidden sm:block flex-shrink-0" />}
+
+          {/* User chip */}
           {user && (
             <button
               onClick={() => setSidebarOpen(true)}
