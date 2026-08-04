@@ -27,26 +27,24 @@ const ROLE_LABEL: Record<string, string> = {
 }
 
 const ROLE_COLOR: Record<string, string> = {
-  ADMIN:   'bg-accent/20 text-accent',
+  ADMIN:   'bg-amber-400/20 text-amber-300',
   TEACHER: 'bg-blue-400/20 text-blue-300',
-  STUDENT: 'bg-primary/20 text-primary-light',
+  STUDENT: 'bg-emerald-400/20 text-emerald-300',
 }
 
 export default function LandingSidebar({ open, onClose }: LandingSidebarProps) {
-  const navigate  = useNavigate()
+  const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [learningOpen, setLearningOpen] = useState(false)
-  const [healthOpen, setHealthOpen] = useState(false)
+  const [healthOpen, setHealthOpen]     = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
 
-  /* Close on Escape */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
-  /* Prevent body scroll when open */
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -55,193 +53,237 @@ export default function LandingSidebar({ open, onClose }: LandingSidebarProps) {
   const goTo = (path: string) => { onClose(); navigate(path) }
   const handleLogout = async () => { onClose(); await logout() }
 
-  const learningItems = [
-    { label: 'SMARTBOARD',              icon: <PenLine        className="w-5 h-5" />, path: '/smartboard'        },
-    { label: 'Canvas Mode',             icon: <LayoutTemplate className="w-5 h-5" />, path: '/canvas'            },
-    { label: 'Formula / Graph Finder',  icon: <Calculator     className="w-5 h-5" />, path: '/formula'           },
+  const healthItems = [
+    { label: 'Health Tips',  icon: <Heart    className="w-3.5 h-3.5" />, path: '/health?tab=tips',  color: 'text-rose-400'   },
+    { label: 'BMI',          icon: <Activity className="w-3.5 h-3.5" />, path: '/health?tab=bmi',   color: 'text-orange-400' },
+    { label: 'Water Intake', icon: <Droplets className="w-3.5 h-3.5" />, path: '/health?tab=water', color: 'text-sky-400'    },
+    { label: 'Sleep',        icon: <Moon     className="w-3.5 h-3.5" />, path: '/health?tab=sleep', color: 'text-violet-400' },
   ]
 
-  const healthItems = [
-    { label: 'Health Tips',   icon: <Heart     className="w-5 h-5" />, path: '/health?tab=tips'   },
-    { label: 'BMI',           icon: <Activity  className="w-5 h-5" />, path: '/health?tab=bmi'    },
-    { label: 'Water Intake',  icon: <Droplets  className="w-5 h-5" />, path: '/health?tab=water'  },
-    { label: 'Sleep',         icon: <Moon      className="w-5 h-5" />, path: '/health?tab=sleep'  },
+  const learningItems = [
+    { label: 'SMARTBOARD',             icon: <PenLine        className="w-3.5 h-3.5" />, path: '/smartboard', color: 'text-emerald-400' },
+    { label: 'Canvas Mode',            icon: <LayoutTemplate className="w-3.5 h-3.5" />, path: '/canvas',     color: 'text-blue-400'    },
+    { label: 'Formula / Graph Finder', icon: <Calculator     className="w-3.5 h-3.5" />, path: '/formula',    color: 'text-amber-400'   },
   ]
 
   return (
     <>
-      {/* ── Backdrop ── */}
+      {/* Backdrop */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300',
+          'fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity duration-300',
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         )}
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* ── Drawer ── */}
+      {/* Drawer */}
       <aside
         ref={sidebarRef}
         role="dialog"
         aria-modal="true"
         aria-label="SMARTCLASS Menu"
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col bg-primary-dark shadow-2xl',
-          'w-[300px] sm:w-[320px]',
+          'fixed inset-y-0 left-0 z-50 flex flex-col',
+          'w-64 sm:w-72',
+          'bg-[#1a3228] border-r border-white/8 shadow-2xl',
           'transition-transform duration-300 ease-in-out',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10 flex-shrink-0">
-          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow">
-            <GraduationCap className="w-5 h-5 text-primary" />
+        {/* ── Header ── */}
+        <div className="flex items-center gap-2.5 px-4 py-3.5 border-b border-white/8 flex-shrink-0">
+          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+            <GraduationCap className="w-4 h-4 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-white font-poppins font-bold text-sm leading-none">SMARTCLASS</p>
-            <p className="text-white/40 font-inter text-xs mt-1">Menu</p>
+            <p className="text-white/35 font-inter text-[11px] mt-0.5 leading-none">Navigation</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-colors touch-manipulation"
+            className="w-7 h-7 rounded-lg text-white/40 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors touch-manipulation"
             aria-label="Close menu"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
+        {/* ── Scrollable body ── */}
+        <div className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
 
-          {/* ── LOGIN / USER SECTION ── */}
+          {/* Login / User section */}
           {!user ? (
-            /* Not logged in → Login button */
-            <button
+            <NavButton
+              icon={<LogIn className="w-4 h-4" />}
+              iconBg="bg-white/8"
+              iconColor="text-white/70"
+              label="Login"
               onClick={() => goTo('/login')}
-              className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl text-white/80 hover:bg-white/10 hover:text-white font-poppins font-semibold transition-all touch-manipulation group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center flex-shrink-0 transition-colors">
-                <LogIn className="w-5 h-5" />
-              </div>
-              <span className="flex-1 text-left text-base">Login</span>
-              <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors" />
-            </button>
+              suffix={<ChevronRight className="w-3.5 h-3.5 text-white/25" />}
+            />
           ) : (
-            /* Logged in → user card + actions */
-            <div className="rounded-2xl overflow-hidden bg-white/5 border border-white/10 mb-2">
-              {/* User info */}
-              <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-white" />
+            <div className="rounded-xl overflow-hidden bg-white/5 border border-white/8 mb-1">
+              {/* User info row */}
+              <div className="flex items-center gap-2.5 px-3 py-2.5 border-b border-white/8">
+                <div className="w-7 h-7 rounded-lg bg-primary/80 flex items-center justify-center flex-shrink-0">
+                  <User className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-poppins font-semibold text-sm truncate">{user.name}</p>
-                  <span className={cn('inline-block text-[11px] px-2 py-0.5 rounded-full font-inter mt-0.5', ROLE_COLOR[user.role] || 'bg-white/20 text-white/70')}>
+                  <p className="text-white font-poppins font-semibold text-xs leading-none truncate">{user.name}</p>
+                  <span className={cn('inline-block text-[10px] px-1.5 py-0.5 rounded-full font-inter mt-1 leading-none', ROLE_COLOR[user.role] || 'bg-white/15 text-white/60')}>
                     {ROLE_LABEL[user.role] || user.role}
                   </span>
                 </div>
               </div>
-              {/* Go to Dashboard */}
               <button
                 onClick={() => goTo(ROLE_DASHBOARD[user.role] || '/')}
-                className="flex items-center gap-3 w-full px-4 py-3.5 text-sm text-white/80 hover:bg-white/10 hover:text-white font-inter transition-colors touch-manipulation"
+                className="flex items-center gap-2 w-full px-3 py-2 text-xs text-white/70 hover:bg-white/8 hover:text-white font-inter transition-colors touch-manipulation"
               >
-                <LayoutDashboard className="w-4 h-4 text-primary-light flex-shrink-0" />
+                <LayoutDashboard className="w-3.5 h-3.5 text-primary-light flex-shrink-0" />
                 Go to Dashboard
               </button>
-              {/* Logout */}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-3.5 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 font-inter transition-colors touch-manipulation border-t border-white/10"
+                className="flex items-center gap-2 w-full px-3 py-2 text-xs text-red-400/80 hover:bg-red-500/10 hover:text-red-300 font-inter transition-colors touch-manipulation border-t border-white/8"
               >
-                <LogOut className="w-4 h-4 flex-shrink-0" />
+                <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
                 Logout
               </button>
             </div>
           )}
 
           {/* Divider */}
-          <div className="border-t border-white/10 my-2" />
+          <div className="h-px bg-white/8 my-1 mx-1" />
 
-          {/* ── HEALTH (collapsible) ── */}
-          <div className="rounded-2xl overflow-hidden">
-            <button
-              onClick={() => setHealthOpen(o => !o)}
-              className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl text-white/80 hover:bg-white/10 hover:text-white font-poppins font-semibold transition-all touch-manipulation group"
-              aria-expanded={healthOpen}
-            >
-              <div className="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center flex-shrink-0 transition-colors">
-                <Heart className="w-5 h-5 text-rose-400" />
-              </div>
-              <span className="flex-1 text-left text-base">Health</span>
-              <ChevronDown className={cn(
-                'w-4 h-4 text-white/50 transition-transform duration-200',
-                healthOpen ? 'rotate-180' : '',
-              )} />
-            </button>
+          {/* Health dropdown */}
+          <CollapsibleNav
+            icon={<Heart className="w-4 h-4" />}
+            iconColor="text-rose-400"
+            iconBg="bg-rose-400/10"
+            label="Health"
+            open={healthOpen}
+            onToggle={() => setHealthOpen(o => !o)}
+          >
+            {healthItems.map(item => (
+              <SubNavButton
+                key={item.path}
+                icon={item.icon}
+                iconColor={item.color}
+                label={item.label}
+                onClick={() => goTo(item.path)}
+              />
+            ))}
+          </CollapsibleNav>
 
-            {/* Health sub-items */}
-            {healthOpen && (
-              <div className="ml-4 mr-1 mb-1 space-y-0.5">
-                {healthItems.map(item => (
-                  <button
-                    key={item.path}
-                    onClick={() => goTo(item.path)}
-                    className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white font-inter font-medium text-sm transition-all touch-manipulation group"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-white/5 group-hover:bg-white/15 flex items-center justify-center flex-shrink-0 transition-colors text-rose-400">
-                      {item.icon}
-                    </div>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ── INTERACTIVE LEARNING (collapsible) ── */}
-          <div className="rounded-2xl overflow-hidden">
-            <button
-              onClick={() => setLearningOpen(o => !o)}
-              className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl text-white/80 hover:bg-white/10 hover:text-white font-poppins font-semibold transition-all touch-manipulation group"
-              aria-expanded={learningOpen}
-            >
-              <div className="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center flex-shrink-0 transition-colors">
-                <GraduationCap className="w-5 h-5 text-secondary" />
-              </div>
-              <span className="flex-1 text-left text-base">Interactive Learning</span>
-              <ChevronDown className={cn(
-                'w-4 h-4 text-white/50 transition-transform duration-200',
-                learningOpen ? 'rotate-180' : '',
-              )} />
-            </button>
-
-            {/* Sub-items */}
-            {learningOpen && (
-              <div className="ml-4 mr-1 mb-1 space-y-0.5">
-                {learningItems.map(item => (
-                  <button
-                    key={item.path}
-                    onClick={() => goTo(item.path)}
-                    className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white font-inter font-medium text-sm transition-all touch-manipulation group"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-white/5 group-hover:bg-white/15 flex items-center justify-center flex-shrink-0 transition-colors text-secondary">
-                      {item.icon}
-                    </div>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Interactive Learning dropdown */}
+          <CollapsibleNav
+            icon={<GraduationCap className="w-4 h-4" />}
+            iconColor="text-secondary"
+            iconBg="bg-secondary/10"
+            label="Interactive Learning"
+            open={learningOpen}
+            onToggle={() => setLearningOpen(o => !o)}
+          >
+            {learningItems.map(item => (
+              <SubNavButton
+                key={item.path}
+                icon={item.icon}
+                iconColor={item.color}
+                label={item.label}
+                onClick={() => goTo(item.path)}
+              />
+            ))}
+          </CollapsibleNav>
         </div>
 
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-white/10 flex-shrink-0">
-          <p className="text-white/25 font-inter text-[11px] text-center">SMARTCLASS · ERLHS</p>
+        {/* ── Footer ── */}
+        <div className="px-4 py-3 border-t border-white/8 flex-shrink-0">
+          <p className="text-white/20 font-inter text-[10px] text-center tracking-wide">SMARTCLASS · ERLHS</p>
         </div>
       </aside>
     </>
+  )
+}
+
+/* ── Shared sub-components ─────────────────────────────────────────────────── */
+
+function NavButton({
+  icon, iconBg, iconColor, label, onClick, suffix,
+}: {
+  icon: React.ReactNode
+  iconBg?: string
+  iconColor?: string
+  label: string
+  onClick: () => void
+  suffix?: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-2.5 w-full px-2.5 py-2.5 rounded-xl text-white/75 hover:bg-white/8 hover:text-white font-inter font-medium text-sm transition-all touch-manipulation group"
+    >
+      <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors', iconBg ?? 'bg-white/8', iconColor ?? 'text-white/60')}>
+        {icon}
+      </div>
+      <span className="flex-1 text-left">{label}</span>
+      {suffix}
+    </button>
+  )
+}
+
+function CollapsibleNav({
+  icon, iconBg, iconColor, label, open, onToggle, children,
+}: {
+  icon: React.ReactNode
+  iconBg?: string
+  iconColor?: string
+  label: string
+  open: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex items-center gap-2.5 w-full px-2.5 py-2.5 rounded-xl text-white/75 hover:bg-white/8 hover:text-white font-inter font-medium text-sm transition-all touch-manipulation group"
+      >
+        <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors', iconBg ?? 'bg-white/8', iconColor ?? 'text-white/60')}>
+          {icon}
+        </div>
+        <span className="flex-1 text-left">{label}</span>
+        <ChevronDown className={cn('w-3.5 h-3.5 text-white/30 transition-transform duration-200', open ? 'rotate-180' : '')} />
+      </button>
+
+      {open && (
+        <div className="mt-0.5 ml-3 pl-3 border-l border-white/10 space-y-0.5 pb-1">
+          {children}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SubNavButton({
+  icon, iconColor, label, onClick,
+}: {
+  icon: React.ReactNode
+  iconColor?: string
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center gap-2 w-full px-2.5 py-2 rounded-lg text-white/55 hover:bg-white/8 hover:text-white font-inter text-xs transition-all touch-manipulation group"
+    >
+      <span className={cn('flex-shrink-0 transition-colors', iconColor ?? 'text-white/40')}>
+        {icon}
+      </span>
+      <span>{label}</span>
+    </button>
   )
 }
