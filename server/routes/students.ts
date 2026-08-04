@@ -2,8 +2,34 @@ import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
-import { db, expandStudent } from '../db.js'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
+import { db, expandStudent, saveDb } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// ── Avatar upload setup ───────────────────────────────────────────────────────
+const avatarDir = path.join(__dirname, '../../uploads/avatars')
+if (!fs.existsSync(avatarDir)) fs.mkdirSync(avatarDir, { recursive: true })
+
+const avatarStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, avatarDir),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase()
+    cb(null, `${uuidv4()}${ext}`)
+  },
+})
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.mimetype)
+    ok ? cb(null, true) : cb(new Error('Only image files are allowed'))
+  },
+})
 
 const router = Router()
 
