@@ -128,7 +128,7 @@ export default function StudentSchedule() {
               {/* Grid body */}
               <div className="flex" style={{ height: TOTAL_SLOTS * SLOT_H }}>
 
-                {/* Time axis */}
+                {/* Time axis — every 30 min labeled */}
                 <div className="w-14 flex-shrink-0 relative select-none">
                   {Array.from({ length: TOTAL_SLOTS + 1 }).map((_, i) => (
                     <div
@@ -136,13 +136,15 @@ export default function StudentSchedule() {
                       className="absolute right-2 text-right leading-none"
                       style={{ top: i * SLOT_H - 7 }}
                     >
-                      <span className={`font-inter leading-none ${
-                        i % 2 === 0
-                          ? 'text-[10px] text-text-secondary font-medium'
-                          : 'text-[9px] text-text-secondary/40'
-                      }`}>
-                        {i % 2 === 0 ? slotLabel(i) : '· · ·'}
-                      </span>
+                      {i % 2 === 0 ? (
+                        <span className="text-[10px] text-text-secondary font-medium font-inter">
+                          {slotLabel(i)}
+                        </span>
+                      ) : (
+                        <span className="text-[9px] text-text-secondary/35 font-inter">
+                          {slotLabel(i)}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
