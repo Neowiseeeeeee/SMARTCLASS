@@ -102,7 +102,6 @@ router.post(
       const { title, subjectId, sectionId } = req.body
       if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
       if (!title?.trim()) return res.status(400).json({ error: 'Title is required' })
-      if (!subjectId || !sectionId) return res.status(400).json({ error: 'subjectId and sectionId are required' })
 
       const teacher = db.teachers.find(t => t.userId === req.user!.userId)
       if (!teacher) return res.status(403).json({ error: 'Teacher profile not found' })
@@ -140,6 +139,44 @@ router.post(
     }
   }
 )
+
+// ── POST /api/presentations/link — assign existing file to subject/section ────
+router.post('/link', requireAuth, requireRole('TEACHER'), async (req: Request, res: Response) => {
+  try {
+    const { materialId, subjectId, sectionId, title } = req.body
+    if (!materialId) return res.status(400).json({ error: 'materialId is required' })
+
+    const source = db.presentationMaterials.find(m => m.id === materialId)
+    if (!source) return res.status(404).json({ error: 'Source material not found' })
+
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
+    if (!teacher || source.teacherId !== teacher.id) {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
+
+    const linked = {
+      id: uuidv4(),
+      teacherId: teacher.id,
+      subjectId: subjectId || null,
+      sectionId: sectionId || null,
+      title: (title?.trim()) || source.title,
+      filePath: source.filePath,
+      fileType: source.fileType,
+      originalName: source.originalName,
+      uploadedAt: new Date().toISOString(),
+    }
+    db.presentationMaterials.push(linked)
+    saveDb()
+
+    res.json({
+      ...linked,
+      subject: subjectId ? (db.subjects.find(s => s.id === subjectId) || null) : null,
+      section: sectionId ? (db.sections.find(s => s.id === sectionId) || null) : null,
+    })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Server error' })
+  }
+})
 
 // ── DELETE /api/presentations/:id ─────────────────────────────────────────────
 router.delete('/:id', requireAuth, requireRole('TEACHER'), async (req: Request, res: Response) => {

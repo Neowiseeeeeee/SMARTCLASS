@@ -5,12 +5,18 @@ import { useAuth } from '../../lib/auth'
 import { presentationsApi } from '../../lib/api'
 import {
   BookOpen, Upload, FileText, ImageIcon, Trash2,
-  ChevronRight, ChevronDown, FolderOpen, Play, Monitor, Clock, Video,
+  ChevronRight, ChevronDown, FolderOpen, Play, Monitor, Clock, Video, X, Search,
 } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { EmptyState, LoadingSpinner } from '../../components/ui/EmptyState'
 import { formatDateTime, timeAgo } from '../../lib/utils'
 import OfficeViewer from '../../components/ui/OfficeViewer'
+
+function fileIcon(fileType: string, cls = 'w-4 h-4 text-primary') {
+  if (fileType === 'image') return <ImageIcon className={cls} />
+  if (fileType === 'video') return <Video className={cls} />
+  return <FileText className={cls} />
+}
 
 // ─── Presentation overlay ─────────────────────────────────────────────────────
 function PresentOverlay({
@@ -150,6 +156,42 @@ export default function TeacherSubjects() {
   const [presentingMaterial, setPresentingMaterial] = useState<any | null>(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadFile, setUploadFile] = useState<{ name: string; size: number } | null>(null)
+  const [showLibrary, setShowLibrary] = useState(false)
+  const [librarySearch, setLibrarySearch] = useState('')
+  const [linking, setLinking] = useState(false)
+
+  // All teacher files for library picker
+  const { data: allTeacherFiles = [] } = useQuery({
+    queryKey: ['teacher-library', teacher?.id],
+    queryFn: () => presentationsApi.getAll({ teacherId: teacher?.id }).then(r => r.data),
+    enabled: !!teacher?.id && showLibrary,
+  })
+
+  const filteredLibrary = (allTeacherFiles as any[]).filter(m =>
+    !librarySearch ||
+    m.title.toLowerCase().includes(librarySearch.toLowerCase()) ||
+    m.subject?.name?.toLowerCase().includes(librarySearch.toLowerCase()) ||
+    m.originalName?.toLowerCase().includes(librarySearch.toLowerCase())
+  )
+
+  async function handleLinkFromLibrary(m: any) {
+    setLinking(true)
+    try {
+      await presentationsApi.link({
+        materialId: m.id,
+        subjectId: selectedAssignment.subjectId,
+        sectionId: selectedAssignment.sectionId,
+        title: m.title,
+      })
+      queryClient.invalidateQueries({ queryKey: ['presentation-materials'] })
+      setShowLibrary(false)
+      setLibrarySearch('')
+    } catch (err: any) {
+      setUploadError(err.response?.data?.error || 'Failed to link file')
+    } finally {
+      setLinking(false)
+    }
+  }
 
   // Group assignments by section
   const sectionGroups = useMemo(() => {
@@ -276,6 +318,75 @@ export default function TeacherSubjects() {
           material={presentingMaterial}
           onClose={() => setPresentingMaterial(null)}
         />
+      )}
+
+      {/* Library picker modal */}
+      {showLibrary && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setShowLibrary(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+              <div>
+                <p className="font-poppins font-semibold text-gray-800">Choose from Files Library</p>
+                <p className="font-inter text-xs text-gray-400 mt-0.5">
+                  Linking to: {selectedAssignment?.subject?.name} · {sectionGroups.find(g => g.section?.id === selectedSectionId)?.section?.name}
+                </p>
+              </div>
+              <button onClick={() => setShowLibrary(false)} className="text-gray-400 hover:text-gray-600 ml-4">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="px-4 py-3 border-b border-gray-100 flex-shrink-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search files…"
+                  value={librarySearch}
+                  onChange={e => setLibrarySearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 text-sm font-inter focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+              {filteredLibrary.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <FolderOpen className="w-10 h-10 mb-2 opacity-30" />
+                  <p className="text-sm font-inter">{librarySearch ? 'No matches' : 'No files in your library yet'}</p>
+                  <p className="text-xs font-inter mt-1">Go to Files tab to upload files</p>
+                </div>
+              ) : filteredLibrary.map((m: any) => (
+                <button
+                  key={m.id}
+                  onClick={() => handleLinkFromLibrary(m)}
+                  disabled={linking}
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 text-left transition-colors disabled:opacity-50"
+                >
+                  <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    {fileIcon(m.fileType)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-inter text-sm font-medium text-gray-800 truncate">{m.title}</p>
+                    <p className="font-inter text-xs text-gray-400 truncate">
+                      {m.subject?.name ? `${m.subject.name} · ${m.section?.name}` : m.originalName}
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-poppins font-semibold text-primary/60 bg-primary/8 px-1.5 py-0.5 rounded-full uppercase flex-shrink-0">
+                    {m.fileType}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <div className="px-4 py-3 border-t border-gray-100 flex-shrink-0 text-center">
+              <button
+                onClick={() => { setShowLibrary(false); fileInputRef.current?.click() }}
+                className="text-primary text-sm font-inter font-medium hover:underline"
+              >
+                + Upload a new file instead
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="space-y-6 animate-fade-in">
@@ -462,7 +573,15 @@ export default function TeacherSubjects() {
                     onClick={() => fileInputRef.current?.click()}
                     disabled={!uploadTitle.trim()}
                   >
-                    Choose File
+                    Upload File
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={<FolderOpen className="w-3.5 h-3.5" />}
+                    onClick={() => setShowLibrary(true)}
+                  >
+                    From Library
                   </Button>
                 </div>
               )}

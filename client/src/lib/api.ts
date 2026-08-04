@@ -139,6 +139,9 @@ export const presentationsApi = {
   // with the boundary param, otherwise multer cannot parse the body.
   upload: (formData: FormData, onUploadProgress?: (e: { loaded: number; total?: number }) => void) =>
     api.post('/presentations/upload', formData, { onUploadProgress }),
+  // Link an existing file to a new subject/section without re-uploading
+  link: (data: { materialId: string; subjectId?: string; sectionId?: string; title?: string }) =>
+    api.post('/presentations/link', data),
   delete: (id: string) => api.delete(`/presentations/${id}`),
 }
 
