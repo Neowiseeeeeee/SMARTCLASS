@@ -72,6 +72,8 @@ export const studentsApi = {
     api.post('/students/import', data),
   getAttendance: (id: string) => api.get(`/students/${id}/attendance`),
   getScores: (id: string) => api.get(`/students/${id}/scores`),
+  updateProfile: (id: string, data: any) => api.patch(`/students/${id}/profile`, data),
+  getGrades: (id: string, params?: any) => api.get(`/students/${id}/grades`, { params }),
 }
 
 // Teachers
@@ -114,6 +116,10 @@ export const academicApi = {
   createSheet: (data: { sectionId: string; subjectId?: string; name: string; headers: string[]; rows: string[][] }) =>
     api.post('/academic/sheets', data),
   deleteSheet: (id: string) => api.delete(`/academic/sheets/${id}`),
+  // Final grades
+  releaseGrade: (data: any) => api.post('/academic/grades', data),
+  getGrades: (params?: any) => api.get('/academic/grades', { params }),
+  retractGrade: (id: string) => api.delete(`/academic/grades/${id}`),
 }
 
 // Structure

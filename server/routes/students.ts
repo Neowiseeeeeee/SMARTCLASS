@@ -332,6 +332,87 @@ router.delete('/:id/section', requireAuth, requireRole('ADMIN'), async (req: Req
   }
 })
 
+// Student: self-update profile fields
+router.patch('/:id/profile', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const s = db.students.find(s => s.id === req.params.id)
+    if (!s) return res.status(404).json({ error: 'Student not found' })
+
+    // Must be the student themselves or an admin
+    const isOwner = req.user!.role === 'STUDENT' && s.userId === req.user!.userId
+    const isAdmin = req.user!.role === 'ADMIN'
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Forbidden' })
+
+    const data = z.object({
+      contactNumber: z.string().optional(),
+      gender: z.string().optional(),
+      birthDate: z.string().optional(),
+      address: z.string().optional(),
+      guardianName: z.string().optional(),
+      guardianContact: z.string().optional(),
+      emergencyContact: z.string().optional(),
+      biography: z.string().optional(),
+    }).parse(req.body)
+
+    const now = new Date().toISOString()
+
+    // Update student record
+    const si = db.students.findIndex(st => st.id === s.id)
+    if (si !== -1) {
+      if (data.contactNumber !== undefined) db.students[si].contactNumber = data.contactNumber
+      if (data.gender !== undefined) db.students[si].gender = data.gender
+      if (data.birthDate !== undefined) db.students[si].birthDate = data.birthDate
+    }
+
+    // Update or create student profile
+    const pi = db.studentProfiles.findIndex(p => p.studentId === s.id)
+    if (pi !== -1) {
+      if (data.address !== undefined) db.studentProfiles[pi].address = data.address
+      if (data.guardianName !== undefined) db.studentProfiles[pi].guardianName = data.guardianName
+      if (data.guardianContact !== undefined) db.studentProfiles[pi].guardianContact = data.guardianContact
+      if (data.emergencyContact !== undefined) db.studentProfiles[pi].emergencyContact = data.emergencyContact
+      if (data.biography !== undefined) db.studentProfiles[pi].biography = data.biography
+      db.studentProfiles[pi].updatedAt = now
+    } else {
+      db.studentProfiles.push({
+        id: uuidv4(),
+        studentId: s.id,
+        address: data.address,
+        guardianName: data.guardianName,
+        guardianContact: data.guardianContact,
+        emergencyContact: data.emergencyContact,
+        biography: data.biography,
+        updatedAt: now,
+      })
+    }
+
+    res.json(expandStudent(db.students[si !== -1 ? si : 0], { includeUser: false }))
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Student: get own final grades
+router.get('/:id/grades', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const { academicYearId, gradingPeriod } = req.query
+    let grades = db.finalGrades.filter(g => g.studentId === req.params.id)
+    if (academicYearId) grades = grades.filter(g => g.academicYearId === String(academicYearId))
+    if (gradingPeriod) grades = grades.filter(g => g.gradingPeriod === String(gradingPeriod))
+
+    const result = grades.map(g => ({
+      ...g,
+      subject: db.subjects.find(s => s.id === g.subjectId) || null,
+      section: db.sections.find(s => s.id === g.sectionId) || null,
+      academicYear: db.academicYears.find(y => y.id === g.academicYearId) || null,
+    }))
+    res.json(result)
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // Student: get own attendance
 router.get('/:id/attendance', requireAuth, async (req: Request, res: Response) => {
   try {

@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
-import { db } from '../db.js'
+import { db, saveDb } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 
 const router = Router()
@@ -271,6 +271,88 @@ router.delete('/sheets/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), async
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }
+})
+
+// ─── Final Grades (teacher releases per student/subject/grading period) ───────
+
+// Teacher: release or update a final grade
+router.post('/grades', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const data = z.object({
+      studentId:     z.string(),
+      subjectId:     z.string(),
+      sectionId:     z.string(),
+      academicYearId: z.string(),
+      gradingPeriod: z.enum(['1st', '2nd', '3rd', '4th']),
+      grade:         z.number().min(0).max(100),
+    }).parse(req.body)
+
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
+    if (!teacher && req.user!.role !== 'ADMIN') return res.status(403).json({ error: 'Teacher not found' })
+
+    const now = new Date().toISOString()
+    // Upsert: replace any existing grade for same student/subject/period/year
+    const existing = db.finalGrades.findIndex(g =>
+      g.studentId === data.studentId &&
+      g.subjectId === data.subjectId &&
+      g.sectionId === data.sectionId &&
+      g.academicYearId === data.academicYearId &&
+      g.gradingPeriod === data.gradingPeriod
+    )
+    const grade = {
+      id: existing !== -1 ? db.finalGrades[existing].id : uuidv4(),
+      ...data,
+      teacherId: teacher?.id || '',
+      releasedAt: now,
+    }
+    if (existing !== -1) db.finalGrades[existing] = grade
+    else db.finalGrades.push(grade)
+    saveDb()
+
+    res.json({
+      ...grade,
+      subject: db.subjects.find(s => s.id === grade.subjectId) || null,
+      section: db.sections.find(s => s.id === grade.sectionId) || null,
+      academicYear: db.academicYears.find(y => y.id === grade.academicYearId) || null,
+    })
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Teacher/Admin: list grades (filtered)
+router.get('/grades', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const { sectionId, academicYearId, gradingPeriod, subjectId } = req.query
+    let grades = [...db.finalGrades]
+    if (sectionId) grades = grades.filter(g => g.sectionId === String(sectionId))
+    if (academicYearId) grades = grades.filter(g => g.academicYearId === String(academicYearId))
+    if (gradingPeriod) grades = grades.filter(g => g.gradingPeriod === String(gradingPeriod))
+    if (subjectId) grades = grades.filter(g => g.subjectId === String(subjectId))
+    res.json(grades.map(g => ({
+      ...g,
+      subject: db.subjects.find(s => s.id === g.subjectId) || null,
+      student: db.students.find(s => s.id === g.studentId) || null,
+      section: db.sections.find(s => s.id === g.sectionId) || null,
+      academicYear: db.academicYears.find(y => y.id === g.academicYearId) || null,
+    })))
+  } catch (err) { res.status(500).json({ error: 'Server error' }) }
+})
+
+// Teacher: retract a final grade
+router.delete('/grades/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const idx = db.finalGrades.findIndex(g => g.id === req.params.id)
+    if (idx === -1) return res.status(404).json({ error: 'Grade not found' })
+    const teacher = db.teachers.find(t => t.userId === req.user!.userId)
+    if (teacher && db.finalGrades[idx].teacherId !== teacher.id && req.user!.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
+    db.finalGrades.splice(idx, 1)
+    saveDb()
+    res.json({ deleted: true })
+  } catch (err) { res.status(500).json({ error: 'Server error' }) }
 })
 
 export default router

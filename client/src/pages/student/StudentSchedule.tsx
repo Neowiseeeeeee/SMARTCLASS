@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getDay } from 'date-fns'
 import { useAuth } from '../../lib/auth'
 import { structureApi } from '../../lib/api'
-import { Calendar } from 'lucide-react'
+import { Calendar, ChevronDown } from 'lucide-react'
 import { LoadingSpinner, EmptyState } from '../../components/ui/EmptyState'
 
 // ─── Calendar constants ───────────────────────────────────────────────────────
@@ -12,8 +12,11 @@ const DAY_LABELS  = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const HOUR_START  = 7
 const HOUR_END    = 18
 const SLOT_MIN    = 30
-const TOTAL_SLOTS = ((HOUR_END - HOUR_START) * 60) / SLOT_MIN
-const SLOT_H      = 36
+const TOTAL_SLOTS = ((HOUR_END - HOUR_START) * 60) / SLOT_MIN  // 22 slots
+const SLOT_H      = 40  // px per 30-min slot
+
+const GRADING_PERIODS = ['1st Grading', '2nd Grading', '3rd Grading', '4th Grading']
+const DEFAULT_COLOR   = '#6366f1'
 
 function timeToSlot(time: string): number {
   const [h = '0', m = '0'] = time.split(':')
@@ -22,8 +25,7 @@ function timeToSlot(time: string): number {
 
 function slotLabel(i: number): string {
   const total = i * SLOT_MIN + HOUR_START * 60
-  const h  = Math.floor(total / 60)
-  const m  = total % 60
+  const h  = Math.floor(total / 60), m = total % 60
   const ap = h >= 12 ? 'PM' : 'AM'
   const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
   return `${h12}:${m.toString().padStart(2, '0')} ${ap}`
@@ -36,22 +38,43 @@ function textColorForBg(hex: string): string {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55 ? '#1e293b' : '#ffffff'
 }
 
-const DEFAULT_COLOR = '#6366f1'
-
 export default function StudentSchedule() {
   const { user } = useAuth()
   const currentAssignment = user?.profile?.sectionAssignments?.[0]
 
+  const [selectedYearId, setSelectedYearId] = useState<string>('')
+  const [selectedGrading, setSelectedGrading] = useState('1st Grading')
+
+  // Academic years
+  const { data: years = [] } = useQuery({
+    queryKey: ['academic-years'],
+    queryFn: () => structureApi.getAcademicYears().then(r => r.data),
+  })
+
+  // Auto-select current/most-recent year
+  const resolvedYearId = useMemo(() => {
+    if (selectedYearId) return selectedYearId
+    const sorted = [...(years as any[])].sort((a, b) => {
+      if (a.isCurrent) return -1
+      if (b.isCurrent) return 1
+      return b.name.localeCompare(a.name)
+    })
+    return sorted[0]?.id || ''
+  }, [years, selectedYearId])
+
+  const selectedYear = (years as any[]).find((y: any) => y.id === resolvedYearId)
+
   const { data: schedules = [], isLoading } = useQuery({
-    queryKey: ['student-schedules', currentAssignment?.sectionId],
-    queryFn:  () => structureApi.getSchedules({
+    queryKey: ['student-schedules', currentAssignment?.sectionId, resolvedYearId],
+    queryFn: () => structureApi.getSchedules({
       sectionId: currentAssignment?.sectionId,
+      academicYearId: resolvedYearId || undefined,
       status: 'published',
     }).then(r => r.data),
     enabled: !!currentAssignment?.sectionId,
   })
 
-  // Today highlight (0=Mon … 4=Fri, 5=Sat)
+  // Today highlight (0=Mon…5=Sat)
   const todayIdx = useMemo(() => {
     const d = getDay(new Date())
     if (d >= 1 && d <= 5) return d - 1
@@ -63,53 +86,81 @@ export default function StudentSchedule() {
 
   if (!currentAssignment?.sectionId) return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="page-title">Class Schedule</h1>
-        <p className="text-text-secondary font-inter text-sm mt-1">Your weekly class timetable</p>
-      </div>
-      <EmptyState
-        title="No Section Assigned"
-        description="You haven't been assigned to a section yet. Contact your administrator."
-        icon={<Calendar className="w-8 h-8 text-primary" />}
-      />
+      <div><h1 className="page-title">Class Schedule</h1></div>
+      <EmptyState title="No Section Assigned" description="You haven't been assigned to a section yet. Contact your administrator." icon={<Calendar className="w-8 h-8 text-primary" />} />
     </div>
   )
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="page-title">Class Schedule</h1>
-        <p className="text-text-secondary font-inter text-sm mt-1">
-          Your weekly class timetable
-          {(schedules as any[])[0]?.academicYear && (
-            <> · Academic Year {(schedules as any[])[0].academicYear.name}</>
-          )}
-        </p>
+    <div className="space-y-5 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="page-title">Class Schedule</h1>
+          <p className="text-text-secondary font-inter text-sm mt-1">
+            Your weekly class timetable
+          </p>
+        </div>
+
+        {/* Academic year filter */}
+        {(years as any[]).length > 0 && (
+          <div className="relative">
+            <select
+              className="appearance-none pl-3 pr-8 py-2 bg-surface border border-border rounded-xl text-sm font-inter text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer"
+              value={resolvedYearId}
+              onChange={e => setSelectedYearId(e.target.value)}
+            >
+              {(years as any[]).map((y: any) => (
+                <option key={y.id} value={y.id}>
+                  S.Y. {y.name}{y.isCurrent ? ' (Current)' : ''}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary pointer-events-none" />
+          </div>
+        )}
+      </div>
+
+      {/* Grading period tabs */}
+      <div className="flex gap-1 flex-wrap">
+        {GRADING_PERIODS.map(p => (
+          <button
+            key={p}
+            onClick={() => setSelectedGrading(p)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-inter font-medium transition-colors ${
+              selectedGrading === p
+                ? 'bg-primary text-white shadow-sm'
+                : 'bg-surface text-text-secondary hover:text-text-primary hover:bg-background border border-border'
+            }`}
+          >
+            {p}
+          </button>
+        ))}
       </div>
 
       {(schedules as any[]).length === 0 ? (
         <EmptyState
           title="No Schedule Yet"
-          description="Your class schedule hasn't been published yet. Check back later."
+          description={`No published schedule for S.Y. ${selectedYear?.name || '—'}. Check back later.`}
           icon={<Calendar className="w-8 h-8 text-primary" />}
         />
       ) : (
-        <div className="card">
-          <div className="flex items-center justify-between mb-5">
+        <div className="card overflow-hidden">
+          {/* Card header */}
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
             <div>
               <h2 className="font-poppins font-semibold text-lg text-text-primary">Weekly Timetable</h2>
               <p className="text-text-secondary font-inter text-xs mt-0.5">
-                {(schedules as any[]).length} class{(schedules as any[]).length !== 1 ? 'es' : ''}
+                {selectedGrading} · S.Y. {selectedYear?.name}
               </p>
             </div>
             <span className="badge bg-primary-light text-primary-dark text-xs">
-              {(schedules as any[])[0]?.section?.name}
+              {currentAssignment?.section?.name || (schedules as any[])[0]?.section?.name}
             </span>
           </div>
 
-          <div className="overflow-x-auto -mx-2">
-            <div className="min-w-[620px] px-2">
-
+          <div className="overflow-x-auto -mx-4 sm:-mx-6 px-4 sm:px-6">
+            <div className="min-w-[640px]">
               {/* Day headers */}
               <div className="flex mb-2 pl-14">
                 {DAY_LABELS.map((label, i) => (
@@ -127,23 +178,14 @@ export default function StudentSchedule() {
 
               {/* Grid body */}
               <div className="flex" style={{ height: TOTAL_SLOTS * SLOT_H }}>
-
-                {/* Time axis — every 30 min labeled */}
+                {/* Time axis */}
                 <div className="w-14 flex-shrink-0 relative select-none">
                   {Array.from({ length: TOTAL_SLOTS + 1 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute right-2 text-right leading-none"
-                      style={{ top: i * SLOT_H - 7 }}
-                    >
+                    <div key={i} className="absolute right-2 text-right leading-none" style={{ top: i * SLOT_H - 7 }}>
                       {i % 2 === 0 ? (
-                        <span className="text-[10px] text-text-secondary font-medium font-inter">
-                          {slotLabel(i)}
-                        </span>
+                        <span className="text-[10px] text-text-secondary font-medium font-inter">{slotLabel(i)}</span>
                       ) : (
-                        <span className="text-[9px] text-text-secondary/35 font-inter">
-                          {slotLabel(i)}
-                        </span>
+                        <span className="text-[9px] text-text-secondary/35 font-inter">{slotLabel(i)}</span>
                       )}
                     </div>
                   ))}
@@ -153,6 +195,7 @@ export default function StudentSchedule() {
                 {DAYS.map((day, dayIdx) => {
                   const daySched = (schedules as any[]).filter((s: any) => s.dayOfWeek === day)
                   const isToday  = dayIdx === todayIdx
+
                   return (
                     <div
                       key={day}
@@ -160,17 +203,10 @@ export default function StudentSchedule() {
                         isToday ? 'bg-primary-light/50' : 'bg-background/70'
                       }`}
                     >
+                      {/* Grid lines */}
                       {Array.from({ length: TOTAL_SLOTS }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="absolute left-0 right-0 pointer-events-none"
-                          style={{
-                            top: i * SLOT_H,
-                            borderTop: i % 2 === 0
-                              ? '1px solid rgba(0,0,0,0.08)'
-                              : '1px dashed rgba(0,0,0,0.04)',
-                          }}
-                        />
+                        <div key={i} className="absolute left-0 right-0 pointer-events-none"
+                          style={{ top: i * SLOT_H, borderTop: i % 2 === 0 ? '1px solid rgba(0,0,0,0.07)' : '1px dashed rgba(0,0,0,0.04)' }} />
                       ))}
 
                       {daySched.length === 0 && (
@@ -179,41 +215,53 @@ export default function StudentSchedule() {
                         </div>
                       )}
 
+                      {/* Schedule blocks */}
                       {daySched.map((s: any) => {
-                        const start = timeToSlot(s.startTime ?? '0:0')
-                        const end   = timeToSlot(s.endTime   ?? '0:0')
-                        const span  = Math.max(1, end - start)
-                        const color = s.color || DEFAULT_COLOR
-                        const tc    = textColorForBg(color)
+                        const startSlot = timeToSlot(s.startTime ?? '0:0')
+                        const endSlot   = timeToSlot(s.endTime   ?? '0:0')
+                        const span      = Math.max(1, endSlot - startSlot)
+                        const color     = s.color || DEFAULT_COLOR
+                        const tc        = textColorForBg(color)
+                        const heightPx  = span * SLOT_H - 4
+
                         return (
                           <div
                             key={s.id}
                             className="absolute inset-x-1 rounded-xl overflow-hidden select-none"
                             style={{
-                              top: start * SLOT_H + 2,
-                              height: span * SLOT_H - 4,
+                              top: startSlot * SLOT_H + 2,
+                              height: heightPx,
                               background: color,
                               color: tc,
                               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                              zIndex: 10,
                             }}
                           >
-                            <div className="p-2 h-full flex flex-col justify-center overflow-hidden">
-                              <p className="font-poppins font-bold text-[11px] leading-tight truncate">
+                            <div className="p-1.5 h-full flex flex-col justify-start overflow-hidden">
+                              {/* Always visible: subject code */}
+                              <p className="font-poppins font-bold leading-tight truncate"
+                                style={{ fontSize: heightPx < 48 ? '9px' : '11px' }}>
                                 {s.subject?.code}
                               </p>
-                              {span >= 2 && (
-                                <p className="font-inter text-[10px] opacity-90 leading-tight mt-0.5 line-clamp-2">
+                              {/* Subject name — show if enough height */}
+                              {heightPx >= 50 && (
+                                <p className="font-inter leading-tight mt-0.5 line-clamp-2 opacity-90"
+                                  style={{ fontSize: heightPx < 72 ? '9px' : '10px' }}>
                                   {s.subject?.name}
                                 </p>
                               )}
-                              {span >= 3 && (
-                                <p className="font-inter text-[10px] opacity-70 leading-tight mt-0.5 truncate">
+                              {/* Teacher — show if ≥ 3 slots (1.5hr) */}
+                              {heightPx >= 108 && (
+                                <p className="font-inter leading-tight mt-0.5 truncate opacity-75"
+                                  style={{ fontSize: '9px' }}>
                                   {s.teacher?.fullName}
                                 </p>
                               )}
-                              {span >= 4 && (
-                                <p className="font-inter text-[9px] opacity-60 leading-tight mt-0.5">
-                                  {s.startTime} – {s.endTime}
+                              {/* Time — show if ≥ 4 slots (2hr) */}
+                              {heightPx >= 148 && (
+                                <p className="font-inter leading-tight mt-0.5 opacity-60"
+                                  style={{ fontSize: '9px' }}>
+                                  {s.startTime}–{s.endTime}
                                 </p>
                               )}
                             </div>
@@ -226,17 +274,18 @@ export default function StudentSchedule() {
               </div>
 
               {/* Legend */}
-              <div className="flex flex-wrap gap-4 mt-5 pt-4 border-t border-border">
-                {Array.from(new Map((schedules as any[]).map((s: any) => [s.subjectId, s]))).map(([, s]: any) => (
-                  <div key={s.subjectId} className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: s.color || DEFAULT_COLOR }} />
-                    <span className="font-inter text-xs text-text-secondary">
-                      <span className="font-medium text-text-primary">{s.subject?.code}</span>
-                      {' — '}{s.subject?.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {(schedules as any[]).length > 0 && (
+                <div className="flex flex-wrap gap-x-5 gap-y-2 mt-5 pt-4 border-t border-border">
+                  {Array.from(new Map((schedules as any[]).map((s: any) => [s.subjectId, s]))).map(([, s]: any) => (
+                    <div key={s.subjectId} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ background: s.color || DEFAULT_COLOR }} />
+                      <span className="font-inter text-xs text-text-secondary">
+                        <span className="font-medium text-text-primary">{s.subject?.code}</span> — {s.subject?.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

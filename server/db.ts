@@ -314,6 +314,18 @@ export interface ImportedSheet {
   createdAt: string
 }
 
+export interface FinalGrade {
+  id: string
+  studentId: string
+  subjectId: string
+  teacherId: string
+  sectionId: string
+  academicYearId: string
+  gradingPeriod: string   // '1st' | '2nd' | '3rd' | '4th'
+  grade: number
+  releasedAt: string
+}
+
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 export const db = {
@@ -340,6 +352,7 @@ export const db = {
   systemSettings: [] as SystemSetting[],
   presentationMaterials: [] as PresentationMaterial[],
   importedSheets: [] as ImportedSheet[],
+  finalGrades: [] as FinalGrade[],
 }
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────
