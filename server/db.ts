@@ -125,6 +125,8 @@ export interface TeacherProfile {
   id: string
   teacherId: string
   profilePicture?: string
+  gender?: string
+  birthDate?: string
   updatedAt: string
 }
 

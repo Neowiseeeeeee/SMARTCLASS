@@ -202,7 +202,7 @@ export default function TeacherSchedule() {
                               zIndex: 10,
                             }}
                           >
-                            <div className="p-2 h-full flex flex-col justify-between overflow-hidden">
+                            <div className="p-2 h-full flex flex-col justify-center items-center text-center overflow-hidden">
                               <div className="flex-1 min-h-0">
                                 <p className="font-poppins font-bold text-[11px] leading-tight truncate">
                                   {s.subject?.code}

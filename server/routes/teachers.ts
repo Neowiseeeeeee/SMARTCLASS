@@ -2,8 +2,33 @@ import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
-import { db, expandTeacher } from '../db.js'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
+import { db, expandTeacher, saveDb } from '../db.js'
 import { requireAuth, requireRole } from '../middleware/auth.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// ── Avatar upload ─────────────────────────────────────────────────────────────
+const avatarDir = path.join(__dirname, '../../uploads/avatars')
+if (!fs.existsSync(avatarDir)) fs.mkdirSync(avatarDir, { recursive: true })
+
+const avatarUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, avatarDir),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase()
+      cb(null, `${uuidv4()}${ext}`)
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.mimetype)
+    ok ? cb(null, true) : cb(new Error('Only image files are allowed'))
+  },
+})
 
 const router = Router()
 
@@ -163,6 +188,77 @@ router.post('/:id/reset-password', requireAuth, requireRole('ADMIN'), async (req
     }
     res.json({ tempPassword })
   } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Teacher: self-update profile (gender, birthDate)
+router.patch('/:id/profile', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const t = db.teachers.find(t => t.id === req.params.id)
+    if (!t) return res.status(404).json({ error: 'Teacher not found' })
+
+    const isOwner = req.user!.role === 'TEACHER' && t.userId === req.user!.userId
+    const isAdmin = req.user!.role === 'ADMIN'
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Forbidden' })
+
+    const data = z.object({
+      gender: z.string().optional(),
+      birthDate: z.string().optional(),
+    }).parse(req.body)
+
+    const now = new Date().toISOString()
+    const pi = db.teacherProfiles.findIndex(p => p.teacherId === t.id)
+    if (pi !== -1) {
+      if (data.gender !== undefined) db.teacherProfiles[pi].gender = data.gender
+      if (data.birthDate !== undefined) db.teacherProfiles[pi].birthDate = data.birthDate
+      db.teacherProfiles[pi].updatedAt = now
+    } else {
+      db.teacherProfiles.push({ id: uuidv4(), teacherId: t.id, gender: data.gender, birthDate: data.birthDate, updatedAt: now })
+    }
+    saveDb()
+
+    const ti = db.teachers.findIndex(tc => tc.id === t.id)
+    res.json(expandTeacher(db.teachers[ti !== -1 ? ti : 0], { includeUser: false }))
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Teacher: upload own profile picture
+router.post('/:id/avatar', requireAuth, avatarUpload.single('avatar'), async (req: Request, res: Response) => {
+  try {
+    const t = db.teachers.find(t => t.id === req.params.id)
+    if (!t) return res.status(404).json({ error: 'Teacher not found' })
+
+    const isOwner = req.user!.role === 'TEACHER' && t.userId === req.user!.userId
+    const isAdmin = req.user!.role === 'ADMIN'
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Forbidden' })
+
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+
+    const now = new Date().toISOString()
+    const filePath = `/uploads/avatars/${req.file.filename}`
+
+    const pi = db.teacherProfiles.findIndex(p => p.teacherId === t.id)
+    if (pi !== -1) {
+      const old = db.teacherProfiles[pi].profilePicture
+      if (old) {
+        const oldPath = path.join(__dirname, '../../', old)
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath)
+      }
+      db.teacherProfiles[pi].profilePicture = filePath
+      db.teacherProfiles[pi].updatedAt = now
+    } else {
+      db.teacherProfiles.push({ id: uuidv4(), teacherId: t.id, profilePicture: filePath, updatedAt: now })
+    }
+    saveDb()
+
+    const ti = db.teachers.findIndex(tc => tc.id === t.id)
+    res.json(expandTeacher(db.teachers[ti !== -1 ? ti : 0], { includeUser: false }))
+  } catch (err) {
+    console.error(err)
     res.status(500).json({ error: 'Server error' })
   }
 })

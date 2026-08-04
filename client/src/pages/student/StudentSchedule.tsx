@@ -237,7 +237,7 @@ export default function StudentSchedule() {
                               zIndex: 10,
                             }}
                           >
-                            <div className="p-1.5 h-full flex flex-col justify-start overflow-hidden">
+                            <div className="p-1.5 h-full flex flex-col justify-center items-center text-center overflow-hidden">
                               {/* Always visible: subject code */}
                               <p className="font-poppins font-bold leading-tight truncate"
                                 style={{ fontSize: heightPx < 48 ? '9px' : '11px' }}>

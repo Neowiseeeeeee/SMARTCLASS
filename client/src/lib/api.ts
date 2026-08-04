@@ -90,6 +90,12 @@ export const teachersApi = {
   archive: (id: string) => api.patch(`/teachers/${id}/archive`),
   resetPassword: (id: string) => api.post(`/teachers/${id}/reset-password`),
   addAssignment: (id: string, data: any) => api.post(`/teachers/${id}/assignments`, data),
+  updateProfile: (id: string, data: any) => api.patch(`/teachers/${id}/profile`, data),
+  uploadAvatar: (id: string, file: File) => {
+    const fd = new FormData()
+    fd.append('avatar', file)
+    return api.post(`/teachers/${id}/avatar`, fd)
+  },
 }
 
 // Attendance

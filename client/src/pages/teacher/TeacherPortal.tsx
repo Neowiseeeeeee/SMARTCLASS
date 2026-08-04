@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { LayoutDashboard, ClipboardList, Monitor, BarChart2, Calendar, BookOpen, FolderOpen } from 'lucide-react'
 import PortalLayout from '../../components/layout/PortalLayout'
@@ -9,6 +9,7 @@ import TeacherAcademic from './TeacherAcademic'
 import TeacherSchedule from './TeacherSchedule'
 import TeacherSubjects from './TeacherSubjects'
 import TeacherFiles from './TeacherFiles'
+import TeacherProfileModal from './TeacherProfileModal'
 
 const navItems = [
   { label: 'Dashboard', path: '/teacher', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
@@ -21,18 +22,23 @@ const navItems = [
 ]
 
 export default function TeacherPortal() {
+  const [showProfile, setShowProfile] = useState(false)
+
   return (
-    <PortalLayout navItems={navItems} inactivityMinutes={15}>
-      <Routes>
-        <Route index element={<TeacherDashboard />} />
-        <Route path="subjects" element={<TeacherSubjects />} />
-        <Route path="attendance" element={<TeacherAttendance />} />
-        <Route path="presentation" element={<TeacherPresentation />} />
-        <Route path="academic" element={<TeacherAcademic />} />
-        <Route path="schedule" element={<TeacherSchedule />} />
-        <Route path="files" element={<TeacherFiles />} />
-        <Route path="*" element={<Navigate to="/teacher" replace />} />
-      </Routes>
-    </PortalLayout>
+    <>
+      <PortalLayout navItems={navItems} inactivityMinutes={15} onProfileEdit={() => setShowProfile(true)}>
+        <Routes>
+          <Route index element={<TeacherDashboard />} />
+          <Route path="subjects" element={<TeacherSubjects />} />
+          <Route path="attendance" element={<TeacherAttendance />} />
+          <Route path="presentation" element={<TeacherPresentation />} />
+          <Route path="academic" element={<TeacherAcademic />} />
+          <Route path="schedule" element={<TeacherSchedule />} />
+          <Route path="files" element={<TeacherFiles />} />
+          <Route path="*" element={<Navigate to="/teacher" replace />} />
+        </Routes>
+      </PortalLayout>
+      {showProfile && <TeacherProfileModal onClose={() => setShowProfile(false)} />}
+    </>
   )
 }

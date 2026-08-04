@@ -101,7 +101,7 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
   const profilePic = user?.profile?.profile?.profilePicture || null
 
   const roleLabel = role === 'STUDENT' ? 'Student' : role === 'TEACHER' ? 'Teacher' : 'Administrator'
-  const roleColor = role === 'STUDENT' ? 'bg-primary/20 text-primary-dark' : role === 'TEACHER' ? 'bg-info/20 text-info' : 'bg-accent/20 text-accent'
+  const roleColor = role === 'STUDENT' ? 'bg-white/20 text-white' : role === 'TEACHER' ? 'bg-white/20 text-white' : 'bg-white/20 text-white'
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
