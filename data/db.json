@@ -8,7 +8,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-01T04:36:59.062Z"
+      "lastLogin": "2026-08-04T09:15:38.374Z"
     },
     {
       "id": "35c331a8-efe2-4797-8a6d-25654f175258",
@@ -18,7 +18,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-04T07:59:03.650Z"
+      "lastLogin": "2026-08-04T09:17:44.063Z"
     },
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
@@ -883,8 +883,8 @@
       "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
       "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
       "dayOfWeek": "Wednesday",
-      "startTime": "08:00",
-      "endTime": "09:30",
+      "startTime": "06:30",
+      "endTime": "08:00",
       "uploadedAt": "2026-07-30T16:46:59.689Z"
     },
     {
@@ -956,6 +956,18 @@
   ],
   "attendanceSessions": [
     {
+      "id": "04a5f257-0e84-4a9a-8c1b-003a1f5b701a",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "attendanceDate": "2026-08-03T00:00:00.000Z",
+      "sessionStatus": "open",
+      "createdAt": "2026-08-01T04:45:04.436Z",
+      "updatedAt": "2026-08-01T04:45:45.881Z",
+      "sessionCode": "T7TREK",
+      "sessionExpiry": "2026-08-01T05:15:45.881Z"
+    },
+    {
       "id": "311311b0-c269-45de-962c-f1ebd8097e97",
       "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
       "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
@@ -996,18 +1008,6 @@
       "sessionStatus": "closed",
       "createdAt": "2026-07-30T16:46:59.689Z",
       "updatedAt": "2026-07-30T16:46:59.689Z"
-    },
-    {
-      "id": "04a5f257-0e84-4a9a-8c1b-003a1f5b701a",
-      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
-      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
-      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
-      "attendanceDate": "2026-08-03T00:00:00.000Z",
-      "sessionStatus": "open",
-      "createdAt": "2026-08-01T04:45:04.436Z",
-      "updatedAt": "2026-08-01T04:45:45.881Z",
-      "sessionCode": "T7TREK",
-      "sessionExpiry": "2026-08-01T05:15:45.881Z"
     }
   ],
   "attendanceRecords": [
