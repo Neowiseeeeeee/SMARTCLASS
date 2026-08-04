@@ -14,7 +14,7 @@ const HOUR_START  = 7
 const HOUR_END    = 18
 const SLOT_MIN    = 30
 const TOTAL_SLOTS = ((HOUR_END - HOUR_START) * 60) / SLOT_MIN // 22
-const SLOT_H      = 38 // px per slot
+const SLOT_H      = 28 // px per slot
 
 const DEFAULT_COLOR = '#6366f1'
 
@@ -202,27 +202,25 @@ export default function TeacherSchedule() {
                               zIndex: 10,
                             }}
                           >
-                            <div className="p-2 h-full flex flex-col justify-center items-center text-center overflow-hidden">
-                              <div className="flex-1 min-h-0">
-                                <p className="font-poppins font-bold text-[11px] leading-tight truncate">
-                                  {s.subject?.code}
+                            <div className="p-1.5 h-full flex flex-col justify-center items-center text-center overflow-hidden">
+                              <p className="font-poppins font-bold text-[11px] leading-tight truncate w-full">
+                                {s.subject?.code}
+                              </p>
+                              {span >= 2 && (
+                                <p className="font-inter text-[9px] opacity-90 leading-tight mt-0.5 line-clamp-2 w-full">
+                                  {s.subject?.name}
                                 </p>
-                                {span >= 2 && (
-                                  <p className="font-inter text-[10px] opacity-90 leading-tight mt-0.5 line-clamp-2">
-                                    {s.subject?.name}
-                                  </p>
-                                )}
-                                {span >= 3 && (
-                                  <p className="font-inter text-[10px] opacity-70 leading-tight mt-0.5 truncate">
-                                    {s.section?.name}
-                                  </p>
-                                )}
-                                {span >= 4 && (
-                                  <p className="font-inter text-[9px] opacity-60 leading-tight mt-0.5">
-                                    {s.startTime} – {s.endTime}
-                                  </p>
-                                )}
-                              </div>
+                              )}
+                              {span >= 3 && (
+                                <p className="font-inter text-[9px] opacity-70 leading-tight mt-0.5 truncate w-full">
+                                  {s.section?.name}
+                                </p>
+                              )}
+                              {span >= 4 && (
+                                <p className="font-inter text-[9px] opacity-60 leading-tight mt-0.5 w-full">
+                                  {s.startTime} – {s.endTime}
+                                </p>
+                              )}
                             </div>
                           </button>
                         )

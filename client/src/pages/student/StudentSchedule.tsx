@@ -13,7 +13,7 @@ const HOUR_START  = 7
 const HOUR_END    = 18
 const SLOT_MIN    = 30
 const TOTAL_SLOTS = ((HOUR_END - HOUR_START) * 60) / SLOT_MIN  // 22 slots
-const SLOT_H      = 40  // px per 30-min slot
+const SLOT_H      = 28  // px per 30-min slot
 
 const GRADING_PERIODS = ['1st Grading', '2nd Grading', '3rd Grading', '4th Grading']
 const DEFAULT_COLOR   = '#6366f1'
@@ -239,27 +239,27 @@ export default function StudentSchedule() {
                           >
                             <div className="p-1.5 h-full flex flex-col justify-center items-center text-center overflow-hidden">
                               {/* Always visible: subject code */}
-                              <p className="font-poppins font-bold leading-tight truncate"
-                                style={{ fontSize: heightPx < 48 ? '9px' : '11px' }}>
+                              <p className="font-poppins font-bold leading-tight truncate w-full"
+                                style={{ fontSize: heightPx < 30 ? '9px' : '11px' }}>
                                 {s.subject?.code}
                               </p>
-                              {/* Subject name — show if enough height */}
-                              {heightPx >= 50 && (
-                                <p className="font-inter leading-tight mt-0.5 line-clamp-2 opacity-90"
-                                  style={{ fontSize: heightPx < 72 ? '9px' : '10px' }}>
+                              {/* Subject name — show if ≥ 1 hr (52px) */}
+                              {heightPx >= 48 && (
+                                <p className="font-inter leading-tight mt-0.5 line-clamp-2 opacity-90 w-full"
+                                  style={{ fontSize: '9px' }}>
                                   {s.subject?.name}
                                 </p>
                               )}
-                              {/* Teacher — show if ≥ 3 slots (1.5hr) */}
-                              {heightPx >= 108 && (
-                                <p className="font-inter leading-tight mt-0.5 truncate opacity-75"
+                              {/* Teacher — show if ≥ 1.5 hr (80px) */}
+                              {heightPx >= 76 && (
+                                <p className="font-inter leading-tight mt-0.5 truncate opacity-75 w-full"
                                   style={{ fontSize: '9px' }}>
                                   {s.teacher?.fullName}
                                 </p>
                               )}
-                              {/* Time — show if ≥ 4 slots (2hr) */}
-                              {heightPx >= 148 && (
-                                <p className="font-inter leading-tight mt-0.5 opacity-60"
+                              {/* Time — show if ≥ 2 hr (108px) */}
+                              {heightPx >= 104 && (
+                                <p className="font-inter leading-tight mt-0.5 opacity-60 w-full"
                                   style={{ fontSize: '9px' }}>
                                   {s.startTime}–{s.endTime}
                                 </p>
