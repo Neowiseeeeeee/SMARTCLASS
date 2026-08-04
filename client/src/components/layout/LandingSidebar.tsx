@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   X, LogIn, Heart, ChevronDown, GraduationCap,
-  PenLine, LayoutTemplate, Columns2, Calculator,
+  PenLine, LayoutTemplate, Calculator,
   LayoutDashboard, LogOut, User, ChevronRight,
+  Activity, Droplets, Moon,
 } from 'lucide-react'
 import { useAuth } from '../../lib/auth'
 import { cn } from '../../lib/utils'
@@ -35,6 +36,7 @@ export default function LandingSidebar({ open, onClose }: LandingSidebarProps) {
   const navigate  = useNavigate()
   const { user, logout } = useAuth()
   const [learningOpen, setLearningOpen] = useState(false)
+  const [healthOpen, setHealthOpen] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
 
   /* Close on Escape */
@@ -54,9 +56,16 @@ export default function LandingSidebar({ open, onClose }: LandingSidebarProps) {
   const handleLogout = async () => { onClose(); await logout() }
 
   const learningItems = [
-    { label: 'SMARTBOARD',              icon: <PenLine      className="w-5 h-5" />, path: '/smartboard'   },
-    { label: 'Canvas Mode',             icon: <LayoutTemplate className="w-5 h-5" />, path: '/canvas'     },
-    { label: 'Formula / Graph Finder',  icon: <Calculator   className="w-5 h-5" />, path: '/formula'      },
+    { label: 'SMARTBOARD',              icon: <PenLine        className="w-5 h-5" />, path: '/smartboard'        },
+    { label: 'Canvas Mode',             icon: <LayoutTemplate className="w-5 h-5" />, path: '/canvas'            },
+    { label: 'Formula / Graph Finder',  icon: <Calculator     className="w-5 h-5" />, path: '/formula'           },
+  ]
+
+  const healthItems = [
+    { label: 'Health Tips',   icon: <Heart     className="w-5 h-5" />, path: '/health?tab=tips'   },
+    { label: 'BMI',           icon: <Activity  className="w-5 h-5" />, path: '/health?tab=bmi'    },
+    { label: 'Water Intake',  icon: <Droplets  className="w-5 h-5" />, path: '/health?tab=water'  },
+    { label: 'Sleep',         icon: <Moon      className="w-5 h-5" />, path: '/health?tab=sleep'  },
   ]
 
   return (
@@ -155,17 +164,41 @@ export default function LandingSidebar({ open, onClose }: LandingSidebarProps) {
           {/* Divider */}
           <div className="border-t border-white/10 my-2" />
 
-          {/* ── HEALTH ── */}
-          <button
-            onClick={() => goTo('/health')}
-            className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl text-white/80 hover:bg-white/10 hover:text-white font-poppins font-semibold transition-all touch-manipulation group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center flex-shrink-0 transition-colors">
-              <Heart className="w-5 h-5 text-rose-400" />
-            </div>
-            <span className="flex-1 text-left text-base">Health</span>
-            <ChevronRight className="w-4 h-4 text-white/30 group-hover:text-white/60 transition-colors" />
-          </button>
+          {/* ── HEALTH (collapsible) ── */}
+          <div className="rounded-2xl overflow-hidden">
+            <button
+              onClick={() => setHealthOpen(o => !o)}
+              className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl text-white/80 hover:bg-white/10 hover:text-white font-poppins font-semibold transition-all touch-manipulation group"
+              aria-expanded={healthOpen}
+            >
+              <div className="w-10 h-10 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center flex-shrink-0 transition-colors">
+                <Heart className="w-5 h-5 text-rose-400" />
+              </div>
+              <span className="flex-1 text-left text-base">Health</span>
+              <ChevronDown className={cn(
+                'w-4 h-4 text-white/50 transition-transform duration-200',
+                healthOpen ? 'rotate-180' : '',
+              )} />
+            </button>
+
+            {/* Health sub-items */}
+            {healthOpen && (
+              <div className="ml-4 mr-1 mb-1 space-y-0.5">
+                {healthItems.map(item => (
+                  <button
+                    key={item.path}
+                    onClick={() => goTo(item.path)}
+                    className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-white/70 hover:bg-white/10 hover:text-white font-inter font-medium text-sm transition-all touch-manipulation group"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-white/5 group-hover:bg-white/15 flex items-center justify-center flex-shrink-0 transition-colors text-rose-400">
+                      {item.icon}
+                    </div>
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* ── INTERACTIVE LEARNING (collapsible) ── */}
           <div className="rounded-2xl overflow-hidden">

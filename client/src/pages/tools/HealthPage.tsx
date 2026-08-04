@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Heart, Droplets, Moon, ChevronRight, ChevronLeft,
   Activity, RefreshCw, Info, AlertCircle, CheckCircle2,
@@ -429,7 +430,11 @@ const SUB_TABS = [
 ]
 
 export default function HealthPage() {
-  const [tab, setTab] = useState<SubTab>('tips')
+  const [searchParams] = useSearchParams()
+  const initialTab = (searchParams.get('tab') as SubTab | null)
+  const [tab, setTab] = useState<SubTab>(
+    initialTab && ['tips','bmi','water','sleep'].includes(initialTab) ? initialTab : 'tips'
+  )
 
   return (
     <ToolLayout
