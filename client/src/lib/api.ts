@@ -73,6 +73,11 @@ export const studentsApi = {
   getAttendance: (id: string) => api.get(`/students/${id}/attendance`),
   getScores: (id: string) => api.get(`/students/${id}/scores`),
   updateProfile: (id: string, data: any) => api.patch(`/students/${id}/profile`, data),
+  uploadAvatar: (id: string, file: File) => {
+    const fd = new FormData()
+    fd.append('avatar', file)
+    return api.post(`/students/${id}/avatar`, fd)
+  },
   getGrades: (id: string, params?: any) => api.get(`/students/${id}/grades`, { params }),
 }
 

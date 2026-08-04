@@ -28,7 +28,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-04T10:05:29.331Z"
+      "lastLogin": "2026-08-04T10:57:09.491Z"
     },
     {
       "id": "fa98bf85-a0a8-4a83-a342-e71e1ffc6f36",
@@ -1414,5 +1414,6 @@
     }
   ],
   "presentationMaterials": [],
-  "importedSheets": []
+  "importedSheets": [],
+  "finalGrades": []
 }

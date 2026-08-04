@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, Menu, X, ChevronRight, AlertTriangle } from 'lucide-react'
+import { LogOut, Menu, X, ChevronRight, AlertTriangle, Pencil } from 'lucide-react'
 import { useAuth } from '../../lib/auth'
 import { Avatar } from '../ui/Avatar'
 import { cn } from '../../lib/utils'
@@ -16,11 +16,12 @@ interface PortalLayoutProps {
   navItems: NavItem[]
   children: React.ReactNode
   inactivityMinutes?: number
+  onProfileEdit?: () => void
 }
 
 const COUNTDOWN_SECONDS = 10
 
-export default function PortalLayout({ navItems, children, inactivityMinutes = 5 }: PortalLayoutProps) {
+export default function PortalLayout({ navItems, children, inactivityMinutes = 5, onProfileEdit }: PortalLayoutProps) {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
@@ -197,6 +198,15 @@ export default function PortalLayout({ navItems, children, inactivityMinutes = 5
                 {roleLabel}
               </span>
             </div>
+            {onProfileEdit && (
+              <button
+                onClick={onProfileEdit}
+                title="Edit profile"
+                className="flex-shrink-0 p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors touch-manipulation"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 

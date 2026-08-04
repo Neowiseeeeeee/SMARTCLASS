@@ -378,6 +378,8 @@ router.patch('/:id/profile', requireAuth, async (req: Request, res: Response) =>
       guardianContact: z.string().optional(),
       emergencyContact: z.string().optional(),
       biography: z.string().optional(),
+      weight: z.preprocess(v => (v === '' || v == null ? undefined : Number(v)), z.number().positive().optional()),
+      height: z.preprocess(v => (v === '' || v == null ? undefined : Number(v)), z.number().positive().optional()),
     }).parse(req.body)
 
     const now = new Date().toISOString()
@@ -398,6 +400,8 @@ router.patch('/:id/profile', requireAuth, async (req: Request, res: Response) =>
       if (data.guardianContact !== undefined) db.studentProfiles[pi].guardianContact = data.guardianContact
       if (data.emergencyContact !== undefined) db.studentProfiles[pi].emergencyContact = data.emergencyContact
       if (data.biography !== undefined) db.studentProfiles[pi].biography = data.biography
+      if (data.weight !== undefined) db.studentProfiles[pi].weight = data.weight
+      if (data.height !== undefined) db.studentProfiles[pi].height = data.height
       db.studentProfiles[pi].updatedAt = now
     } else {
       db.studentProfiles.push({
@@ -408,6 +412,8 @@ router.patch('/:id/profile', requireAuth, async (req: Request, res: Response) =>
         guardianContact: data.guardianContact,
         emergencyContact: data.emergencyContact,
         biography: data.biography,
+        weight: data.weight,
+        height: data.height,
         updatedAt: now,
       })
     }
@@ -415,6 +421,44 @@ router.patch('/:id/profile', requireAuth, async (req: Request, res: Response) =>
     res.json(expandStudent(db.students[si !== -1 ? si : 0], { includeUser: false }))
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Student: upload own profile picture
+router.post('/:id/avatar', requireAuth, avatarUpload.single('avatar'), async (req: Request, res: Response) => {
+  try {
+    const s = db.students.find(s => s.id === req.params.id)
+    if (!s) return res.status(404).json({ error: 'Student not found' })
+
+    const isOwner = req.user!.role === 'STUDENT' && s.userId === req.user!.userId
+    const isAdmin = req.user!.role === 'ADMIN'
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Forbidden' })
+
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+
+    const now = new Date().toISOString()
+    const filePath = `/uploads/avatars/${req.file.filename}`
+
+    const pi = db.studentProfiles.findIndex(p => p.studentId === s.id)
+    if (pi !== -1) {
+      // Delete old avatar file if it exists
+      const old = db.studentProfiles[pi].profilePicture
+      if (old) {
+        const oldPath = path.join(__dirname, '../../', old)
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath)
+      }
+      db.studentProfiles[pi].profilePicture = filePath
+      db.studentProfiles[pi].updatedAt = now
+    } else {
+      db.studentProfiles.push({ id: uuidv4(), studentId: s.id, profilePicture: filePath, updatedAt: now })
+    }
+    saveDb()
+
+    const si = db.students.findIndex(st => st.id === s.id)
+    res.json(expandStudent(db.students[si !== -1 ? si : 0], { includeUser: false }))
+  } catch (err) {
+    console.error(err)
     res.status(500).json({ error: 'Server error' })
   }
 })
