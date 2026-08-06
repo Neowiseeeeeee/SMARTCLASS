@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes tab-fade-slide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content-enter {
+  animation: tab-fade-slide 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @layer base {
   * {
     -webkit-tap-highlight-color: transparent;

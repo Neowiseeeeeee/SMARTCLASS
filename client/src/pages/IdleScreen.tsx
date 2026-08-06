@@ -203,15 +203,26 @@ export default function IdleScreen() {
         <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
 
           {/* Date + time stacked */}
-          <div className="flex flex-col items-end leading-none">
-            <p className="text-gray-400 font-inter text-[10px] sm:text-[11px] leading-snug">
+          <div className="flex flex-col items-end gap-0.5">
+            <p className="text-gray-400 font-inter text-[10px] sm:text-[11px] leading-none tracking-wide">
               {dayNames[now.getDay()]}, {monthNames[now.getMonth()]} {now.getDate()}, {now.getFullYear()}
             </p>
-            <p className="text-gray-800 font-poppins font-semibold text-[11px] sm:text-xs tabular-nums leading-snug">
-              {format(now, 'hh:mm')}
-              <span className="text-gray-400 text-[10px] sm:text-[11px]">{format(now, ':ss')}</span>
-              <span className="text-gray-400 font-inter font-normal ml-1 text-[10px] sm:text-[11px]">{format(now, 'a')}</span>
-            </p>
+            <div className="flex items-baseline gap-1 leading-none">
+              <span className="text-gray-900 font-poppins font-black text-xl sm:text-2xl tabular-nums tracking-tight leading-none">
+                {format(now, 'hh:mm')}
+              </span>
+              <span
+                className="font-poppins font-bold text-xs sm:text-sm leading-none"
+                style={{
+                  background: 'linear-gradient(135deg, #4E7D4B, #C89A2B)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                {format(now, 'a')}
+              </span>
+            </div>
           </div>
 
           {/* Divider */}
@@ -250,7 +261,7 @@ export default function IdleScreen() {
       </header>
 
       {/* ── Category tabs ── */}
-      <nav className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 bg-primary border-b border-primary-dark/20 overflow-x-auto scrollbar-none">
+      <nav className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5 bg-primary border-b border-primary-dark/20 overflow-x-auto scrollbar-none">
         {(categories.length === 0
           ? ['School Announcements', 'Upcoming Events', 'Class Schedule', 'Emergency Hotlines'].map((name, i) => ({ id: String(i), name }))
           : categories
@@ -258,16 +269,26 @@ export default function IdleScreen() {
           <button
             key={cat.id}
             onClick={() => handleTabClick(i)}
-            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 rounded-xl font-poppins font-medium text-xs sm:text-sm whitespace-nowrap transition-all touch-manipulation min-h-[40px] sm:min-h-[44px] ${
-              activeTab === i
-                ? 'bg-white text-primary shadow-md'
-                : 'text-white/80 hover:bg-white/15 hover:text-white'
-            }`}
+            className={`relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 rounded-xl font-poppins font-medium text-xs sm:text-sm whitespace-nowrap touch-manipulation min-h-[40px] sm:min-h-[44px] outline-none
+              transition-all duration-300 ease-out
+              ${activeTab === i
+                ? 'bg-white text-primary shadow-lg scale-[1.03]'
+                : 'text-white/75 hover:bg-white/12 hover:text-white hover:scale-[1.02]'
+              }`}
+            style={activeTab === i ? { boxShadow: '0 4px 14px rgba(0,0,0,0.18)' } : {}}
           >
-            {CATEGORY_ICONS[cat.name] || <BookOpen className="w-4 h-4" />}
+            <span className={`transition-transform duration-300 ${activeTab === i ? 'scale-110' : 'scale-100'}`}>
+              {CATEGORY_ICONS[cat.name] || <BookOpen className="w-4 h-4" />}
+            </span>
             <span className="hidden sm:inline">{cat.name}</span>
-            {/* Mobile: short label */}
             <span className="sm:hidden">{cat.name.split(' ')[0]}</span>
+            {/* Active underline pill */}
+            {activeTab === i && (
+              <span
+                className="absolute bottom-1 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-primary"
+                style={{ width: '40%', opacity: 0.5 }}
+              />
+            )}
           </button>
         ))}
       </nav>
@@ -275,7 +296,7 @@ export default function IdleScreen() {
       {/* ── Main content ── */}
       <main className="flex-1 flex flex-col p-3 sm:p-5 lg:p-8 overflow-hidden bg-gray-50 min-h-0">
         {!currentSlide ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center">
+          <div key={`empty-${activeTab}`} className="tab-content-enter flex-1 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4 sm:mb-6">
               <GraduationCap className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 text-primary/50" />
             </div>
@@ -285,7 +306,7 @@ export default function IdleScreen() {
             <p className="text-gray-400 font-inter text-sm">No announcements at this time.</p>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col gap-3 sm:gap-5 lg:gap-6 min-h-0">
+          <div key={`content-${activeTab}`} className="tab-content-enter flex-1 flex flex-col gap-3 sm:gap-5 lg:gap-6 min-h-0">
             {/* Slide card — touch-swipeable */}
             <div
               className="flex-1 bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-200 shadow-sm flex min-h-0 touch-pan-y"
