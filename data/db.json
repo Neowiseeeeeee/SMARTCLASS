@@ -18,7 +18,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-06T12:22:57.643Z"
+      "lastLogin": "2026-08-06T13:11:37.455Z"
     },
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
@@ -28,7 +28,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-06T12:55:17.980Z"
+      "lastLogin": "2026-08-06T13:11:00.341Z"
     },
     {
       "id": "fa98bf85-a0a8-4a83-a342-e71e1ffc6f36",
@@ -882,7 +882,8 @@
       "dayOfWeek": "Monday",
       "startTime": "08:00",
       "endTime": "09:30",
-      "uploadedAt": "2026-07-30T16:46:59.689Z"
+      "uploadedAt": "2026-07-30T16:46:59.689Z",
+      "status": "published"
     },
     {
       "id": "5ab83f86-1a14-41f3-b7f7-64375a6d6dc4",
@@ -893,7 +894,8 @@
       "dayOfWeek": "Wednesday",
       "startTime": "06:30",
       "endTime": "08:00",
-      "uploadedAt": "2026-07-30T16:46:59.689Z"
+      "uploadedAt": "2026-07-30T16:46:59.689Z",
+      "status": "published"
     },
     {
       "id": "591b2869-32f2-4c3b-87ce-31dd8e13a30d",
@@ -904,7 +906,8 @@
       "dayOfWeek": "Tuesday",
       "startTime": "10:00",
       "endTime": "11:30",
-      "uploadedAt": "2026-07-30T16:46:59.689Z"
+      "uploadedAt": "2026-07-30T16:46:59.689Z",
+      "status": "published"
     },
     {
       "id": "5b03c902-6918-4f9d-b270-b95a096a042e",
@@ -915,7 +918,8 @@
       "dayOfWeek": "Thursday",
       "startTime": "10:00",
       "endTime": "11:30",
-      "uploadedAt": "2026-07-30T16:46:59.689Z"
+      "uploadedAt": "2026-07-30T16:46:59.689Z",
+      "status": "published"
     },
     {
       "id": "12f25900-7a74-43e1-a58e-2ed284d40933",
@@ -972,7 +976,8 @@
       "endTime": "08:30",
       "description": "",
       "color": "#f43f5e",
-      "uploadedAt": "2026-08-04T09:34:38.394Z"
+      "uploadedAt": "2026-08-04T09:34:38.394Z",
+      "status": "published"
     },
     {
       "id": "8e0f2369-c33b-4200-b133-d7d3eadb1313",
@@ -985,8 +990,22 @@
       "endTime": "15:00",
       "description": "",
       "color": "#ec4899",
-      "status": "draft",
+      "status": "published",
       "uploadedAt": "2026-08-04T14:21:30.652Z"
+    },
+    {
+      "id": "e1dcc69e-047b-4f5b-84e2-5f1814036301",
+      "subjectId": "ced59eba-bf32-439d-9d9a-0b3d64a2506b",
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "dayOfWeek": "Friday",
+      "startTime": "13:00",
+      "endTime": "17:30",
+      "description": "",
+      "color": "#6366f1",
+      "status": "published",
+      "uploadedAt": "2026-08-06T13:10:36.409Z"
     }
   ],
   "attendanceSessions": [
