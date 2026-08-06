@@ -25,12 +25,12 @@
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
       "email": "student@erlhs.edu.ph",
-      "passwordHash": "$2a$12$taGy/8VcGuRaqcGWTQZfredvRITyf.Gq2MaNySJiYPUPiHaM6lzrS",
+      "passwordHash": "$2a$12$K6UtvFZjc/MNUP479R0DWuXfAM8KEJ1xlmKAkfx3IV7e8I1BW0cYG",
       "role": "STUDENT",
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-06T14:40:27.994Z",
+      "lastLogin": "2026-08-06T15:35:04.215Z",
       "failedLoginAttempts": 0
     },
     {
@@ -234,7 +234,7 @@
       "email": "student@erlhs.edu.ph",
       "status": "active",
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "contactNumber": "",
+      "contactNumber": "09171234567",
       "birthDate": ""
     },
     {
@@ -462,13 +462,14 @@
     {
       "id": "36866456-55c2-47ae-8cab-e8e997dda069",
       "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
-      "updatedAt": "2026-08-06T11:36:28.879Z",
-      "address": "",
-      "guardianName": "",
-      "guardianContact": "",
-      "emergencyContact": "",
-      "biography": "",
-      "profilePicture": "/uploads/avatars/31d7cb96-0136-4ca2-b196-28ba33be91fc.jpg"
+      "updatedAt": "2026-08-06T15:36:01.933Z",
+      "address": "123 Main St, Manila",
+      "guardianName": "Pedro Dela Cruz",
+      "guardianContact": "09179876543",
+      "emergencyContact": "09171112222",
+      "biography": "Test bio",
+      "profilePicture": "/uploads/avatars/31d7cb96-0136-4ca2-b196-28ba33be91fc.jpg",
+      "bloodType": "O+"
     },
     {
       "id": "d0fc24c0-d84b-4fd0-ba98-fe3001679d49",
