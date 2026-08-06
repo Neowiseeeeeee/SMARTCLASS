@@ -29,7 +29,8 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-06T13:11:00.341Z"
+      "lastLogin": "2026-08-06T14:40:27.994Z",
+      "failedLoginAttempts": 0
     },
     {
       "id": "fa98bf85-a0a8-4a83-a342-e71e1ffc6f36",

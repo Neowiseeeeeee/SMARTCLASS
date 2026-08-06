@@ -159,6 +159,10 @@ router.get('/:id', requireAuth, async (req: Request, res: Response) => {
   try {
     const s = db.students.find(s => s.id === req.params.id)
     if (!s) return res.status(404).json({ error: 'Student not found' })
+    // Students may only fetch their own record; admins and teachers can fetch any
+    if (req.user!.role === 'STUDENT' && s.userId !== req.user!.userId) {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
     res.json(expandStudent(s, { includeUser: true }))
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
@@ -480,6 +484,11 @@ router.post('/:id/avatar', requireAuth, avatarUpload.single('avatar'), async (re
 // Student: get own final grades
 router.get('/:id/grades', requireAuth, async (req: Request, res: Response) => {
   try {
+    const s = db.students.find(s => s.id === req.params.id)
+    if (!s) return res.status(404).json({ error: 'Student not found' })
+    if (req.user!.role === 'STUDENT' && s.userId !== req.user!.userId) {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
     const { academicYearId, gradingPeriod } = req.query
     let grades = db.finalGrades.filter(g => g.studentId === req.params.id)
     if (academicYearId) grades = grades.filter(g => g.academicYearId === String(academicYearId))
@@ -500,6 +509,11 @@ router.get('/:id/grades', requireAuth, async (req: Request, res: Response) => {
 // Student: get own attendance
 router.get('/:id/attendance', requireAuth, async (req: Request, res: Response) => {
   try {
+    const s = db.students.find(s => s.id === req.params.id)
+    if (!s) return res.status(404).json({ error: 'Student not found' })
+    if (req.user!.role === 'STUDENT' && s.userId !== req.user!.userId) {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
     const records = db.attendanceRecords
       .filter(r => r.studentId === req.params.id)
       .map(r => ({
@@ -524,6 +538,11 @@ router.get('/:id/attendance', requireAuth, async (req: Request, res: Response) =
 // Student: get own scores
 router.get('/:id/scores', requireAuth, async (req: Request, res: Response) => {
   try {
+    const s = db.students.find(s => s.id === req.params.id)
+    if (!s) return res.status(404).json({ error: 'Student not found' })
+    if (req.user!.role === 'STUDENT' && s.userId !== req.user!.userId) {
+      return res.status(403).json({ error: 'Forbidden' })
+    }
     const scores = db.studentScores
       .filter(s => s.studentId === req.params.id)
       .map(s => ({
