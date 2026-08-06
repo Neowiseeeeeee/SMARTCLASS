@@ -194,27 +194,27 @@ export default function IdleScreen() {
         {/* Right: time + weather row / date underneath · user chip */}
         <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
 
-          {/* Time + weather grouped, date underneath */}
+          {/* Weather + time grouped, date underneath time */}
           <div className="flex flex-col items-end gap-0.5">
-            {/* Top row: time · divider · weather — all same size */}
+            {/* Top row: weather · divider · time AM/PM */}
             <div className="flex items-center gap-2 sm:gap-2.5 leading-none">
+              {weather && (
+                <>
+                  <span className="text-base sm:text-lg leading-none">{weather.emoji}</span>
+                  <span className="text-gray-800 font-poppins font-bold text-base sm:text-lg tabular-nums leading-none">
+                    {weather.temp}°C
+                  </span>
+                  <div className="w-px h-4 bg-gray-200 flex-shrink-0" />
+                </>
+              )}
               <span className="text-gray-800 font-poppins font-bold text-base sm:text-lg tabular-nums leading-none">
                 {format(now, 'hh:mm')}
               </span>
               <span className="text-gray-800 font-poppins font-bold text-base sm:text-lg leading-none">
                 {format(now, 'a')}
               </span>
-              {weather && (
-                <>
-                  <div className="w-px h-4 bg-gray-200 flex-shrink-0" />
-                  <span className="text-base sm:text-lg leading-none">{weather.emoji}</span>
-                  <span className="text-gray-800 font-poppins font-bold text-base sm:text-lg tabular-nums leading-none">
-                    {weather.temp}°C
-                  </span>
-                </>
-              )}
             </div>
-            {/* Date underneath in numeric format */}
+            {/* Date underneath the time in the corner */}
             <p className="text-gray-400 font-inter text-[10px] sm:text-[11px] tabular-nums leading-none tracking-wide">
               {format(now, 'dd/MM/yyyy')}
             </p>
