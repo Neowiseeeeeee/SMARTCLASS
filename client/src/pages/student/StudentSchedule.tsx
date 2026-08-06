@@ -237,29 +237,31 @@ export default function StudentSchedule() {
                               zIndex: 10,
                             }}
                           >
-                            <div className="p-1.5 h-full flex flex-col justify-center items-center text-center overflow-hidden">
-                              {/* Always visible: subject code */}
+                            {/* Content adapts to actual card height — no fixed sizes */}
+                            <div className="h-full flex flex-col justify-center items-center text-center overflow-hidden gap-0.5"
+                              style={{ padding: span === 1 ? '2px 4px' : '4px 6px' }}>
+                              {/* Subject code — always shown; font scales with available height */}
                               <p className="font-poppins font-bold leading-tight truncate w-full"
-                                style={{ fontSize: heightPx < 30 ? '9px' : '11px' }}>
+                                style={{ fontSize: span === 1 ? '8px' : span === 2 ? '10px' : '11px' }}>
                                 {s.subject?.code}
                               </p>
-                              {/* Subject name — show if ≥ 1 hr (52px) */}
-                              {heightPx >= 48 && (
-                                <p className="font-inter leading-tight mt-0.5 line-clamp-2 opacity-90 w-full"
+                              {/* Subject name — 1 hr (2 slots) and above */}
+                              {span >= 2 && (
+                                <p className="font-inter leading-tight truncate opacity-90 w-full"
                                   style={{ fontSize: '9px' }}>
                                   {s.subject?.name}
                                 </p>
                               )}
-                              {/* Teacher — show if ≥ 1.5 hr (80px) */}
-                              {heightPx >= 76 && (
-                                <p className="font-inter leading-tight mt-0.5 truncate opacity-75 w-full"
+                              {/* Teacher — 1.5 hr (3 slots) and above */}
+                              {span >= 3 && (
+                                <p className="font-inter leading-tight truncate opacity-75 w-full"
                                   style={{ fontSize: '9px' }}>
                                   {s.teacher?.fullName}
                                 </p>
                               )}
-                              {/* Time — show if ≥ 2 hr (108px) */}
-                              {heightPx >= 104 && (
-                                <p className="font-inter leading-tight mt-0.5 opacity-60 w-full"
+                              {/* Time range — 2 hr (4 slots) and above */}
+                              {span >= 4 && (
+                                <p className="font-inter leading-tight opacity-60 w-full"
                                   style={{ fontSize: '9px' }}>
                                   {s.startTime}–{s.endTime}
                                 </p>

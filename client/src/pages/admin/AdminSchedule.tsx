@@ -105,20 +105,36 @@ function ScheduleBlock({ schedule, showSection, onEdit, onDelete, onDragStart }:
         outlineOffset: isDraft ? '-3px' : undefined,
       }}
     >
-      <div className="h-full p-2 flex flex-col justify-between overflow-hidden">
-        <div className="flex-1 min-h-0">
+      <div className="h-full flex flex-col overflow-hidden" style={{ padding: span === 1 ? '2px 4px' : '4px 8px' }}>
+        {/* Content: grows to fill available space, centered vertically */}
+        <div className="flex-1 min-h-0 flex flex-col justify-center gap-0.5 overflow-hidden">
           {isDraft && (
-            <span className="inline-block text-[8px] font-bold px-1 py-0.5 rounded mb-0.5 uppercase tracking-wide"
+            <span className="inline-block text-[8px] font-bold px-1 py-0.5 rounded uppercase tracking-wide self-start"
               style={{ background: `${tc}25`, color: tc }}>DRAFT</span>
           )}
-          <p className="font-poppins font-bold text-[11px] leading-tight truncate">{schedule.subject?.code}</p>
-          {span >= 2 && <p className="font-inter text-[10px] opacity-90 leading-tight mt-0.5 line-clamp-2">{schedule.subject?.name}</p>}
-          {span >= 3 && !showSection && <p className="font-inter text-[10px] opacity-70 leading-tight mt-0.5 truncate">{schedule.teacher?.fullName}</p>}
-          {span >= 3 && showSection && <p className="font-inter text-[10px] opacity-70 leading-tight mt-0.5 truncate">{schedule.section?.name}</p>}
-          {span >= 4 && <p className="font-inter text-[9px] opacity-60 leading-tight mt-0.5">{schedule.startTime}–{schedule.endTime}</p>}
+          {/* Subject code — always shown; font scales with available height */}
+          <p className="font-poppins font-bold leading-tight truncate"
+            style={{ fontSize: span === 1 ? '8px' : span === 2 ? '10px' : '11px' }}>
+            {schedule.subject?.code}
+          </p>
+          {/* Subject name — 1 hr (2 slots) and above */}
+          {span >= 2 && (
+            <p className="font-inter text-[9px] opacity-90 leading-tight truncate">{schedule.subject?.name}</p>
+          )}
+          {/* Teacher or section — 1.5 hr (3 slots) and above */}
+          {span >= 3 && (
+            <p className="font-inter text-[9px] opacity-70 leading-tight truncate">
+              {showSection ? schedule.section?.name : schedule.teacher?.fullName}
+            </p>
+          )}
+          {/* Time range — 2 hr (4 slots) and above */}
+          {span >= 4 && (
+            <p className="font-inter text-[9px] opacity-60 leading-tight">{schedule.startTime}–{schedule.endTime}</p>
+          )}
         </div>
+        {/* Edit/delete actions pinned to bottom, only visible on hover */}
         {editable && (
-          <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity pt-0.5">
             <button onClick={e => { e.stopPropagation(); onEdit!(schedule) }} className="p-1 rounded-md hover:bg-black/20 transition-colors"><Pencil className="w-3 h-3" /></button>
             <button onClick={e => { e.stopPropagation(); onDelete!(schedule.id) }} className="p-1 rounded-md hover:bg-black/20 transition-colors"><Trash2 className="w-3 h-3" /></button>
           </div>

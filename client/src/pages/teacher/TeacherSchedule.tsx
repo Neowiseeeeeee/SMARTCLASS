@@ -184,6 +184,7 @@ export default function TeacherSchedule() {
                         const span   = Math.max(1, end - start)
                         const color  = s.color || DEFAULT_COLOR
                         const tc     = textColorForBg(color)
+                        const heightPx = span * SLOT_H - 4
 
                         return (
                           <button
@@ -195,29 +196,39 @@ export default function TeacherSchedule() {
                               transition-all duration-150 text-left w-[calc(100%-8px)]"
                             style={{
                               top: start * SLOT_H + 2,
-                              height: span * SLOT_H - 4,
+                              height: heightPx,
                               background: color,
                               color: tc,
                               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                               zIndex: 10,
                             }}
                           >
-                            <div className="p-1.5 h-full flex flex-col justify-center items-center text-center overflow-hidden">
-                              <p className="font-poppins font-bold text-[11px] leading-tight truncate w-full">
+                            {/* Content adapts to actual card height — no fixed sizes */}
+                            <div className="h-full flex flex-col justify-center items-center text-center overflow-hidden gap-0.5"
+                              style={{ padding: span === 1 ? '2px 4px' : '4px 6px' }}>
+                              {/* Subject code — always shown; font scales with available height */}
+                              <p className="font-poppins font-bold leading-tight truncate w-full"
+                                style={{ fontSize: span === 1 ? '8px' : span === 2 ? '10px' : '11px' }}>
                                 {s.subject?.code}
                               </p>
+                              {/* Subject name — 1 hr (2 slots) and above */}
                               {span >= 2 && (
-                                <p className="font-inter text-[9px] opacity-90 leading-tight mt-0.5 line-clamp-2 w-full">
+                                <p className="font-inter leading-tight truncate opacity-90 w-full"
+                                  style={{ fontSize: '9px' }}>
                                   {s.subject?.name}
                                 </p>
                               )}
+                              {/* Section — 1.5 hr (3 slots) and above */}
                               {span >= 3 && (
-                                <p className="font-inter text-[9px] opacity-70 leading-tight mt-0.5 truncate w-full">
+                                <p className="font-inter leading-tight truncate opacity-75 w-full"
+                                  style={{ fontSize: '9px' }}>
                                   {s.section?.name}
                                 </p>
                               )}
+                              {/* Time range — 2 hr (4 slots) and above */}
                               {span >= 4 && (
-                                <p className="font-inter text-[9px] opacity-60 leading-tight mt-0.5 w-full">
+                                <p className="font-inter leading-tight opacity-60 w-full"
+                                  style={{ fontSize: '9px' }}>
                                   {s.startTime} – {s.endTime}
                                 </p>
                               )}
