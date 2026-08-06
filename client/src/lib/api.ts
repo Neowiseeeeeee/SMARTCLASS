@@ -79,6 +79,11 @@ export const studentsApi = {
     fd.append('avatar', file)
     return api.post(`/students/${id}/avatar`, fd)
   },
+  uploadBanner: (id: string, file: File) => {
+    const fd = new FormData()
+    fd.append('banner', file)
+    return api.post(`/students/${id}/banner`, fd)
+  },
   getGrades: (id: string, params?: any) => api.get(`/students/${id}/grades`, { params }),
 }
 

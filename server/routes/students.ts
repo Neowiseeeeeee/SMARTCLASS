@@ -15,6 +15,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const avatarDir = path.join(__dirname, '../../uploads/avatars')
 if (!fs.existsSync(avatarDir)) fs.mkdirSync(avatarDir, { recursive: true })
 
+const imageFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const ok = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.mimetype)
+  ok ? cb(null, true) : cb(new Error('Only image files are allowed'))
+}
+
 const avatarStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, avatarDir),
   filename: (_req, file, cb) => {
@@ -25,10 +30,24 @@ const avatarStorage = multer.diskStorage({
 const avatarUpload = multer({
   storage: avatarStorage,
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    const ok = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.mimetype)
-    ok ? cb(null, true) : cb(new Error('Only image files are allowed'))
+  fileFilter: imageFilter,
+})
+
+// ── Banner upload setup ───────────────────────────────────────────────────────
+const bannerDir = path.join(__dirname, '../../uploads/banners')
+if (!fs.existsSync(bannerDir)) fs.mkdirSync(bannerDir, { recursive: true })
+
+const bannerStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, bannerDir),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase()
+    cb(null, `${uuidv4()}${ext}`)
   },
+})
+const bannerUpload = multer({
+  storage: bannerStorage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: imageFilter,
 })
 
 const router = Router()
@@ -470,6 +489,44 @@ router.post('/:id/avatar', requireAuth, avatarUpload.single('avatar'), async (re
       db.studentProfiles[pi].updatedAt = now
     } else {
       db.studentProfiles.push({ id: uuidv4(), studentId: s.id, profilePicture: filePath, updatedAt: now })
+    }
+    saveDb()
+
+    const si = db.students.findIndex(st => st.id === s.id)
+    res.json(expandStudent(db.students[si !== -1 ? si : 0], { includeUser: false }))
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
+// Student: upload own banner image
+router.post('/:id/banner', requireAuth, bannerUpload.single('banner'), async (req: Request, res: Response) => {
+  try {
+    const s = db.students.find(s => s.id === req.params.id)
+    if (!s) return res.status(404).json({ error: 'Student not found' })
+
+    const isOwner = req.user!.role === 'STUDENT' && s.userId === req.user!.userId
+    const isAdmin = req.user!.role === 'ADMIN'
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Forbidden' })
+
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+
+    const now = new Date().toISOString()
+    const filePath = `/uploads/banners/${req.file.filename}`
+
+    const pi = db.studentProfiles.findIndex(p => p.studentId === s.id)
+    if (pi !== -1) {
+      // Delete old banner file if it exists
+      const old = db.studentProfiles[pi].bannerImage
+      if (old) {
+        const oldPath = path.join(__dirname, '../../', old)
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath)
+      }
+      db.studentProfiles[pi].bannerImage = filePath
+      db.studentProfiles[pi].updatedAt = now
+    } else {
+      db.studentProfiles.push({ id: uuidv4(), studentId: s.id, bannerImage: filePath, updatedAt: now })
     }
     saveDb()
 

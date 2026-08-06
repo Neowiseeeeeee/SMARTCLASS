@@ -99,6 +99,7 @@ export interface StudentProfile {
   id: string
   studentId: string
   profilePicture?: string
+  bannerImage?: string
   address?: string
   guardianName?: string
   guardianContact?: string
