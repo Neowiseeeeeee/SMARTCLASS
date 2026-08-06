@@ -83,6 +83,8 @@ export interface User {
   status: string
   isFirstLogin: boolean
   lastLogin?: string
+  failedLoginAttempts?: number
+  lockedUntil?: string
   createdAt: string
 }
 
@@ -364,7 +366,11 @@ export const db = {
 export async function seedDatabase() {
   // If persisted data exists, load it and skip seeding
   const loaded = loadDb()
-  if (loaded && db.users.length > 0) return
+  if (loaded && db.users.length > 0) {
+    ensureDefaultSettings()
+    saveDb()
+    return
+  }
 
   const now = new Date().toISOString()
 
@@ -587,15 +593,64 @@ export async function seedDatabase() {
   // ── System settings ──
   const settingKeys = [
     ['schoolName', 'Exequiel R. Lina High School'],
+    ['schoolLogo', ''],
+    ['schoolAddress', 'ERLHS Campus, Philippines'],
+    ['schoolTagline', 'Learning today, leading tomorrow.'],
+    ['schoolContactNumber', ''],
+    ['schoolContactEmail', ''],
     ['currentAcademicYear', '2024-2025'],
     ['currentSemester', '1st Semester'],
     ['systemVersion', 'v1.0.0'],
     ['inactivityTimeout', '10'],
     ['sessionCodeExpiry', '30'],
+    ['passingGrade', '75'],
+    ['gradingPeriods', '4'],
+    ['currentGradingPeriod', '1st'],
+    ['slideRotationInterval', '6'],
+    ['tabRotationInterval', '30'],
+    ['weatherLatitude', '14.5995'],
+    ['weatherLongitude', '120.9842'],
+    ['weatherLocation', 'Manila'],
+    ['kioskIdleTimeout', '10'],
+    ['forceFirstLoginPasswordChange', 'true'],
+    ['maxLoginAttempts', '5'],
+    ['lockoutDuration', '15'],
   ]
   for (const [key, value] of settingKeys) {
     db.systemSettings.push({ id: uuidv4(), key, value, updatedAt: now })
   }
+}
+
+/** Add settings introduced after the original seed without overwriting admin changes. */
+export function ensureDefaultSettings() {
+  const defaults: Record<string, string> = {
+    schoolLogo: '', schoolAddress: 'ERLHS Campus, Philippines',
+    schoolTagline: 'Learning today, leading tomorrow.', schoolContactNumber: '',
+    schoolContactEmail: '', passingGrade: '75', gradingPeriods: '4',
+    currentGradingPeriod: '1st', slideRotationInterval: '6',
+    tabRotationInterval: '30', weatherLatitude: '14.5995',
+    weatherLongitude: '120.9842', weatherLocation: 'Manila',
+    kioskIdleTimeout: '10', forceFirstLoginPasswordChange: 'true',
+    maxLoginAttempts: '5', lockoutDuration: '15',
+  }
+  const now = new Date().toISOString()
+  for (const [key, value] of Object.entries(defaults)) {
+    if (!db.systemSettings.some(s => s.key === key)) {
+      db.systemSettings.push({ id: uuidv4(), key, value, updatedAt: now })
+    }
+  }
+}
+
+/** Clear the in-memory store and create a fresh demo dataset. */
+export async function resetDatabase() {
+  ;(Object.keys(db) as Array<keyof typeof db>).forEach(key => {
+    ;(db[key] as unknown as unknown[]).length = 0
+  })
+  try { if (fs.existsSync(DB_FILE)) fs.unlinkSync(DB_FILE) } catch (err) {
+    console.error('[db] Failed to remove backup during reset:', err)
+  }
+  await seedDatabase()
+  saveDb()
 }
 
 // ─── Expand helpers (attach related records like Prisma's "include") ───────────

@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import { useQuery } from '@tanstack/react-query'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { GraduationCap, Eye, EyeOff, ArrowLeft, User, Lock } from 'lucide-react'
 import { useAuth } from '../lib/auth'
+import { settingsApi } from '../lib/api'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 
@@ -23,6 +25,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError]   = useState('')
   const [loading, setLoading]           = useState(false)
+  const { data: settings = {} } = useQuery({
+    queryKey: ['public-settings'],
+    queryFn: () => settingsApi.getPublic().then(r => r.data as Record<string, string>),
+    staleTime: 60_000,
+  })
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -65,10 +72,11 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-xl">
-            <GraduationCap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+             {settings.schoolLogo ? <img src={settings.schoolLogo} alt="" className="w-10 h-10 sm:w-12 sm:h-12 object-contain" /> : <GraduationCap className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />}
           </div>
-          <h1 className="text-white font-poppins font-bold text-2xl sm:text-3xl">SMARTCLASS</h1>
-          <p className="text-white/60 font-inter text-sm mt-1">Exequiel R. Lina High School</p>
+           <h1 className="text-white font-poppins font-bold text-2xl sm:text-3xl">SMARTCLASS</h1>
+           <p className="text-white/60 font-inter text-sm mt-1">{settings.schoolName || 'Exequiel R. Lina High School'}</p>
+           {settings.schoolTagline && <p className="text-white/50 font-inter text-xs mt-1">{settings.schoolTagline}</p>}
         </div>
 
         {/* Card */}

@@ -1,10 +1,29 @@
 import { Router, Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import { z } from 'zod'
-import { db } from '../db.js'
+import { db, saveDb } from '../db.js'
 import { signToken, requireAuth } from '../middleware/auth.js'
 
 const router = Router()
+
+function setting(key: string, fallback: string) {
+  return db.systemSettings.find(s => s.key === key)?.value ?? fallback
+}
+
+function firstLoginRequired(user: typeof db.users[number]) {
+  return user.isFirstLogin && setting('forceFirstLoginPasswordChange', 'true') === 'true'
+}
+
+function loginLimits() {
+  const max = Math.max(1, Number(setting('maxLoginAttempts', '5')) || 5)
+  const minutes = Math.max(1, Number(setting('lockoutDuration', '15')) || 15)
+  return { max, minutes }
+}
+
+function generateTempPassword() {
+  return crypto.randomBytes(9).toString('base64url')
+}
 
 const loginSchema = z.object({
   identifier: z.string().min(1),
@@ -42,10 +61,31 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!user) return res.status(401).json({ error: 'Invalid credentials' })
     if (user.status !== 'active') return res.status(401).json({ error: 'Account is inactive' })
 
+    if (user.lockedUntil && new Date(user.lockedUntil).getTime() > Date.now()) {
+      return res.status(423).json({ error: 'Account temporarily locked. Please try again later.' })
+    }
+    if (user.lockedUntil) {
+      user.lockedUntil = undefined
+      user.failedLoginAttempts = 0
+    }
+
     const valid = await bcrypt.compare(password, user.passwordHash)
-    if (!valid) return res.status(401).json({ error: 'Invalid credentials' })
+    if (!valid) {
+      const { max, minutes } = loginLimits()
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1
+      if (user.failedLoginAttempts >= max) {
+        user.lockedUntil = new Date(Date.now() + minutes * 60_000).toISOString()
+        user.failedLoginAttempts = 0
+        saveDb()
+        return res.status(423).json({ error: `Too many failed attempts. Try again in ${minutes} minutes.` })
+      }
+      saveDb()
+      return res.status(401).json({ error: 'Invalid credentials' })
+    }
 
     user.lastLogin = new Date().toISOString()
+    user.failedLoginAttempts = 0
+    user.lockedUntil = undefined
 
     const token = signToken({ userId: user.id, role: user.role, name })
 
@@ -56,7 +96,7 @@ router.post('/login', async (req: Request, res: Response) => {
       maxAge: 24 * 60 * 60 * 1000,
     })
 
-    res.json({ user: { id: user.id, role: user.role, name, isFirstLogin: user.isFirstLogin } })
+    res.json({ user: { id: user.id, role: user.role, name, isFirstLogin: firstLoginRequired(user) } })
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
     console.error(err)
@@ -122,7 +162,7 @@ router.get('/me', requireAuth, async (req: Request, res: Response) => {
       profile = db.admins.find(a => a.userId === user.id) || null
     }
 
-    res.json({ id: user.id, role: user.role, isFirstLogin: user.isFirstLogin, profile })
+    res.json({ id: user.id, role: user.role, isFirstLogin: firstLoginRequired(user), profile })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Server error' })

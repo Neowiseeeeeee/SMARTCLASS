@@ -2,7 +2,7 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen, Calendar,
-  Megaphone, ClipboardList, BarChart2, FileText, Settings, CalendarDays
+  Megaphone, ClipboardList, BarChart2, FileText, Settings, CalendarDays, RotateCcw
 } from 'lucide-react'
 import PortalLayout from '../../components/layout/PortalLayout'
 import AdminDashboard from './AdminDashboard'
@@ -15,6 +15,7 @@ import AdminSettings from './AdminSettings'
 import AdminSchedule from './AdminSchedule'
 import AdminStudentProfile from './AdminStudentProfile'
 import AdminTeacherProfile from './AdminTeacherProfile'
+import AdminGradeReset from './AdminGradeReset'
 
 const navItems = [
   { label: 'Dashboard', path: '/admin', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
@@ -24,6 +25,7 @@ const navItems = [
   { label: 'Class Schedules', path: '/admin/schedules', icon: <CalendarDays className="w-5 h-5" /> },
   { label: 'Announcements', path: '/admin/announcements', icon: <Megaphone className="w-5 h-5" /> },
   { label: 'Attendance', path: '/admin/attendance', icon: <ClipboardList className="w-5 h-5" /> },
+  { label: 'Release Grade Reset', path: '/admin/grade-reset', icon: <RotateCcw className="w-5 h-5" /> },
   { label: 'System Settings', path: '/admin/settings', icon: <Settings className="w-5 h-5" /> },
 ]
 
@@ -40,6 +42,7 @@ export default function AdminPortal() {
         <Route path="schedules" element={<AdminSchedule />} />
         <Route path="announcements" element={<AdminAnnouncements />} />
         <Route path="attendance" element={<AdminAttendance />} />
+        <Route path="grade-reset" element={<AdminGradeReset />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>

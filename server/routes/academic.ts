@@ -340,6 +340,33 @@ router.get('/grades', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: 
   } catch (err) { res.status(500).json({ error: 'Server error' }) }
 })
 
+// Admin: reset one exact released final grade. Broad destructive resets are intentionally not supported.
+router.post('/admin/grades/reset', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const data = z.object({
+      studentId: z.string().min(1),
+      subjectId: z.string().min(1),
+      sectionId: z.string().min(1),
+      academicYearId: z.string().min(1),
+      gradingPeriod: z.enum(['1st', '2nd', '3rd', '4th']),
+    }).parse(req.body)
+    const idx = db.finalGrades.findIndex(g =>
+      g.studentId === data.studentId &&
+      g.subjectId === data.subjectId &&
+      g.sectionId === data.sectionId &&
+      g.academicYearId === data.academicYearId &&
+      g.gradingPeriod === data.gradingPeriod
+    )
+    if (idx === -1) return res.status(404).json({ error: 'No released grade matches that exact selection.' })
+    db.finalGrades.splice(idx, 1)
+    saveDb()
+    res.json({ success: true, reset: 1 })
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // Teacher: retract a final grade
 router.delete('/grades/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
   try {

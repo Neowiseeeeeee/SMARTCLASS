@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { GraduationCap, Eye, EyeOff, ArrowLeft, User, Lock, Shield } from 'lucide-react'
 import { useAuth } from '../../lib/auth'
+import { settingsApi } from '../../lib/api'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 
@@ -19,6 +21,11 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError]   = useState('')
   const [loading, setLoading]           = useState(false)
+  const { data: settings = {} } = useQuery({
+    queryKey: ['public-settings'],
+    queryFn: () => settingsApi.getPublic().then(r => r.data as Record<string, string>),
+    staleTime: 60_000,
+  })
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(schema),
@@ -54,10 +61,10 @@ export default function AdminLogin() {
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-xl">
-            <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-primary-dark" />
+             {settings.schoolLogo ? <img src={settings.schoolLogo} alt="" className="w-10 h-10 sm:w-12 sm:h-12 object-contain" /> : <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-primary-dark" />}
           </div>
           <h1 className="text-white font-poppins font-bold text-xl sm:text-2xl">Administrator</h1>
-          <p className="text-white/50 font-inter text-sm mt-1">SMARTCLASS Management Portal</p>
+           <p className="text-white/50 font-inter text-sm mt-1">{settings.schoolName || 'SMARTCLASS'} Management Portal</p>
         </div>
 
         {/* Card */}

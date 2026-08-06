@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { LayoutDashboard, BookOpen, Calendar, ClipboardList, BarChart2 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { settingsApi } from '../../lib/api'
 import PortalLayout from '../../components/layout/PortalLayout'
 import StudentDashboard from './StudentDashboard'
 import StudentSubjects from './StudentSubjects'
@@ -19,10 +21,11 @@ const navItems = [
 
 export default function StudentPortal() {
   const [showProfile, setShowProfile] = useState(false)
+  const { data: settings = {} } = useQuery({ queryKey: ['public-settings'], queryFn: () => settingsApi.getPublic().then(r => r.data) })
 
   return (
     <>
-      <PortalLayout navItems={navItems} inactivityMinutes={10} onProfileEdit={() => setShowProfile(true)}>
+      <PortalLayout navItems={navItems} inactivityMinutes={Number(settings.kioskIdleTimeout) || 10} onProfileEdit={() => setShowProfile(true)}>
         <Routes>
           <Route index element={<StudentDashboard />} />
           <Route path="subjects"    element={<StudentSubjects />} />

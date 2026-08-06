@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
-import { announcementsApi } from '../lib/api'
+import { announcementsApi, settingsApi } from '../lib/api'
 import { useAuth } from '../lib/auth'
 import LandingSidebar from '../components/layout/LandingSidebar'
 import smartclassLogo from '../assets/smartclass-logo.png'
@@ -55,13 +55,16 @@ export default function IdleScreen() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [imgError, setImgError] = useState(false)
   const [weather, setWeather] = useState<{ temp: number; label: string; emoji: string } | null>(null)
+  const { data: publicSettings = {} } = useQuery({
+    queryKey: ['public-settings'],
+    queryFn: () => settingsApi.getPublic().then(r => r.data as Record<string, string>),
+    staleTime: 60_000,
+  })
+  const weatherLat = Number(publicSettings.weatherLatitude || '14.5995')
+  const weatherLon = Number(publicSettings.weatherLongitude || '120.9842')
 
-  // Fetch weather via Open-Meteo (free, no key). Always fetch Manila first so
-  // weather shows immediately; then refine with geolocation if available.
+  // Fetch weather via Open-Meteo (free, no key) using the configured location.
   useEffect(() => {
-    const MANILA_LAT = 14.5995
-    const MANILA_LON = 120.9842
-
     const fetchWeather = (lat: number, lon: number) => {
       fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`
@@ -75,22 +78,21 @@ export default function IdleScreen() {
         .catch(() => {})
     }
 
-    // Always fetch immediately with Manila coords so weather shows right away
-    fetchWeather(MANILA_LAT, MANILA_LON)
+    fetchWeather(weatherLat, weatherLon)
 
     // Then try to refine with actual geolocation (may not be available in all envs)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-        () => {}, // already fetched Manila above
+        () => {},
         { timeout: 5000 },
       )
     }
 
     // Refresh weather every 10 min
-    const t = setInterval(() => fetchWeather(MANILA_LAT, MANILA_LON), 600_000)
+    const t = setInterval(() => fetchWeather(weatherLat, weatherLon), 600_000)
     return () => clearInterval(t)
-  }, [])
+  }, [weatherLat, weatherLon])
 
   // Touch-swipe state
   const touchStartX = useRef<number | null>(null)
@@ -112,12 +114,13 @@ export default function IdleScreen() {
   const activeCategory = categories[activeTab]
   const slides = activeCategory?.announcements || []
 
-  // Auto-rotate slides every 6 s
+  // Auto-rotate slides using the admin-configured interval.
   useEffect(() => {
     if (!slides.length) return
-    const t = setInterval(() => setSlideIndex(i => (i + 1) % slides.length), 6000)
+    const interval = Math.max(1, Number(publicSettings.slideRotationInterval || '6')) * 1000
+    const t = setInterval(() => setSlideIndex(i => (i + 1) % slides.length), interval)
     return () => clearInterval(t)
-  }, [slides.length, activeTab])
+  }, [slides.length, activeTab, publicSettings.slideRotationInterval])
 
   // Reset image-error flag whenever the visible slide changes
   useEffect(() => { setImgError(false) }, [slideIndex, activeTab])
@@ -125,12 +128,13 @@ export default function IdleScreen() {
   // Auto-rotate tabs
   useEffect(() => {
     if (!autoRotateTab || !categories.length) return
+    const interval = Math.max(1, Number(publicSettings.tabRotationInterval || '30')) * 1000
     const t = setInterval(() => {
       setActiveTab(i => (i + 1) % categories.length)
       setSlideIndex(0)
-    }, 30_000)
+    }, interval)
     return () => clearInterval(t)
-  }, [autoRotateTab, categories.length])
+  }, [autoRotateTab, categories.length, publicSettings.tabRotationInterval])
 
   const handleTabClick = (i: number) => {
     setActiveTab(i)
@@ -186,15 +190,15 @@ export default function IdleScreen() {
             <Menu className="w-5 h-5" />
           </button>
 
-          <img
-            src={smartclassLogo}
+           <img
+             src={publicSettings.schoolLogo || smartclassLogo}
             alt="SMARTCLASS Logo"
             className="w-9 h-9 sm:w-10 sm:h-10 object-contain flex-shrink-0 drop-shadow-md"
           />
 
           {/* SMARTCLASS */}
-          <span className="font-poppins font-black text-base sm:text-lg tracking-widest hidden sm:block select-none text-primary-dark">
-            SMARTCLASS
+           <span className="font-poppins font-black text-base sm:text-lg tracking-widest hidden sm:block select-none text-primary-dark">
+             {publicSettings.schoolName || 'SMARTCLASS'}
           </span>
         </div>
 
@@ -440,7 +444,7 @@ export default function IdleScreen() {
       {/* ── Footer ── */}
       <footer className="px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 lg:py-4 bg-primary-dark border-t border-white/10 flex items-center justify-between gap-4">
         <p className="text-white/40 font-inter text-[10px] sm:text-xs">
-          SMARTCLASS v1.0 · Exequiel R. Lina High School
+           {publicSettings.schoolName || 'SMARTCLASS'} · {publicSettings.schoolAddress || 'ERLHS Campus'}
         </p>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />

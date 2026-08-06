@@ -10,6 +10,8 @@ import TeacherSchedule from './TeacherSchedule'
 import TeacherSubjects from './TeacherSubjects'
 import TeacherFiles from './TeacherFiles'
 import TeacherProfileModal from './TeacherProfileModal'
+import { useQuery } from '@tanstack/react-query'
+import { settingsApi } from '../../lib/api'
 
 const navItems = [
   { label: 'Dashboard', path: '/teacher', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
@@ -23,10 +25,11 @@ const navItems = [
 
 export default function TeacherPortal() {
   const [showProfile, setShowProfile] = useState(false)
+  const { data: settings = {} } = useQuery({ queryKey: ['public-settings'], queryFn: () => settingsApi.getPublic().then(r => r.data) })
 
   return (
     <>
-      <PortalLayout navItems={navItems} inactivityMinutes={15} onProfileEdit={() => setShowProfile(true)}>
+      <PortalLayout navItems={navItems} inactivityMinutes={Number(settings.kioskIdleTimeout) || 15} onProfileEdit={() => setShowProfile(true)}>
         <Routes>
           <Route index element={<TeacherDashboard />} />
           <Route path="subjects" element={<TeacherSubjects />} />

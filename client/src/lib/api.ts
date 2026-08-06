@@ -130,6 +130,7 @@ export const academicApi = {
   // Final grades
   releaseGrade: (data: any) => api.post('/academic/grades', data),
   getGrades: (params?: any) => api.get('/academic/grades', { params }),
+  resetGrade: (data: any) => api.post('/academic/admin/grades/reset', data),
   retractGrade: (id: string) => api.delete(`/academic/grades/${id}`),
 }
 
@@ -171,5 +172,20 @@ export const settingsApi = {
   getPublic: () => api.get('/settings/public'),
   getAll: () => api.get('/settings'),
   update: (data: any) => api.put('/settings', data),
+  uploadLogo: (file: File) => {
+    const fd = new FormData()
+    fd.append('logo', file)
+    return api.post('/settings/logo', fd)
+  },
+  removeLogo: () => api.delete('/settings/logo'),
+  exportBackup: () => api.get('/settings/backup/export', { responseType: 'blob' }),
+  importBackup: (file: File) => {
+    const fd = new FormData()
+    fd.append('backup', file)
+    return api.post('/settings/backup/import', fd)
+  },
+  resetDemo: () => api.post('/settings/reset-demo'),
+  updateAdminAccount: (data: { username?: string; currentPassword: string; newPassword?: string }) =>
+    api.put('/settings/admin-account', data),
   getDashboardStats: () => api.get('/settings/dashboard-stats'),
 }
