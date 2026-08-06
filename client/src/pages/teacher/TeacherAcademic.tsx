@@ -13,6 +13,7 @@ import {
   Check, Loader2, Users, BookOpen, FolderOpen,
   Trash2, Pencil, Download, Calculator, X,
   MoreVertical, Upload, AlertTriangle, FileSpreadsheet, CalendarCheck,
+  Send, Trophy,
 } from 'lucide-react'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -35,6 +36,20 @@ interface FormulaCol {
   id: string
   name: string
   terms: { activityId: string; weight: number }[]
+}
+
+// ─── Final Grade column config ────────────────────────────────────────────────
+
+interface FinalGradeTerm {
+  type: 'formula'
+  id: string   // FormulaCol.id
+  name: string
+  weight: number
+}
+
+interface FinalGradeColConfig {
+  terms: FinalGradeTerm[]
+  attendanceWeight: number
 }
 
 // ─── CSV parser (no constraints — reads any CSV as-is) ───────────────────────
@@ -237,6 +252,49 @@ export default function TeacherAcademic() {
     setShowAttendanceCol(val)
     if (val) localStorage.setItem(attendanceColKey, 'true')
     else localStorage.removeItem(attendanceColKey)
+  }
+
+  // ── Final Grade column (stored in localStorage per section+subject) ───────────
+  const finalGradeKey = `smartclass_finalgrade_${selectedSection?.id ?? ''}_${selectedSubjectId}`
+  const [finalGradeCol, setFinalGradeCol]           = useState<FinalGradeColConfig | null>(null)
+  const [showFinalGradeModal, setShowFinalGradeModal] = useState(false)
+  const [finalGradeForm, setFinalGradeForm]           = useState<FinalGradeColConfig>({ terms: [], attendanceWeight: 0 })
+  const [showReleaseModal, setShowReleaseModal]       = useState(false)
+  const [releasePeriod, setReleasePeriod]             = useState<'1st' | '2nd' | '3rd' | '4th'>('1st')
+  const [releaseLoading, setReleaseLoading]           = useState(false)
+  const [releaseResult, setReleaseResult]             = useState<{ ok: number; err: number } | null>(null)
+
+  useEffect(() => {
+    if (!selectedSection || !selectedSubjectId) { setFinalGradeCol(null); return }
+    try {
+      const stored = localStorage.getItem(finalGradeKey)
+      setFinalGradeCol(stored ? JSON.parse(stored) : null)
+    } catch { setFinalGradeCol(null) }
+  }, [finalGradeKey, selectedSection, selectedSubjectId])
+
+  function saveFinalGradeCol(cfg: FinalGradeColConfig | null) {
+    setFinalGradeCol(cfg)
+    if (cfg) {
+      try { localStorage.setItem(finalGradeKey, JSON.stringify(cfg)) } catch {}
+    } else {
+      try { localStorage.removeItem(finalGradeKey) } catch {}
+    }
+  }
+
+  function openFinalGradeModal() {
+    setFinalGradeForm(finalGradeCol ?? {
+      terms: formulaCols.map(fc => ({ type: 'formula', id: fc.id, name: fc.name, weight: 0 })),
+      attendanceWeight: 0,
+    })
+    setShowFinalGradeModal(true)
+  }
+
+  function saveFinalGradeModal() {
+    const validTerms = finalGradeForm.terms.filter(t => t.weight > 0)
+    const hasAtt = finalGradeForm.attendanceWeight > 0
+    if (validTerms.length === 0 && !hasAtt) return
+    saveFinalGradeCol({ terms: validTerms, attendanceWeight: finalGradeForm.attendanceWeight })
+    setShowFinalGradeModal(false)
   }
 
   // ── Section groups ──────────────────────────────────────────────────────────
@@ -483,7 +541,7 @@ export default function TeacherAcademic() {
   }
 
   // ── Formula column helpers ──────────────────────────────────────────────────
-  function computeFormula(col: FormulaCol, studentId: string): string {
+  function computeFormulaRaw(col: FormulaCol, studentId: string): number | null {
     let sum = 0; let hasAny = false
     for (const term of col.terms) {
       const act = filteredActivities.find((a: any) => a.id === term.activityId)
@@ -493,7 +551,59 @@ export default function TeacherAcademic() {
       sum += (Number(score) / act.totalScore) * (term.weight / 100)
       hasAny = true
     }
-    return hasAny ? (sum * 100).toFixed(1) + '%' : '—'
+    return hasAny ? sum * 100 : null
+  }
+
+  function computeFormula(col: FormulaCol, studentId: string): string {
+    const val = computeFormulaRaw(col, studentId)
+    return val !== null ? val.toFixed(1) + '%' : '—'
+  }
+
+  // ── Final grade computation ────────────────────────────────────────────────
+  function computeFinalGrade(studentId: string): number | null {
+    if (!finalGradeCol) return null
+    let sum = 0; let totalWeight = 0
+    for (const term of finalGradeCol.terms) {
+      const fc = formulaCols.find(c => c.id === term.id)
+      if (!fc) continue
+      const val = computeFormulaRaw(fc, studentId)
+      if (val === null) continue
+      sum += val * (term.weight / 100)
+      totalWeight += term.weight
+    }
+    if (finalGradeCol.attendanceWeight > 0) {
+      const pct = attendancePct[studentId]
+      if (pct !== undefined) {
+        sum += pct * (finalGradeCol.attendanceWeight / 100)
+        totalWeight += finalGradeCol.attendanceWeight
+      }
+    }
+    return totalWeight > 0 ? sum : null
+  }
+
+  // ── Release grades handler ─────────────────────────────────────────────────
+  async function handleReleaseGrades() {
+    if (!selectedSection || !selectedSubjectId || !selectedAssignment) return
+    setReleaseLoading(true)
+    setReleaseResult(null)
+    let ok = 0; let err = 0
+    for (const student of students as any[]) {
+      const grade = computeFinalGrade(student.id)
+      if (grade === null) continue
+      try {
+        await academicApi.releaseGrade({
+          studentId: student.id,
+          subjectId: selectedSubjectId,
+          sectionId: selectedSection.id,
+          academicYearId: selectedAssignment.academicYearId,
+          gradingPeriod: releasePeriod,
+          grade: Math.round(grade * 10) / 10,
+        })
+        ok++
+      } catch { err++ }
+    }
+    setReleaseLoading(false)
+    setReleaseResult({ ok, err })
   }
 
   function openFormulaModal(existing?: FormulaCol) {
@@ -580,6 +690,7 @@ export default function TeacherAcademic() {
     setSelectedSection(null); setSelectedSubjectId('')
     setLocalScores({}); setFormulaCols([])
     setSelectedSheetId(null); setShowAttendanceCol(false)
+    setFinalGradeCol(null); setReleaseResult(null)
   }
 
   // ────────────────────────────────────────────────────────────────────────────
@@ -845,6 +956,25 @@ export default function TeacherAcademic() {
                   >
                     <Calculator className="w-4 h-4 text-text-secondary flex-shrink-0" /> Formula Column
                   </button>
+                  <button
+                    onClick={() => { toggleAttendanceCol(!showAttendanceCol); setShowMenu(false) }}
+                    disabled={!selectedSubjectId || !!activeSheet}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-inter text-text-primary hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <CalendarCheck className={`w-4 h-4 flex-shrink-0 ${showAttendanceCol ? 'text-teal-600' : 'text-text-secondary'}`} />
+                    <span>{showAttendanceCol ? 'Hide Attendance Column' : 'Show Attendance Column'}</span>
+                  </button>
+                  <button
+                    onClick={() => { openFinalGradeModal(); setShowMenu(false) }}
+                    disabled={formulaCols.length === 0 && !showAttendanceCol || !!activeSheet}
+                    className="w-full flex items-center gap-2.5 px-4 py-2 text-sm font-inter text-text-primary hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Trophy className={`w-4 h-4 flex-shrink-0 ${finalGradeCol ? 'text-amber-500' : 'text-text-secondary'}`} />
+                    <div className="text-left">
+                      <p>{finalGradeCol ? 'Edit Final Grade Column' : 'Final Grade Column'}</p>
+                      <p className="text-[11px] text-text-secondary">Weighted final grade → release to students</p>
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
@@ -864,7 +994,7 @@ export default function TeacherAcademic() {
           <div className="overflow-x-auto rounded-xl border border-border">
             <table
               className="border-collapse w-full"
-              style={{ minWidth: Math.max(560, 200 + (filteredActivities.length + formulaCols.length) * 150 + 60) }}
+              style={{ minWidth: Math.max(560, 200 + (filteredActivities.length + formulaCols.length) * 150 + (showAttendanceCol ? 130 : 0) + (finalGradeCol ? 160 : 0) + 60) }}
             >
               {/* ── Column headers ──────────────────────────────────────────── */}
               <thead>
@@ -957,6 +1087,66 @@ export default function TeacherAcademic() {
                     </th>
                   ))}
 
+                  {/* Attendance column header */}
+                  {showAttendanceCol && (
+                    <th className="px-3 py-2 border-b border-r border-border text-center align-top min-w-[130px] bg-teal-50 group">
+                      <div className="space-y-1.5">
+                        <div className="flex items-start justify-center gap-1">
+                          <CalendarCheck className="w-3.5 h-3.5 text-teal-600 flex-shrink-0 mt-0.5" />
+                          <span className="font-inter font-semibold text-xs text-teal-700 leading-tight text-left flex-1">
+                            Attendance %
+                          </span>
+                          <button
+                            onClick={() => toggleAttendanceCol(false)}
+                            className="p-0.5 rounded hover:bg-teal-100 text-teal-400 hover:text-teal-700 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                            title="Hide attendance column"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <p className="font-inter text-[10px] text-teal-600">
+                          {attendanceSessionCount} session{attendanceSessionCount !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    </th>
+                  )}
+
+                  {/* Final Grade column header */}
+                  {finalGradeCol && (
+                    <th className="px-3 py-2 border-b border-r border-border text-center align-top min-w-[150px] bg-amber-50 group">
+                      <div className="space-y-1.5">
+                        <div className="flex items-start justify-center gap-1">
+                          <Trophy className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
+                          <span className="font-inter font-semibold text-xs text-amber-700 leading-tight text-left flex-1">
+                            Final Grade
+                          </span>
+                          <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                            <button
+                              onClick={() => openFinalGradeModal()}
+                              className="p-0.5 rounded hover:bg-amber-100 text-amber-400 hover:text-amber-700 transition-colors"
+                              title="Edit final grade formula"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => saveFinalGradeCol(null)}
+                              className="p-0.5 rounded hover:bg-danger/10 text-text-secondary hover:text-danger transition-colors"
+                              title="Remove final grade column"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setReleaseResult(null); setShowReleaseModal(true) }}
+                          className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+                        >
+                          <Send className="w-2.5 h-2.5" /> Release Grades
+                        </button>
+                      </div>
+                    </th>
+                  )}
+
                   {/* + Add column button */}
                   <th className="px-3 py-3 border-b border-border min-w-[56px] text-center">
                     <button
@@ -1021,6 +1211,33 @@ export default function TeacherAcademic() {
                         </td>
                       ))}
 
+                      {/* Attendance cell */}
+                      {showAttendanceCol && (
+                        <td className="border-r border-border px-2 py-3 text-center bg-teal-50/40">
+                          <span className="font-poppins font-semibold text-sm text-teal-700">
+                            {attendancePct[student.id] !== undefined
+                              ? `${attendancePct[student.id].toFixed(1)}%`
+                              : '—'}
+                          </span>
+                        </td>
+                      )}
+
+                      {/* Final Grade cell */}
+                      {finalGradeCol && (
+                        <td className="border-r border-border px-2 py-3 text-center bg-amber-50/40">
+                          {(() => {
+                            const val = computeFinalGrade(student.id)
+                            return val !== null ? (
+                              <span className={`font-poppins font-bold text-sm ${val >= 75 ? 'text-success' : 'text-danger'}`}>
+                                {val.toFixed(1)}
+                              </span>
+                            ) : (
+                              <span className="text-text-secondary/40 text-sm">—</span>
+                            )
+                          })()}
+                        </td>
+                      )}
+
                       <td className="bg-background/20" />
                     </tr>
                   )
@@ -1062,6 +1279,32 @@ export default function TeacherAcademic() {
                         </td>
                       )
                     })}
+
+                    {/* Attendance average */}
+                    {showAttendanceCol && (
+                      <td className="border-r border-border px-2 py-2.5 text-center bg-teal-50/40">
+                        {Object.keys(attendancePct).length > 0 ? (
+                          <p className="font-poppins font-bold text-sm text-teal-700">
+                            {(Object.values(attendancePct).reduce((a, b) => a + b, 0) / Object.values(attendancePct).length).toFixed(1)}%
+                          </p>
+                        ) : <p className="text-text-secondary/40 text-sm">—</p>}
+                      </td>
+                    )}
+
+                    {/* Final grade average */}
+                    {finalGradeCol && (
+                      <td className="border-r border-border px-2 py-2.5 text-center bg-amber-50/40">
+                        {(() => {
+                          const vals = (students as any[]).map(s => computeFinalGrade(s.id)).filter(v => v !== null) as number[]
+                          return vals.length > 0 ? (
+                            <p className="font-poppins font-bold text-sm text-amber-700">
+                              {(vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1)}
+                            </p>
+                          ) : <p className="text-text-secondary/40 text-sm">—</p>
+                        })()}
+                      </td>
+                    )}
+
                     <td className="bg-primary-light/10" />
                   </tr>
                 )}
@@ -1073,7 +1316,7 @@ export default function TeacherAcademic() {
         {/* Hints */}
         {!activeSheet && filteredActivities.length > 0 && (students as any[]).length > 0 && (
           <p className="font-inter text-[11px] text-text-secondary/60 mt-3 text-right italic">
-            Scores auto-save · Hover column header to edit (✏) or delete (🗑) · Purple columns are formula-computed
+            Scores auto-save · Hover column header to edit (✏) or delete (🗑) · Purple = formula · Teal = attendance · Amber = final grade
           </p>
         )}
         {activeSheet && (
@@ -1260,6 +1503,245 @@ export default function TeacherAcademic() {
               </div>
             )}
           </div>
+        </div>
+      </Modal>
+
+      {/* ── Final Grade Column Modal ─────────────────────────────────────────── */}
+      <Modal
+        open={showFinalGradeModal}
+        onClose={() => setShowFinalGradeModal(false)}
+        title="Final Grade Column"
+        size="lg"
+        footer={
+          <div className="flex gap-3 justify-end">
+            {finalGradeCol && (
+              <Button variant="secondary" onClick={() => { saveFinalGradeCol(null); setShowFinalGradeModal(false) }}>
+                Remove Column
+              </Button>
+            )}
+            <Button variant="secondary" onClick={() => setShowFinalGradeModal(false)}>Cancel</Button>
+            <Button
+              onClick={saveFinalGradeModal}
+              disabled={finalGradeForm.terms.filter(t => t.weight > 0).length === 0 && finalGradeForm.attendanceWeight === 0}
+            >
+              {finalGradeCol ? 'Update Column' : 'Add Column'}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-5">
+          <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+            <p className="text-sm font-inter text-amber-700 leading-relaxed">
+              <span className="font-semibold">Final Grade</span> combines your formula columns and attendance into one
+              weighted grade per student. Once configured, use <span className="font-semibold">Release Grades</span> to
+              push computed grades to the student portal for a specific grading period.
+            </p>
+          </div>
+
+          {/* Formula column terms */}
+          <div>
+            <label className="block text-sm font-medium font-inter text-text-primary mb-2">
+              Formula Columns
+            </label>
+            {formulaCols.length === 0 ? (
+              <p className="text-sm text-text-secondary font-inter italic py-3 text-center">
+                No formula columns yet — add formula columns first.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {formulaCols.map(fc => {
+                  const term = finalGradeForm.terms.find(t => t.id === fc.id)
+                  const weight = term?.weight ?? 0
+                  return (
+                    <div key={fc.id} className="flex items-center gap-3 p-3 bg-purple-50/60 border border-purple-100 rounded-xl">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-inter text-sm font-medium text-purple-800 truncate">{fc.name}</p>
+                        <p className="text-[10px] text-purple-500 mt-0.5">Formula column · f(x)</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <input
+                          type="number"
+                          min={0} max={100}
+                          value={weight || ''}
+                          placeholder="0"
+                          onChange={e => {
+                            const w = Math.min(100, Math.max(0, Number(e.target.value) || 0))
+                            setFinalGradeForm(f => {
+                              const exists = f.terms.find(t => t.id === fc.id)
+                              if (exists) return { ...f, terms: f.terms.map(t => t.id === fc.id ? { ...t, weight: w } : t) }
+                              return { ...f, terms: [...f.terms, { type: 'formula', id: fc.id, name: fc.name, weight: w }] }
+                            })
+                          }}
+                          className="w-16 text-center px-2 py-1.5 border border-border rounded-lg text-sm font-poppins font-semibold
+                            focus:outline-none focus:ring-2 focus:ring-amber-300 transition-colors
+                            [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        />
+                        <span className="text-sm text-text-secondary font-inter w-4">%</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Attendance weight */}
+          {showAttendanceCol && (
+            <div>
+              <label className="block text-sm font-medium font-inter text-text-primary mb-2">
+                Attendance Column
+              </label>
+              <div className="flex items-center gap-3 p-3 bg-teal-50/60 border border-teal-100 rounded-xl">
+                <div className="flex-1 min-w-0">
+                  <p className="font-inter text-sm font-medium text-teal-800">Attendance %</p>
+                  <p className="text-[10px] text-teal-500 mt-0.5">{attendanceSessionCount} sessions · present + late / total</p>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <input
+                    type="number"
+                    min={0} max={100}
+                    value={finalGradeForm.attendanceWeight || ''}
+                    placeholder="0"
+                    onChange={e => setFinalGradeForm(f => ({ ...f, attendanceWeight: Math.min(100, Math.max(0, Number(e.target.value) || 0)) }))}
+                    className="w-16 text-center px-2 py-1.5 border border-border rounded-lg text-sm font-poppins font-semibold
+                      focus:outline-none focus:ring-2 focus:ring-teal-300 transition-colors
+                      [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                  <span className="text-sm text-text-secondary font-inter w-4">%</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Total weight indicator */}
+          {(() => {
+            const total = finalGradeForm.terms.reduce((a, t) => a + (t.weight || 0), 0) + (finalGradeForm.attendanceWeight || 0)
+            return (
+              <div className={`flex items-center justify-between p-3 rounded-xl border ${
+                total === 100 ? 'bg-success/5 border-success/20' : total > 100 ? 'bg-danger/5 border-danger/20' : 'bg-surface border-border'
+              }`}>
+                <span className="text-sm font-inter text-text-secondary">Total Weight</span>
+                <span className={`font-poppins font-bold text-lg ${total === 100 ? 'text-success' : total > 100 ? 'text-danger' : 'text-text-primary'}`}>
+                  {total}% {total === 100 && '✓'}
+                </span>
+              </div>
+            )
+          })()}
+        </div>
+      </Modal>
+
+      {/* ── Release Grades Modal ──────────────────────────────────────────────── */}
+      <Modal
+        open={showReleaseModal}
+        onClose={() => { if (!releaseLoading) { setShowReleaseModal(false); setReleaseResult(null) } }}
+        title="Release Final Grades to Students"
+        size="lg"
+        footer={
+          releaseResult ? (
+            <div className="flex gap-3 justify-end">
+              <Button onClick={() => { setShowReleaseModal(false); setReleaseResult(null) }}>Done</Button>
+            </div>
+          ) : (
+            <div className="flex gap-3 justify-end">
+              <Button variant="secondary" onClick={() => setShowReleaseModal(false)} disabled={releaseLoading}>Cancel</Button>
+              <Button
+                loading={releaseLoading}
+                icon={<Send className="w-4 h-4" />}
+                onClick={handleReleaseGrades}
+                disabled={(students as any[]).filter(s => computeFinalGrade(s.id) !== null).length === 0}
+              >
+                Release to Students
+              </Button>
+            </div>
+          )
+        }
+      >
+        <div className="space-y-4">
+          {releaseResult ? (
+            <div className={`p-4 rounded-xl border text-center ${releaseResult.err === 0 ? 'bg-success/10 border-success/20' : 'bg-amber-50 border-amber-200'}`}>
+              <Check className={`w-8 h-8 mx-auto mb-2 ${releaseResult.err === 0 ? 'text-success' : 'text-amber-500'}`} />
+              <p className="font-poppins font-semibold text-lg text-text-primary">
+                {releaseResult.ok} grade{releaseResult.ok !== 1 ? 's' : ''} released
+              </p>
+              {releaseResult.err > 0 && (
+                <p className="text-sm text-amber-700 mt-1">{releaseResult.err} failed to release</p>
+              )}
+              <p className="text-xs text-text-secondary mt-1 font-inter">
+                Students can now view their {releasePeriod} Quarter grade in the Academic Performance section.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="p-3 bg-primary-light/30 rounded-xl text-sm font-inter">
+                <p className="font-semibold text-text-primary">{selectedSection?.name}</p>
+                <p className="text-text-secondary mt-0.5">
+                  {subjectsInSection.find(a => a.subjectId === selectedSubjectId)?.subject?.name}
+                </p>
+              </div>
+
+              {/* Grading period selector */}
+              <div>
+                <label className="block text-sm font-medium font-inter text-text-primary mb-2">Grading Period</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {(['1st', '2nd', '3rd', '4th'] as const).map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setReleasePeriod(p)}
+                      className={`py-2.5 rounded-xl border font-poppins font-semibold text-sm transition-colors ${
+                        releasePeriod === p
+                          ? 'bg-primary text-white border-primary'
+                          : 'border-border text-text-secondary hover:border-primary/40 hover:text-text-primary'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Preview table */}
+              <div>
+                <p className="text-xs font-inter font-semibold text-text-secondary uppercase tracking-wide mb-2">
+                  Grade Preview — {releasePeriod} Quarter
+                </p>
+                <div className="overflow-hidden rounded-xl border border-border max-h-60 overflow-y-auto">
+                  <table className="w-full">
+                    <thead className="sticky top-0">
+                      <tr className="bg-surface border-b border-border">
+                        <th className="px-4 py-2.5 text-left text-xs font-poppins font-semibold text-text-secondary">Student</th>
+                        <th className="px-4 py-2.5 text-center text-xs font-poppins font-semibold text-text-secondary w-28">Final Grade</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(students as any[]).map((student: any, i: number) => {
+                        const grade = computeFinalGrade(student.id)
+                        return (
+                          <tr key={student.id} className={`border-b border-border/50 ${i % 2 === 0 ? 'bg-white' : 'bg-background/40'}`}>
+                            <td className="px-4 py-2.5">
+                              <p className="font-inter text-sm font-medium text-text-primary">{student.fullName}</p>
+                              <p className="font-inter text-[11px] text-text-secondary">{student.studentNumber}</p>
+                            </td>
+                            <td className="px-4 py-2.5 text-center">
+                              {grade !== null ? (
+                                <span className={`font-poppins font-bold text-base ${grade >= 75 ? 'text-success' : 'text-danger'}`}>
+                                  {grade.toFixed(1)}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-text-secondary/50 italic">No data</span>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[11px] font-inter text-text-secondary/60 mt-2 italic">
+                  Only students with computable grades will be released. Existing grades for the same period will be updated.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </Modal>
 

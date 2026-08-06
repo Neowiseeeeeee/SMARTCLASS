@@ -173,6 +173,32 @@ export default function StudentPerformance() {
 
   // For grade modal: subjects for the student's section + year
   const modalAssignment = student?.sectionAssignments?.[0]
+
+  // Pre-fetch schedules for the student's section (all years) so card totals are accurate
+  const { data: sectionSchedules = [] } = useQuery({
+    queryKey: ['section-schedules-all', modalAssignment?.sectionId],
+    queryFn: () => structureApi.getSchedules({
+      sectionId: modalAssignment?.sectionId,
+      status: 'published',
+    }).then(r => r.data),
+    enabled: !!modalAssignment?.sectionId,
+  })
+
+  // Helper: unique subject count for a given year in the section
+  const subjectCountForYear = useMemo(() => {
+    const map: Record<string, number> = {}
+    ;(sectionSchedules as any[]).forEach((s: any) => {
+      if (!map[s.academicYearId]) map[s.academicYearId] = 0
+    })
+    ;(sectionSchedules as any[]).forEach((s: any) => {
+      const key = s.academicYearId
+      const existing = (sectionSchedules as any[]).filter((x: any) => x.academicYearId === key)
+      const unique = new Set(existing.map((x: any) => x.subjectId)).size
+      map[key] = unique
+    })
+    return map
+  }, [sectionSchedules])
+
   const { data: modalSchedules = [] } = useQuery({
     queryKey: ['modal-schedules', modalAssignment?.sectionId, gradeModal?.year?.id],
     queryFn: () => structureApi.getSchedules({
@@ -212,11 +238,12 @@ export default function StudentPerformance() {
       .forEach((year: any) => {
         GRADING_PERIODS.forEach((period, i) => {
           const yearGrades = (finalGrades as any[]).filter((g: any) => g.academicYearId === year.id && g.gradingPeriod === period)
-          cards.push({ year, period, label: GRADING_LABELS[i], count: yearGrades.length, total: 0 })
+          const totalSubjects = subjectCountForYear[year.id] ?? yearGrades.length
+          cards.push({ year, period, label: GRADING_LABELS[i], count: yearGrades.length, total: totalSubjects })
         })
       })
     return cards
-  }, [years, finalGrades, assignedYearIds])
+  }, [years, finalGrades, assignedYearIds, subjectCountForYear])
 
   // Modal data
   const modalGrades = useMemo(() => {
