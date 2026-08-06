@@ -74,7 +74,7 @@ export default function AdminLogin() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <Input
                 label="Username"
-                placeholder="admin"
+                placeholder=""
                 icon={<User className="w-4 h-4" />}
                 error={(errors as any).identifier?.message}
                 autoComplete="username"
@@ -83,7 +83,7 @@ export default function AdminLogin() {
               <Input
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder=""
                 icon={<Lock className="w-4 h-4" />}
                 rightIcon={
                   <button
