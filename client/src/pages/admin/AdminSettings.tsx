@@ -34,13 +34,13 @@ function Field({ label, description, value, onChange, type = 'text', placeholder
   type?: string; placeholder?: string
 }) {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(13rem,0.85fr)_minmax(18rem,1.15fr)] sm:items-center sm:gap-x-6 sm:gap-y-1">
+    <div className="space-y-2">
       <div className="min-w-0">
         <p className="font-inter font-medium text-sm text-text-primary">{label}</p>
         {description && <p className="font-inter text-xs text-text-secondary mt-0.5">{description}</p>}
       </div>
       <Input
-        className="w-full sm:max-w-md"
+        className="w-full"
         type={type}
         placeholder={placeholder}
         value={value || ''}
@@ -137,7 +137,7 @@ export default function AdminSettings() {
           <Field label="School Name" value={form.schoolName} placeholder="Exequiel R. Lina High School" onChange={v => set('schoolName', v)} />
           <Field label="School Address" value={form.schoolAddress} placeholder="Campus address" onChange={v => set('schoolAddress', v)} />
           <Field label="Tagline / Motto" value={form.schoolTagline} placeholder="Learning today, leading tomorrow." onChange={v => set('schoolTagline', v)} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+           <div className="space-y-4">
             <Field label="Contact Number" value={form.schoolContactNumber} placeholder="+63..." onChange={v => set('schoolContactNumber', v)} />
             <Field label="Contact Email" value={form.schoolContactEmail} type="email" placeholder="office@school.edu.ph" onChange={v => set('schoolContactEmail', v)} />
           </div>
@@ -161,18 +161,18 @@ export default function AdminSettings() {
         <div className="space-y-4">
           <Field label="Passing Grade Threshold" description="DepEd default is 75. Drives pass/fail color coding." type="number" value={form.passingGrade} placeholder="75" onChange={v => set('passingGrade', v)} />
           <Field label="Grading Periods" description="Number of quarters available, from 1 to 4." type="number" value={form.gradingPeriods} placeholder="4" onChange={v => set('gradingPeriods', v)} />
-           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(13rem,0.85fr)_minmax(18rem,1.15fr)] sm:items-center sm:gap-x-6 sm:gap-y-1">
+           <div className="space-y-2">
              <div className="min-w-0"><p className="font-inter font-medium text-sm text-text-primary">Current Grading Period</p><p className="font-inter text-xs text-text-secondary mt-0.5">Default period when teachers submit grades.</p></div>
-             <select className="input w-full sm:max-w-md" value={form.currentGradingPeriod || '1st'} onChange={e => set('currentGradingPeriod', e.target.value)}>
+             <select className="input w-full" value={form.currentGradingPeriod || '1st'} onChange={e => set('currentGradingPeriod', e.target.value)}>
               {PERIODS.slice(0, Number(form.gradingPeriods) || 4).map(p => <option key={p} value={p}>{p} Quarter</option>)}
             </select>
           </div>
           <Button onClick={save} loading={saveMutation.isPending} icon={<Save className="w-4 h-4" />}>Save Academic Settings</Button>
           <div className="border-t border-border pt-4 mt-2">
-             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(13rem,0.85fr)_minmax(18rem,1.15fr)] sm:items-center sm:gap-x-6">
+             <div className="space-y-3">
                <div className="min-w-0">
                 <p className="font-inter font-medium text-sm text-text-primary">Release Grade Reset</p>
-                <p className="font-inter text-xs text-text-secondary mt-0.5">Remove a specific released grade so it can be re-submitted by the teacher. Admin only.</p>
+                 <p className="font-inter text-xs text-text-secondary mt-0.5">Reset all released grades for one section, subject, academic year, and grading period. Admin only.</p>
               </div>
               <Button
                 variant="secondary"
@@ -191,7 +191,7 @@ export default function AdminSettings() {
           <Field label="Slide Rotation Interval" description="Seconds each announcement slide displays." type="number" value={form.slideRotationInterval} placeholder="6" onChange={v => set('slideRotationInterval', v)} />
           <Field label="Tab Rotation Interval" description="Seconds before switching to the next kiosk tab." type="number" value={form.tabRotationInterval} placeholder="30" onChange={v => set('tabRotationInterval', v)} />
           <Field label="Weather Location" description="Friendly city name shown beside the weather widget." value={form.weatherLocation} placeholder="Manila" onChange={v => set('weatherLocation', v)} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+           <div className="space-y-4">
             <Field label="Weather Latitude" value={form.weatherLatitude} placeholder="14.5995" onChange={v => set('weatherLatitude', v)} />
             <Field label="Weather Longitude" value={form.weatherLongitude} placeholder="120.9842" onChange={v => set('weatherLongitude', v)} />
           </div>

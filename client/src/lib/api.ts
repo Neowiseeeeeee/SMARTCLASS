@@ -131,6 +131,7 @@ export const academicApi = {
   releaseGrade: (data: any) => api.post('/academic/grades', data),
   getGrades: (params?: any) => api.get('/academic/grades', { params }),
   resetGrade: (data: any) => api.post('/academic/admin/grades/reset', data),
+  resetSectionGrades: (data: any) => api.post('/academic/admin/grades/reset-section', data),
   retractGrade: (id: string) => api.delete(`/academic/grades/${id}`),
 }
 

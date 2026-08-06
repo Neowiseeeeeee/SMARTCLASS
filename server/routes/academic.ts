@@ -367,6 +367,36 @@ router.post('/admin/grades/reset', requireAuth, requireRole('ADMIN'), async (req
   }
 })
 
+// Admin: reset every released final grade for one section/subject/period.
+router.post('/admin/grades/reset-section', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const data = z.object({
+      subjectId: z.string().min(1),
+      sectionId: z.string().min(1),
+      academicYearId: z.string().min(1),
+      gradingPeriod: z.enum(['1st', '2nd', '3rd', '4th']),
+    }).parse(req.body)
+
+    const matching = db.finalGrades.filter(g =>
+      g.subjectId === data.subjectId &&
+      g.sectionId === data.sectionId &&
+      g.academicYearId === data.academicYearId &&
+      g.gradingPeriod === data.gradingPeriod
+    )
+    if (matching.length === 0) {
+      return res.status(404).json({ error: 'No released grades match this section and selection.' })
+    }
+
+    const matchingIds = new Set(matching.map(g => g.id))
+    db.finalGrades = db.finalGrades.filter(g => !matchingIds.has(g.id))
+    saveDb()
+    res.json({ success: true, reset: matching.length })
+  } catch (err: any) {
+    if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // Teacher: retract a final grade
 router.delete('/grades/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), async (req: Request, res: Response) => {
   try {
