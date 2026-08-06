@@ -198,6 +198,20 @@ router.patch('/:id/archive', requireAuth, requireRole('ADMIN'), async (req: Requ
   }
 })
 
+// Restore (unarchive) student
+router.patch('/:id/restore', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
+  try {
+    const s = db.students.find(s => s.id === req.params.id)
+    if (!s) return res.status(404).json({ error: 'Not found' })
+    s.status = 'active'
+    const u = db.users.find(u => u.id === s.userId)
+    if (u) u.status = 'active'
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+
 // Reset password
 router.post('/:id/reset-password', requireAuth, requireRole('ADMIN'), async (req: Request, res: Response) => {
   try {

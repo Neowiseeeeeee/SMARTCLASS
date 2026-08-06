@@ -12,12 +12,12 @@ import { formatDate } from '../../lib/utils'
 import { format } from 'date-fns'
 import {
   Plus, Search, RotateCcw, Archive, Eye, GraduationCap,
-  BookOpen, Upload, Filter, X, Phone, Mail, User, ChevronRight,
+  BookOpen, Upload, Filter, X, Phone, Mail, User, ChevronRight, ArchiveRestore,
 } from 'lucide-react'
 import AdminSections from './AdminSections'
 import AdminStudentsImport from './AdminStudentsImport'
 
-type Tab = 'students' | 'sections'
+type Tab = 'students' | 'archived' | 'sections'
 
 export default function AdminStudents() {
   const navigate = useNavigate()
@@ -47,6 +47,12 @@ export default function AdminStudents() {
   const { data: students = [], isLoading } = useQuery({
     queryKey: ['students', search],
     queryFn: () => studentsApi.getAll({ search: search || undefined, status: 'active' }).then(r => r.data),
+  })
+
+  const { data: archivedStudents = [], isLoading: archivedLoading } = useQuery({
+    queryKey: ['students-archived'],
+    queryFn: () => studentsApi.getAll({ status: 'archived' }).then(r => r.data),
+    enabled: activeTab === 'archived',
   })
 
   const { data: gradeLevels = [] } = useQuery({
@@ -111,6 +117,16 @@ export default function AdminStudents() {
     mutationFn: (id: string) => studentsApi.archive(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['students'] })
+      qc.invalidateQueries({ queryKey: ['students-archived'] })
+      qc.invalidateQueries({ queryKey: ['dashboard-stats'] })
+    },
+  })
+
+  const restoreMutation = useMutation({
+    mutationFn: (id: string) => studentsApi.restore(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['students'] })
+      qc.invalidateQueries({ queryKey: ['students-archived'] })
       qc.invalidateQueries({ queryKey: ['dashboard-stats'] })
     },
   })
@@ -144,6 +160,7 @@ export default function AdminStudents() {
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
         {([
           { id: 'students', label: 'All Students', icon: <GraduationCap className="w-4 h-4" /> },
+          { id: 'archived', label: 'Archived',     icon: <Archive       className="w-4 h-4" /> },
           { id: 'sections', label: 'Sections',     icon: <BookOpen      className="w-4 h-4" /> },
         ] as const).map(tab => (
           <button
@@ -159,6 +176,68 @@ export default function AdminStudents() {
       </div>
 
       {activeTab === 'sections' && <AdminSections />}
+
+      {/* ── Archived Students Tab ── */}
+      {activeTab === 'archived' && (
+        <div className="space-y-4">
+          <p className="text-text-secondary font-inter text-sm">
+            Archived students cannot log in. Restore them to reactivate their accounts.
+          </p>
+          {archivedLoading ? <LoadingSpinner /> : (archivedStudents as any[]).length === 0 ? (
+            <EmptyState
+              title="No Archived Students"
+              description="Students you archive will appear here."
+              icon={<Archive className="w-8 h-8 text-text-secondary" />}
+            />
+          ) : (
+            <div className="table-wrapper">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Student No.</th>
+                    <th>Grade / Section</th>
+                    <th>Gender</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(archivedStudents as any[]).map((s: any) => (
+                    <tr key={s.id}>
+                      <td>
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={s.fullName} src={s.profile?.profilePicture} size="sm" />
+                          <span className="font-medium text-text-primary">{s.fullName}</span>
+                        </div>
+                      </td>
+                      <td className="font-mono text-sm">{s.studentNumber}</td>
+                      <td>
+                        {s.sectionAssignments?.[0] ? (
+                          <span className="badge bg-primary-light text-primary-dark">
+                            {s.sectionAssignments[0].section?.gradeLevel?.name} – {s.sectionAssignments[0].section?.name}
+                          </span>
+                        ) : <span className="text-text-secondary">—</span>}
+                      </td>
+                      <td className="text-text-secondary">{s.gender || '—'}</td>
+                      <td>
+                        <button
+                          onClick={() => restoreMutation.mutate(s.id)}
+                          disabled={restoreMutation.isPending}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-inter font-medium bg-success/10 text-success hover:bg-success/20 rounded-lg transition-colors disabled:opacity-50"
+                          title="Restore student account"
+                        >
+                          <ArchiveRestore className="w-4 h-4" />
+                          Restore
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {activeTab === 'students' && (
         <>

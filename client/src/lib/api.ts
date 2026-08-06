@@ -64,6 +64,7 @@ export const studentsApi = {
   create: (data: any) => api.post('/students', data),
   update: (id: string, data: any) => api.put(`/students/${id}`, data),
   archive: (id: string) => api.patch(`/students/${id}/archive`),
+  restore: (id: string) => api.patch(`/students/${id}/restore`),
   resetPassword: (id: string) => api.post(`/students/${id}/reset-password`),
   reassignSection: (id: string, data: { sectionId: string; academicYearId: string; gradeLevelId: string }) =>
     api.patch(`/students/${id}/section`, data),
