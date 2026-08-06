@@ -156,13 +156,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Admin link */}
-        <p className="text-center text-white/40 font-inter text-xs mt-5 sm:mt-6">
-          Administrator?{' '}
-          <Link to="/admin/login" className="text-white/60 hover:text-white underline transition-colors">
-            Admin Portal
-          </Link>
-        </p>
       </div>
     </div>
   )
