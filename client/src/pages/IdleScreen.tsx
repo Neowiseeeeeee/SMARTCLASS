@@ -56,8 +56,12 @@ export default function IdleScreen() {
   const [imgError, setImgError] = useState(false)
   const [weather, setWeather] = useState<{ temp: number; label: string; emoji: string } | null>(null)
 
-  // Fetch weather via Open-Meteo (free, no key). Try geolocation, fall back to Manila.
+  // Fetch weather via Open-Meteo (free, no key). Always fetch Manila first so
+  // weather shows immediately; then refine with geolocation if available.
   useEffect(() => {
+    const MANILA_LAT = 14.5995
+    const MANILA_LON = 120.9842
+
     const fetchWeather = (lat: number, lon: number) => {
       fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`
@@ -71,17 +75,20 @@ export default function IdleScreen() {
         .catch(() => {})
     }
 
+    // Always fetch immediately with Manila coords so weather shows right away
+    fetchWeather(MANILA_LAT, MANILA_LON)
+
+    // Then try to refine with actual geolocation (may not be available in all envs)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         pos => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-        ()  => fetchWeather(14.5995, 120.9842), // fallback: Manila
+        () => {}, // already fetched Manila above
+        { timeout: 5000 },
       )
-    } else {
-      fetchWeather(14.5995, 120.9842)
     }
 
     // Refresh weather every 10 min
-    const t = setInterval(() => fetchWeather(14.5995, 120.9842), 600_000)
+    const t = setInterval(() => fetchWeather(MANILA_LAT, MANILA_LON), 600_000)
     return () => clearInterval(t)
   }, [])
 

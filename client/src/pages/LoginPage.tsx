@@ -85,7 +85,7 @@ export default function LoginPage() {
                     : 'text-primary/60 hover:text-primary'
                 }`}
               >
-                {r === 'STUDENT' ? '🎒 Student' : '📚 Teacher'}
+                {r === 'STUDENT' ? 'Student' : 'Teacher'}
               </button>
             ))}
           </div>
