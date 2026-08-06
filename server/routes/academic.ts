@@ -162,10 +162,10 @@ router.patch('/activities/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), as
         s.totalScore = data.totalScore!
       })
     }
-    if (data.title)        activity.title        = data.title
-    if (data.category)     activity.category     = data.category
-    if (data.totalScore)   activity.totalScore   = data.totalScore
-    if (data.activityDate) activity.activityDate = new Date(data.activityDate).toISOString()
+    if (data.title)                    activity.title        = data.title
+    if (data.category)                 activity.category     = data.category
+    if (data.totalScore !== undefined) activity.totalScore   = data.totalScore
+    if (data.activityDate)             activity.activityDate = new Date(data.activityDate).toISOString()
 
     res.json(expandActivity(activity))
   } catch (err: any) {
@@ -266,6 +266,15 @@ router.delete('/sheets/:id', requireAuth, requireRole('TEACHER', 'ADMIN'), async
   try {
     const idx = db.importedSheets.findIndex(s => s.id === req.params.id)
     if (idx === -1) return res.status(404).json({ error: 'Sheet not found' })
+
+    // Teachers may only delete their own sheets; admins may delete any
+    if (req.user!.role === 'TEACHER') {
+      const teacher = db.teachers.find(t => t.userId === req.user!.userId)
+      if (!teacher || db.importedSheets[idx].teacherId !== teacher.id) {
+        return res.status(403).json({ error: 'Forbidden' })
+      }
+    }
+
     db.importedSheets.splice(idx, 1)
     res.json({ deleted: true })
   } catch (err) {

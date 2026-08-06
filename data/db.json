@@ -19,7 +19,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-06T15:25:54.134Z",
+      "lastLogin": "2026-08-06T15:44:43.145Z",
       "failedLoginAttempts": 0
     },
     {
@@ -1577,7 +1577,7 @@
       "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
       "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
       "category": "Quiz",
-      "totalScore": 50,
+      "totalScore": 20,
       "activityDate": "2026-07-30T16:46:59.689Z",
       "createdAt": "2026-07-30T16:46:59.689Z"
     },
@@ -1648,7 +1648,7 @@
       "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
       "activityId": "ed3ab1f2-257f-4aa9-8b16-0d619d940779",
       "scoreObtained": 45,
-      "totalScore": 50,
+      "totalScore": 20,
       "dateRecorded": "2026-07-30T16:46:59.689Z"
     },
     {
@@ -1664,7 +1664,7 @@
       "studentId": "4b5d25c0-17a4-4d43-850d-0dfb2bb7b3fc",
       "activityId": "ed3ab1f2-257f-4aa9-8b16-0d619d940779",
       "scoreObtained": 50,
-      "totalScore": 50,
+      "totalScore": 20,
       "dateRecorded": "2026-08-06T12:20:30.806Z"
     },
     {
