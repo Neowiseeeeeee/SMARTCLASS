@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { settingsApi } from '../../lib/api'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { LoadingSpinner } from '../../components/ui/EmptyState'
 import {
   Settings, Save, Check, Upload, Trash2, Download, Database,
-  ShieldCheck, GraduationCap, Monitor, Phone, KeyRound, RotateCcw,
+  ShieldCheck, GraduationCap, Monitor, Phone, KeyRound, RotateCcw, ExternalLink,
 } from 'lucide-react'
 
 const PERIODS = ['1st', '2nd', '3rd', '4th']
@@ -51,6 +52,7 @@ function Field({ label, description, value, onChange, type = 'text', placeholder
 
 export default function AdminSettings() {
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const fileRef = useRef<HTMLInputElement>(null)
   const backupRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState<Record<string, string>>({})
@@ -166,6 +168,21 @@ export default function AdminSettings() {
             </select>
           </div>
           <Button onClick={save} loading={saveMutation.isPending} icon={<Save className="w-4 h-4" />}>Save Academic Settings</Button>
+          <div className="border-t border-border pt-4 mt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+              <div>
+                <p className="font-inter font-medium text-sm text-text-primary">Release Grade Reset</p>
+                <p className="font-inter text-xs text-text-secondary mt-0.5">Remove a specific released grade so it can be re-submitted by the teacher. Admin only.</p>
+              </div>
+              <Button
+                variant="secondary"
+                icon={<ExternalLink className="w-4 h-4" />}
+                onClick={() => navigate('/admin/grade-reset')}
+              >
+                Open Grade Reset
+              </Button>
+            </div>
+          </div>
         </div>
       </Section>
 

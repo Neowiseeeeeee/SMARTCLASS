@@ -8,7 +8,8 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-06T13:32:20.854Z"
+      "lastLogin": "2026-08-06T13:47:57.814Z",
+      "failedLoginAttempts": 0
     },
     {
       "id": "35c331a8-efe2-4797-8a6d-25654f175258",
@@ -1673,17 +1674,6 @@
       "grade": 0,
       "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
       "releasedAt": "2026-08-06T12:23:37.659Z"
-    },
-    {
-      "id": "53189923-4aa8-4877-887a-128250cd428e",
-      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
-      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
-      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
-      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
-      "gradingPeriod": "1st",
-      "grade": 77,
-      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
-      "releasedAt": "2026-08-06T12:23:38.082Z"
     },
     {
       "id": "d0096c15-f537-42e3-9a51-b74b1da31e60",
