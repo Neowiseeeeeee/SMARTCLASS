@@ -2,7 +2,7 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen, Calendar,
-  Megaphone, ClipboardList, BarChart2, FileText, Settings, CalendarDays, RotateCcw
+  Megaphone, ClipboardList, BarChart2, FileText, Settings, CalendarDays
 } from 'lucide-react'
 import PortalLayout from '../../components/layout/PortalLayout'
 import AdminDashboard from './AdminDashboard'
@@ -25,7 +25,6 @@ const navItems = [
   { label: 'Class Schedules', path: '/admin/schedules', icon: <CalendarDays className="w-5 h-5" /> },
   { label: 'Announcements', path: '/admin/announcements', icon: <Megaphone className="w-5 h-5" /> },
   { label: 'Attendance', path: '/admin/attendance', icon: <ClipboardList className="w-5 h-5" /> },
-  { label: 'Release Grade Reset', path: '/admin/grade-reset', icon: <RotateCcw className="w-5 h-5" /> },
   { label: 'System Settings', path: '/admin/settings', icon: <Settings className="w-5 h-5" /> },
 ]
 

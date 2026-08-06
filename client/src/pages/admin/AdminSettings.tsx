@@ -16,7 +16,7 @@ function Section({ title, description, icon, children }: {
   title: string; description: string; icon: React.ReactNode; children: React.ReactNode
 }) {
   return (
-    <section className="card max-w-4xl">
+    <section className="card w-full max-w-5xl">
       <div className="flex items-start gap-3 mb-6">
         <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center text-primary flex-shrink-0">{icon}</div>
         <div>
@@ -34,13 +34,13 @@ function Field({ label, description, value, onChange, type = 'text', placeholder
   type?: string; placeholder?: string
 }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
-      <div className="flex-1">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(13rem,0.85fr)_minmax(18rem,1.15fr)] sm:items-center sm:gap-x-6 sm:gap-y-1">
+      <div className="min-w-0">
         <p className="font-inter font-medium text-sm text-text-primary">{label}</p>
         {description && <p className="font-inter text-xs text-text-secondary mt-0.5">{description}</p>}
       </div>
       <Input
-        className="sm:w-64"
+        className="w-full sm:max-w-md"
         type={type}
         placeholder={placeholder}
         value={value || ''}
@@ -161,16 +161,16 @@ export default function AdminSettings() {
         <div className="space-y-4">
           <Field label="Passing Grade Threshold" description="DepEd default is 75. Drives pass/fail color coding." type="number" value={form.passingGrade} placeholder="75" onChange={v => set('passingGrade', v)} />
           <Field label="Grading Periods" description="Number of quarters available, from 1 to 4." type="number" value={form.gradingPeriods} placeholder="4" onChange={v => set('gradingPeriods', v)} />
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
-            <div className="flex-1"><p className="font-inter font-medium text-sm text-text-primary">Current Grading Period</p><p className="font-inter text-xs text-text-secondary mt-0.5">Default period when teachers submit grades.</p></div>
-            <select className="input sm:w-64" value={form.currentGradingPeriod || '1st'} onChange={e => set('currentGradingPeriod', e.target.value)}>
+           <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(13rem,0.85fr)_minmax(18rem,1.15fr)] sm:items-center sm:gap-x-6 sm:gap-y-1">
+             <div className="min-w-0"><p className="font-inter font-medium text-sm text-text-primary">Current Grading Period</p><p className="font-inter text-xs text-text-secondary mt-0.5">Default period when teachers submit grades.</p></div>
+             <select className="input w-full sm:max-w-md" value={form.currentGradingPeriod || '1st'} onChange={e => set('currentGradingPeriod', e.target.value)}>
               {PERIODS.slice(0, Number(form.gradingPeriods) || 4).map(p => <option key={p} value={p}>{p} Quarter</option>)}
             </select>
           </div>
           <Button onClick={save} loading={saveMutation.isPending} icon={<Save className="w-4 h-4" />}>Save Academic Settings</Button>
           <div className="border-t border-border pt-4 mt-2">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-              <div>
+             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(13rem,0.85fr)_minmax(18rem,1.15fr)] sm:items-center sm:gap-x-6">
+               <div className="min-w-0">
                 <p className="font-inter font-medium text-sm text-text-primary">Release Grade Reset</p>
                 <p className="font-inter text-xs text-text-secondary mt-0.5">Remove a specific released grade so it can be re-submitted by the teacher. Admin only.</p>
               </div>
@@ -202,9 +202,9 @@ export default function AdminSettings() {
 
       <Section title="Security" description="Set password-change policy and temporary login lockout protection." icon={<ShieldCheck className="w-5 h-5" />}>
         <div className="space-y-4">
-          <label className="flex items-center justify-between gap-4 rounded-xl border border-border p-4 cursor-pointer">
-            <span><span className="block font-inter font-medium text-sm text-text-primary">Force first-login password change</span><span className="block font-inter text-xs text-text-secondary mt-0.5">Require students, teachers, and admins to replace temporary passwords.</span></span>
-            <input type="checkbox" className="w-5 h-5 accent-primary" checked={form.forceFirstLoginPasswordChange !== 'false'} onChange={e => set('forceFirstLoginPasswordChange', String(e.target.checked))} />
+           <label className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-xl border border-border p-4 cursor-pointer">
+             <span className="min-w-0"><span className="block font-inter font-medium text-sm text-text-primary">Force first-login password change</span><span className="block font-inter text-xs text-text-secondary mt-0.5">Require students, teachers, and admins to replace temporary passwords.</span></span>
+             <input type="checkbox" className="w-5 h-5 accent-primary flex-shrink-0" checked={form.forceFirstLoginPasswordChange !== 'false'} onChange={e => set('forceFirstLoginPasswordChange', String(e.target.checked))} />
           </label>
           <Field label="Max Login Attempts" description="Failed attempts before a temporary lockout." type="number" value={form.maxLoginAttempts} placeholder="5" onChange={v => set('maxLoginAttempts', v)} />
           <Field label="Temporary Lockout Duration" description="Minutes an account stays locked." type="number" value={form.lockoutDuration} placeholder="15" onChange={v => set('lockoutDuration', v)} />
