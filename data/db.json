@@ -8,7 +8,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-06T11:18:56.197Z"
+      "lastLogin": "2026-08-06T11:36:40.671Z"
     },
     {
       "id": "35c331a8-efe2-4797-8a6d-25654f175258",
@@ -28,7 +28,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-04T14:26:44.652Z"
+      "lastLogin": "2026-08-06T11:36:11.552Z"
     },
     {
       "id": "fa98bf85-a0a8-4a83-a342-e71e1ffc6f36",
@@ -230,7 +230,9 @@
       "gender": "Male",
       "email": "student@erlhs.edu.ph",
       "status": "active",
-      "createdAt": "2026-07-30T16:46:59.689Z"
+      "createdAt": "2026-07-30T16:46:59.689Z",
+      "contactNumber": "",
+      "birthDate": ""
     },
     {
       "id": "4b5d25c0-17a4-4d43-850d-0dfb2bb7b3fc",
@@ -457,7 +459,13 @@
     {
       "id": "36866456-55c2-47ae-8cab-e8e997dda069",
       "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
-      "updatedAt": "2026-07-30T16:46:59.689Z"
+      "updatedAt": "2026-08-06T11:36:28.879Z",
+      "address": "",
+      "guardianName": "",
+      "guardianContact": "",
+      "emergencyContact": "",
+      "biography": "",
+      "profilePicture": "/uploads/avatars/31d7cb96-0136-4ca2-b196-28ba33be91fc.jpg"
     },
     {
       "id": "d0fc24c0-d84b-4fd0-ba98-fe3001679d49",

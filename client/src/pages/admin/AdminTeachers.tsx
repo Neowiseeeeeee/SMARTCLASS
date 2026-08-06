@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { teachersApi } from '../../lib/api'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
@@ -11,10 +12,11 @@ import { formatDate } from '../../lib/utils'
 import { format } from 'date-fns'
 import {
   Plus, Search, RotateCcw, Archive, Users, Filter,
-  X, Mail, Phone, BookOpen, Briefcase, ChevronRight, Calendar,
+  X, Mail, Phone, BookOpen, Briefcase, ChevronRight, Calendar, Eye,
 } from 'lucide-react'
 
 export default function AdminTeachers() {
+  const navigate = useNavigate()
   const qc = useQueryClient()
 
   // ── Search & filters ──────────────────────────────────────
@@ -237,6 +239,13 @@ export default function AdminTeachers() {
                   <td onClick={e => e.stopPropagation()}>
                     <div className="flex gap-1">
                       <button
+                        onClick={() => navigate(`/admin/teachers/${t.id}`)}
+                        className="p-1.5 hover:bg-info/10 text-info rounded-lg transition-colors"
+                        title="View Full Profile"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => resetPwMutation.mutate(t.id)}
                         className="p-1.5 hover:bg-warning/10 text-warning rounded-lg transition-colors"
                         title="Reset Password"
@@ -412,7 +421,7 @@ function InfoItem({ icon, label, children }: { icon: React.ReactNode; label: str
       <span className="text-text-secondary mt-0.5 flex-shrink-0">{icon}</span>
       <div className="flex-1 min-w-0">
         <p className="text-xs text-text-secondary font-inter mb-0.5">{label}</p>
-        <p className="text-sm text-text-primary font-inter break-words">{children}</p>
+        <div className="text-sm text-text-primary font-inter break-words">{children}</div>
       </div>
     </div>
   )

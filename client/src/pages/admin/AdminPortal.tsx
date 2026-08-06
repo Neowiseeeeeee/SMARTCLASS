@@ -14,6 +14,7 @@ import AdminAttendance from './AdminAttendance'
 import AdminSettings from './AdminSettings'
 import AdminSchedule from './AdminSchedule'
 import AdminStudentProfile from './AdminStudentProfile'
+import AdminTeacherProfile from './AdminTeacherProfile'
 
 const navItems = [
   { label: 'Dashboard', path: '/admin', icon: <LayoutDashboard className="w-5 h-5" />, exact: true },
@@ -34,6 +35,7 @@ export default function AdminPortal() {
         <Route path="students" element={<AdminStudents />} />
         <Route path="students/:id" element={<AdminStudentProfile />} />
         <Route path="teachers" element={<AdminTeachers />} />
+        <Route path="teachers/:id" element={<AdminTeacherProfile />} />
         <Route path="structure" element={<AdminAcademicStructure />} />
         <Route path="schedules" element={<AdminSchedule />} />
         <Route path="announcements" element={<AdminAnnouncements />} />
