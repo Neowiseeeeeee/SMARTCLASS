@@ -1,1 +1,2 @@
 - [SMARTCLASS overview](smartclass-overview.md) — classroom mgmt system for ERLHS; in-memory JSON db, no external DB needed; React+Vite:5000, Express:3001
+- [Shared student profile](shared-student-profile.md) — health fields live on the shared profile; staff rosters may read them, students may only read their own

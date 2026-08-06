@@ -415,8 +415,9 @@ router.patch('/:id/profile', requireAuth, async (req: Request, res: Response) =>
       guardianContact: z.string().optional(),
       emergencyContact: z.string().optional(),
       biography: z.string().optional(),
-      weight: z.preprocess(v => (v === '' || v == null ? undefined : Number(v)), z.number().positive().optional()),
-      height: z.preprocess(v => (v === '' || v == null ? undefined : Number(v)), z.number().positive().optional()),
+      bloodType: z.string().trim().max(10).optional(),
+      weight: z.preprocess(v => (v === '' || v == null ? null : Number(v)), z.number().positive().nullable().optional()),
+      height: z.preprocess(v => (v === '' || v == null ? null : Number(v)), z.number().positive().nullable().optional()),
     }).parse(req.body)
 
     const now = new Date().toISOString()
@@ -437,8 +438,9 @@ router.patch('/:id/profile', requireAuth, async (req: Request, res: Response) =>
       if (data.guardianContact !== undefined) db.studentProfiles[pi].guardianContact = data.guardianContact
       if (data.emergencyContact !== undefined) db.studentProfiles[pi].emergencyContact = data.emergencyContact
       if (data.biography !== undefined) db.studentProfiles[pi].biography = data.biography
-      if (data.weight !== undefined) db.studentProfiles[pi].weight = data.weight
-      if (data.height !== undefined) db.studentProfiles[pi].height = data.height
+      if (data.bloodType !== undefined) db.studentProfiles[pi].bloodType = data.bloodType || undefined
+      if (data.weight !== undefined) db.studentProfiles[pi].weight = data.weight || undefined
+      if (data.height !== undefined) db.studentProfiles[pi].height = data.height || undefined
       db.studentProfiles[pi].updatedAt = now
     } else {
       db.studentProfiles.push({
@@ -449,12 +451,14 @@ router.patch('/:id/profile', requireAuth, async (req: Request, res: Response) =>
         guardianContact: data.guardianContact,
         emergencyContact: data.emergencyContact,
         biography: data.biography,
-        weight: data.weight,
-        height: data.height,
+        bloodType: data.bloodType,
+        weight: data.weight ?? undefined,
+        height: data.height ?? undefined,
         updatedAt: now,
       })
     }
 
+    saveDb()
     res.json(expandStudent(db.students[si !== -1 ? si : 0], { includeUser: false }))
   } catch (err: any) {
     if (err.name === 'ZodError') return res.status(400).json({ error: err.issues?.[0]?.message ?? err.message })

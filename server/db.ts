@@ -105,6 +105,7 @@ export interface StudentProfile {
   guardianContact?: string
   emergencyContact?: string
   biography?: string
+  bloodType?: string
   weight?: number
   height?: number
   updatedAt: string

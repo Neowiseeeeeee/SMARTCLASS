@@ -273,7 +273,28 @@ router.get('/section-students/:sectionId', requireAuth, async (req: Request, res
     const students = db.students
       .filter(s => studentIds.has(s.id) && s.status !== 'archived')
       .sort((a, b) => a.fullName.localeCompare(b.fullName))
-      .map(s => ({ id: s.id, fullName: s.fullName, studentNumber: s.studentNumber, status: s.status }))
+      .map(s => {
+        const profile = db.studentProfiles.find(p => p.studentId === s.id) || null
+        const canViewProfile = req.user!.role === 'ADMIN' || req.user!.role === 'TEACHER'
+        return {
+          id: s.id,
+          fullName: s.fullName,
+          studentNumber: s.studentNumber,
+          status: s.status,
+          profile: canViewProfile && profile
+            ? {
+                profilePicture: profile.profilePicture,
+                address: profile.address,
+                guardianName: profile.guardianName,
+                guardianContact: profile.guardianContact,
+                emergencyContact: profile.emergencyContact,
+                bloodType: profile.bloodType,
+                weight: profile.weight,
+                height: profile.height,
+              }
+            : null,
+        }
+      })
     res.json(students)
   } catch (err) { res.status(500).json({ error: 'Server error' }) }
 })

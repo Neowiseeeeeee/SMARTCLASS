@@ -37,6 +37,7 @@ export default function StudentProfileModal({ onClose }: Props) {
     guardianContact: '',
     emergencyContact: '',
     biography: '',
+    bloodType: '',
     weight: '',
     height: '',
   })
@@ -52,6 +53,7 @@ export default function StudentProfileModal({ onClose }: Props) {
         guardianContact: student.profile?.guardianContact || '',
         emergencyContact: student.profile?.emergencyContact || '',
         biography: student.profile?.biography || '',
+        bloodType: student.profile?.bloodType || '',
         weight: student.profile?.weight != null ? String(student.profile.weight) : '',
         height: student.profile?.height != null ? String(student.profile.height) : '',
       })
@@ -153,12 +155,27 @@ export default function StudentProfileModal({ onClose }: Props) {
                 </div>
               </div>
 
-              {/* Weight & Height */}
+              {/* Blood type, weight & height */}
               <div>
                 <h3 className="font-poppins font-semibold text-text-primary text-sm mb-3 flex items-center gap-2">
                   <Ruler className="w-4 h-4 text-primary" /> Physical Information
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium font-inter text-text-primary mb-1.5">
+                      Blood Type
+                    </label>
+                    <select
+                      className="input-field"
+                      value={form.bloodType}
+                      onChange={e => setForm(f => ({ ...f, bloodType: e.target.value }))}
+                    >
+                      <option value="">Select</option>
+                      {['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−', 'Unknown'].map(type => (
+                        <option key={type} value={type}>{type}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium font-inter text-text-primary mb-1.5">
                       Weight <span className="text-text-secondary font-normal">(kg)</span>

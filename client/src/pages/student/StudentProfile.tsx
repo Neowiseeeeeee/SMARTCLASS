@@ -41,7 +41,7 @@ export default function StudentProfile() {
   const [form, setForm] = useState({
     contactNumber: '', gender: '', birthDate: '',
     address: '', guardianName: '', guardianContact: '',
-    emergencyContact: '', biography: '',
+    emergencyContact: '', biography: '', bloodType: '', weight: '', height: '',
   })
 
   // Image previews (local blob URLs before upload)
@@ -61,6 +61,9 @@ export default function StudentProfile() {
         guardianContact:student.profile?.guardianContact || '',
         emergencyContact:student.profile?.emergencyContact || '',
         biography:      student.profile?.biography   || '',
+        bloodType:     student.profile?.bloodType     || '',
+        weight:        student.profile?.weight != null ? String(student.profile.weight) : '',
+        height:        student.profile?.height != null ? String(student.profile.height) : '',
       })
     }
   }, [student])
@@ -261,6 +264,9 @@ export default function StudentProfile() {
                 ? new Date(student.birthDate).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })
                 : undefined} />
               <Field label="Contact Number" value={student?.contactNumber} />
+              <Field label="Blood Type" value={student?.profile?.bloodType} />
+              <Field label="Weight" value={student?.profile?.weight != null ? `${student.profile.weight} kg` : undefined} />
+              <Field label="Height" value={student?.profile?.height != null ? `${student.profile.height} cm` : undefined} />
               <div className="col-span-2 sm:col-span-3"><Field label="Address" value={student?.profile?.address} /></div>
               {student?.profile?.biography && (
                 <div className="col-span-2 sm:col-span-3"><Field label="About Me" value={student.profile.biography} /></div>
@@ -318,6 +324,17 @@ export default function StudentProfile() {
               <input type="date" className="input-field" value={form.birthDate} onChange={e => setForm(f => ({ ...f, birthDate: e.target.value }))} />
             </div>
             <Input label="Contact Number" placeholder="e.g. 09XX-XXX-XXXX" value={form.contactNumber} onChange={e => setForm(f => ({ ...f, contactNumber: e.target.value }))} />
+            <div>
+              <label className="block text-sm font-medium font-inter text-text-primary mb-1.5">Blood Type</label>
+              <select className="input-field" value={form.bloodType} onChange={e => setForm(f => ({ ...f, bloodType: e.target.value }))}>
+                <option value="">Select blood type</option>
+                {['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−', 'Unknown'].map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            <Input label="Weight (kg)" type="number" min="1" step="0.1" placeholder="e.g. 55" value={form.weight} onChange={e => setForm(f => ({ ...f, weight: e.target.value }))} />
+            <Input label="Height (cm)" type="number" min="1" step="0.1" placeholder="e.g. 165" value={form.height} onChange={e => setForm(f => ({ ...f, height: e.target.value }))} />
             <div className="sm:col-span-2">
               <Input label="Home Address" placeholder="Street, Barangay, City, Province" value={form.address} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
             </div>

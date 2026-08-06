@@ -341,6 +341,9 @@ function SectionDetail({ section, sections, academicYears, onBack }: SectionDeta
                 ['Email', viewStudent.email],
                 ['Gender', viewStudent.gender || '—'],
                 ['Contact', viewStudent.contactNumber || '—'],
+                ['Blood Type', viewStudent.profile?.bloodType || '—'],
+                ['Weight', viewStudent.profile?.weight != null ? `${viewStudent.profile.weight} kg` : '—'],
+                ['Height', viewStudent.profile?.height != null ? `${viewStudent.profile.height} cm` : '—'],
                 ['Guardian', viewStudent.profile?.guardianName || '—'],
               ].map(([label, val]) => (
                 <div key={label} className="flex justify-between py-2">

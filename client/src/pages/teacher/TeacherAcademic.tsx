@@ -1172,6 +1172,11 @@ export default function TeacherAcademic() {
                       <td className={`sticky left-0 z-10 ${rowBg} px-4 py-2.5 border-r border-border`}>
                         <p className="font-inter text-sm font-medium text-text-primary leading-tight">{student.fullName}</p>
                         <p className="font-inter text-[11px] text-text-secondary">{student.studentNumber}</p>
+                        {(student.profile?.bloodType || student.profile?.weight != null || student.profile?.height != null) && (
+                          <p className="font-inter text-[10px] text-text-secondary/70">
+                            Health: {student.profile?.bloodType || '—'} · {student.profile?.weight != null ? `${student.profile.weight} kg` : '—'} · {student.profile?.height != null ? `${student.profile.height} cm` : '—'}
+                          </p>
+                        )}
                       </td>
 
                       {filteredActivities.map((act: any) => {

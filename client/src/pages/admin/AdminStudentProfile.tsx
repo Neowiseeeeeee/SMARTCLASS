@@ -43,12 +43,14 @@ function InfoCard({ title, icon, children }: { title: string; icon: React.ReactN
   )
 }
 
-function InfoRow({ label, value, mono }: { label: string; value?: string | null; mono?: boolean }) {
-  if (!value) return null
+function InfoRow({ label, value, mono, showEmpty = false }: { label: string; value?: string | null; mono?: boolean; showEmpty?: boolean }) {
+  if (!value && !showEmpty) return null
   return (
     <div className="flex items-start justify-between gap-3 py-1.5 border-b border-border/50 last:border-0">
       <span className="text-xs text-text-secondary font-inter flex-shrink-0 pt-0.5">{label}</span>
-      <span className={`text-sm text-text-primary text-right break-all ${mono ? 'font-mono' : 'font-inter'}`}>{value}</span>
+      <span className={`text-sm text-right break-all ${value ? 'text-text-primary' : 'text-text-secondary/60 italic'} ${mono ? 'font-mono' : 'font-inter'}`}>
+        {value || 'Not set'}
+      </span>
     </div>
   )
 }
@@ -276,8 +278,9 @@ export default function AdminStudentProfile() {
                 <InfoRow label="Email"       value={student.email} />
                 <InfoRow label="Contact"     value={student.contactNumber} />
                 <InfoRow label="Address"     value={profile?.address} />
-                <InfoRow label="Weight"      value={profile?.weight ? `${profile.weight} kg` : undefined} />
-                <InfoRow label="Height"      value={profile?.height ? `${profile.height} cm` : undefined} />
+                <InfoRow label="Blood Type"  value={profile?.bloodType} showEmpty />
+                <InfoRow label="Weight"      value={profile?.weight != null ? `${profile.weight} kg` : undefined} showEmpty />
+                <InfoRow label="Height"      value={profile?.height != null ? `${profile.height} cm` : undefined} showEmpty />
                 {profile?.biography && (
                   <div className="pt-2">
                     <p className="text-xs text-text-secondary font-inter mb-1">About</p>

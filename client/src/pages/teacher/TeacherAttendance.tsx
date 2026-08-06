@@ -62,6 +62,7 @@ export default function TeacherAttendance() {
   // ── Navigation ──────────────────────────────────────────────────────────────
   const [selectedSection,   setSelectedSection]   = useState<any>(null)
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>('')
+  const [viewingStudent, setViewingStudent] = useState<any>(null)
 
   // ── Session management modal ────────────────────────────────────────────────
   const [managingSession, setManagingSession] = useState<any>(null)
@@ -484,7 +485,14 @@ export default function TeacherAttendance() {
                     <tr key={student.id} className={`border-b border-border ${rowBg}`}>
                       {/* Sticky name */}
                       <td className={`sticky left-0 z-10 ${rowBg} px-4 py-2 border-r border-border`}>
-                        <p className="font-inter text-sm font-medium text-text-primary leading-tight">{student.fullName}</p>
+                        <button
+                          type="button"
+                          onClick={() => setViewingStudent(student)}
+                          className="text-left font-inter text-sm font-medium text-text-primary leading-tight hover:text-primary transition-colors"
+                          title="View student profile"
+                        >
+                          {student.fullName}
+                        </button>
                         <p className="font-inter text-[11px] text-text-secondary">
                           {student.studentNumber}
                           {totalSess > 0 && (
@@ -493,6 +501,11 @@ export default function TeacherAttendance() {
                             </span>
                           )}
                         </p>
+                        {(student.profile?.bloodType || student.profile?.weight != null || student.profile?.height != null) && (
+                          <p className="font-inter text-[10px] text-text-secondary/70">
+                            Health: {student.profile?.bloodType || '—'} · {student.profile?.weight != null ? `${student.profile.weight} kg` : '—'} · {student.profile?.height != null ? `${student.profile.height} cm` : '—'}
+                          </p>
+                        )}
                       </td>
 
                       {/* Status cells */}
@@ -572,6 +585,40 @@ export default function TeacherAttendance() {
           </div>
         )}
       </div>
+
+      {/* ── Shared student profile ─────────────────────────────────────────── */}
+      <Modal
+        open={!!viewingStudent}
+        onClose={() => setViewingStudent(null)}
+        title="Student Profile"
+        size="sm"
+      >
+        {viewingStudent && (
+          <div className="space-y-4">
+            <div>
+              <p className="font-poppins font-semibold text-text-primary">{viewingStudent.fullName}</p>
+              <p className="font-mono text-xs text-text-secondary mt-1">{viewingStudent.studentNumber}</p>
+            </div>
+            <div className="divide-y divide-border text-sm">
+              {[
+                ['Blood Type', viewingStudent.profile?.bloodType],
+                ['Weight', viewingStudent.profile?.weight != null ? `${viewingStudent.profile.weight} kg` : undefined],
+                ['Height', viewingStudent.profile?.height != null ? `${viewingStudent.profile.height} cm` : undefined],
+                ['Guardian', viewingStudent.profile?.guardianName],
+                ['Guardian Contact', viewingStudent.profile?.guardianContact],
+                ['Emergency Contact', viewingStudent.profile?.emergencyContact],
+              ].map(([label, value]) => (
+                <div key={label} className="flex justify-between gap-4 py-2">
+                  <span className="text-text-secondary font-inter">{label}</span>
+                  <span className={`font-inter text-right ${value ? 'text-text-primary' : 'text-text-secondary/60 italic'}`}>
+                    {value || 'Not set'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* ── Create Session Modal ───────────────────────────────────────────────── */}
       <Modal
