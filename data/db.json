@@ -18,7 +18,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-04T14:25:16.100Z"
+      "lastLogin": "2026-08-06T12:22:57.643Z"
     },
     {
       "id": "7f2fd9ba-dff5-4335-bd53-1d5e1d2c5ce5",
@@ -28,7 +28,7 @@
       "status": "active",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
-      "lastLogin": "2026-08-06T11:36:11.552Z"
+      "lastLogin": "2026-08-06T12:24:00.419Z"
     },
     {
       "id": "fa98bf85-a0a8-4a83-a342-e71e1ffc6f36",
@@ -1325,6 +1325,22 @@
       "scoreObtained": 45,
       "totalScore": 50,
       "dateRecorded": "2026-07-30T17:55:52.217Z"
+    },
+    {
+      "id": "983a5dc2-7ec1-4dde-9d0a-3851761a0c88",
+      "studentId": "4b5d25c0-17a4-4d43-850d-0dfb2bb7b3fc",
+      "activityId": "ed3ab1f2-257f-4aa9-8b16-0d619d940779",
+      "scoreObtained": 50,
+      "totalScore": 50,
+      "dateRecorded": "2026-08-06T12:20:30.806Z"
+    },
+    {
+      "id": "bfeb2562-a5f6-46cd-bbd0-7638e2d6d5f8",
+      "studentId": "4b5d25c0-17a4-4d43-850d-0dfb2bb7b3fc",
+      "activityId": "6d5a87ed-400f-4596-89fe-a4d29783d7ad",
+      "scoreObtained": 50,
+      "totalScore": 50,
+      "dateRecorded": "2026-08-06T12:20:33.171Z"
     }
   ],
   "announcementCategories": [
@@ -1437,5 +1453,127 @@
   ],
   "presentationMaterials": [],
   "importedSheets": [],
-  "finalGrades": []
+  "finalGrades": [
+    {
+      "id": "8684caf0-4f8a-4b9c-9897-8e14c3540648",
+      "studentId": "4b5d25c0-17a4-4d43-850d-0dfb2bb7b3fc",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 85,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:36.040Z"
+    },
+    {
+      "id": "7064555a-856b-42ff-b781-2b3ca8ea35ab",
+      "studentId": "b1cb870e-ec70-458d-ae03-3eac489d9e2b",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 10,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:36.147Z"
+    },
+    {
+      "id": "d812cb33-dc68-4e7f-824d-781e773a1041",
+      "studentId": "c54420da-9729-48f5-95f4-8ccf8d9e1a22",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 5,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:36.579Z"
+    },
+    {
+      "id": "87f58cfb-efc7-44a0-a8d2-99a3d8567819",
+      "studentId": "cf6c3c02-8068-44b7-b223-9fdb06285e35",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 5,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:36.685Z"
+    },
+    {
+      "id": "71510c6d-d9c7-43fb-a9df-60e20b97e6b7",
+      "studentId": "43ef77d6-a098-476e-9647-368d848de2b1",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 0,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:36.794Z"
+    },
+    {
+      "id": "5014a0b1-bf24-4f7c-b005-e875b83c851d",
+      "studentId": "6a8c2f17-3609-466f-8874-c0289eff66dd",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 0,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:36.989Z"
+    },
+    {
+      "id": "01c5fe70-2a38-4671-8d78-4eb1e7e5752b",
+      "studentId": "40170e10-66a9-43ce-8b3b-d1fa4ec53638",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 0,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:37.105Z"
+    },
+    {
+      "id": "cefa2a23-0987-4710-8f92-a1f537886d5a",
+      "studentId": "cc8e3f9d-dd65-480d-adde-4270aeed6c69",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 0,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:37.552Z"
+    },
+    {
+      "id": "795ddfce-f53c-4089-82e5-943c44e920bb",
+      "studentId": "e58c789d-da91-4af0-94a1-9f53a81bc200",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 0,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:37.659Z"
+    },
+    {
+      "id": "53189923-4aa8-4877-887a-128250cd428e",
+      "studentId": "a6202b17-eaf8-465a-8508-8a7154170685",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 77,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:38.082Z"
+    },
+    {
+      "id": "d0096c15-f537-42e3-9a51-b74b1da31e60",
+      "studentId": "700b5295-bb6e-4155-a439-b16bd7db4bcc",
+      "subjectId": "52fbc147-474b-4592-a823-876a50571c22",
+      "sectionId": "12b08f31-0c67-4f0e-9c0f-fdb5ec3c7295",
+      "academicYearId": "20b5e3cb-1fab-481e-b8ee-66963ea62ed0",
+      "gradingPeriod": "1st",
+      "grade": 0,
+      "teacherId": "b49ef398-6a84-4c54-bc60-ca67e1c5cd55",
+      "releasedAt": "2026-08-06T12:23:38.505Z"
+    }
+  ]
 }
