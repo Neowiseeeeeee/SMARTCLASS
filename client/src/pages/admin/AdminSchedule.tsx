@@ -84,13 +84,30 @@ function ColorPicker({ value, onChange }: { value: string; onChange: (c: string)
 // ─── ScheduleBlock ────────────────────────────────────────────────────────────
 interface BlockProps { schedule: any; showSection?: boolean; onEdit?: (s: any) => void; onDelete?: (id: string) => void; onDragStart?: (e: React.DragEvent, s: any) => void }
 function ScheduleBlock({ schedule, showSection, onEdit, onDelete, onDragStart }: BlockProps) {
-  const startSlot = timeToSlot(schedule.startTime ?? '0:0')
-  const endSlot   = timeToSlot(schedule.endTime   ?? '1:0')
-  const span      = Math.max(1, endSlot - startSlot)
-  const color     = schedule.color || DEFAULT_COLOR
-  const tc        = textColorForBg(color)
-  const isDraft   = schedule.status !== 'published'
-  const editable  = !!onEdit
+  const rawStart = timeToSlot(schedule.startTime ?? '07:00')
+  const rawEnd   = timeToSlot(schedule.endTime   ?? '08:00')
+
+  // Clamp to visible grid so cards never bleed above/below
+  const visStart = Math.max(0, Math.min(rawStart, TOTAL_SLOTS - 1))
+  const visEnd   = Math.max(visStart + 1, Math.min(rawEnd, TOTAL_SLOTS))
+
+  // Actual duration in slots (drives which text rows to show)
+  const span     = Math.max(1, rawEnd - rawStart)
+  // Pixel height of the rendered card
+  const heightPx = (visEnd - visStart) * SLOT_H - 4
+
+  const color    = schedule.color || DEFAULT_COLOR
+  const tc       = textColorForBg(color)
+  const isDraft  = schedule.status !== 'published'
+  const editable = !!onEdit
+
+  // Font sizes scale with visible card height
+  const codeFontSize = heightPx < 42 ? '8px' : heightPx < 72 ? '10px' : '11px'
+  const bodyFontSize = heightPx < 72 ? '8px' : '9px'
+
+  // Row budget: how many text lines can actually fit (edit buttons take ~20px when present)
+  const reservedPx  = editable ? 20 : 0
+  const rowBudget   = Math.floor((heightPx - 8 - reservedPx) / 14)
 
   return (
     <div
@@ -98,38 +115,43 @@ function ScheduleBlock({ schedule, showSection, onEdit, onDelete, onDragStart }:
       onDragStart={editable && onDragStart ? e => onDragStart(e, schedule) : undefined}
       className={`absolute inset-x-1 rounded-xl overflow-hidden select-none group ${editable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
       style={{
-        top: startSlot * SLOT_H + 2, height: span * SLOT_H - 4,
+        top: visStart * SLOT_H + 2,
+        height: heightPx,
         background: isDraft ? `repeating-linear-gradient(45deg,${color},${color} 4px,${color}dd 4px,${color}dd 8px)` : color,
         color: tc, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
         outline: isDraft ? `2px dashed ${tc}40` : undefined,
         outlineOffset: isDraft ? '-3px' : undefined,
       }}
     >
-      <div className="h-full flex flex-col overflow-hidden" style={{ padding: span === 1 ? '2px 4px' : '4px 8px' }}>
-        {/* Content: grows to fill available space, centered vertically */}
+      <div className="h-full flex flex-col overflow-hidden" style={{ padding: heightPx < 42 ? '2px 4px' : '4px 8px' }}>
+        {/* Content rows — vertically centered, clipped to visible height */}
         <div className="flex-1 min-h-0 flex flex-col justify-center gap-0.5 overflow-hidden">
-          {isDraft && (
+          {isDraft && rowBudget >= 2 && (
             <span className="inline-block text-[8px] font-bold px-1 py-0.5 rounded uppercase tracking-wide self-start"
               style={{ background: `${tc}25`, color: tc }}>DRAFT</span>
           )}
-          {/* Subject code — always shown; font scales with available height */}
+          {/* Subject code — always shown */}
           <p className="font-poppins font-bold leading-tight truncate"
-            style={{ fontSize: span === 1 ? '8px' : span === 2 ? '10px' : '11px' }}>
+            style={{ fontSize: codeFontSize }}>
             {schedule.subject?.code}
           </p>
-          {/* Subject name — 1 hr (2 slots) and above */}
-          {span >= 2 && (
-            <p className="font-inter text-[9px] opacity-90 leading-tight truncate">{schedule.subject?.name}</p>
+          {/* Subject name — ≥1 hr actual AND enough room */}
+          {rowBudget >= 2 && span >= 2 && (
+            <p className="font-inter leading-tight truncate opacity-90" style={{ fontSize: bodyFontSize }}>
+              {schedule.subject?.name}
+            </p>
           )}
-          {/* Teacher or section — 1.5 hr (3 slots) and above */}
-          {span >= 3 && (
-            <p className="font-inter text-[9px] opacity-70 leading-tight truncate">
+          {/* Teacher or section — ≥1.5 hr actual AND enough room */}
+          {rowBudget >= 3 && span >= 3 && (
+            <p className="font-inter leading-tight truncate opacity-70" style={{ fontSize: bodyFontSize }}>
               {showSection ? schedule.section?.name : schedule.teacher?.fullName}
             </p>
           )}
-          {/* Time range — 2 hr (4 slots) and above */}
-          {span >= 4 && (
-            <p className="font-inter text-[9px] opacity-60 leading-tight">{schedule.startTime}–{schedule.endTime}</p>
+          {/* Time range — ≥2 hr actual AND enough room */}
+          {rowBudget >= 4 && span >= 4 && (
+            <p className="font-inter leading-tight opacity-60" style={{ fontSize: bodyFontSize }}>
+              {schedule.startTime}–{schedule.endTime}
+            </p>
           )}
         </div>
         {/* Edit/delete actions pinned to bottom, only visible on hover */}

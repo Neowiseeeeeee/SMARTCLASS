@@ -217,19 +217,36 @@ export default function StudentSchedule() {
 
                       {/* Schedule blocks */}
                       {daySched.map((s: any) => {
-                        const startSlot = timeToSlot(s.startTime ?? '0:0')
-                        const endSlot   = timeToSlot(s.endTime   ?? '0:0')
-                        const span      = Math.max(1, endSlot - startSlot)
-                        const color     = s.color || DEFAULT_COLOR
-                        const tc        = textColorForBg(color)
-                        const heightPx  = span * SLOT_H - 4
+                        const rawStart = timeToSlot(s.startTime ?? '07:00')
+                        const rawEnd   = timeToSlot(s.endTime   ?? '08:00')
+
+                        // Clamp to the visible grid so no card bleeds above/below
+                        const visStart = Math.max(0, Math.min(rawStart, TOTAL_SLOTS - 1))
+                        const visEnd   = Math.max(visStart + 1, Math.min(rawEnd, TOTAL_SLOTS))
+
+                        // Visible height in px — this is the actual rendered size of the card
+                        const heightPx = (visEnd - visStart) * SLOT_H - 4
+
+                        // Actual duration in slots (drives which text rows to show)
+                        const span = Math.max(1, rawEnd - rawStart)
+
+                        const color = s.color || DEFAULT_COLOR
+                        const tc    = textColorForBg(color)
+
+                        // Font sizes scale with visible card height
+                        const codeFontSize = heightPx < 32 ? '8px' : heightPx < 56 ? '10px' : '11px'
+                        const bodyFontSize = heightPx < 56 ? '8px' : '9px'
+
+                        // How many text rows can actually fit in the visible card
+                        // ~14px per row (font + gap); keep 8px padding top+bottom
+                        const rowBudget = Math.floor((heightPx - 8) / 13)
 
                         return (
                           <div
                             key={s.id}
                             className="absolute inset-x-1 rounded-xl overflow-hidden select-none"
                             style={{
-                              top: startSlot * SLOT_H + 2,
+                              top: visStart * SLOT_H + 2,
                               height: heightPx,
                               background: color,
                               color: tc,
@@ -237,32 +254,33 @@ export default function StudentSchedule() {
                               zIndex: 10,
                             }}
                           >
-                            {/* Content adapts to actual card height — no fixed sizes */}
-                            <div className="h-full flex flex-col justify-center items-center text-center overflow-hidden gap-0.5"
-                              style={{ padding: span === 1 ? '2px 4px' : '4px 6px' }}>
-                              {/* Subject code — always shown; font scales with available height */}
+                            <div
+                              className="h-full flex flex-col justify-center items-center text-center overflow-hidden gap-0.5"
+                              style={{ padding: heightPx < 32 ? '2px 4px' : '4px 6px' }}
+                            >
+                              {/* Subject code — always shown */}
                               <p className="font-poppins font-bold leading-tight truncate w-full"
-                                style={{ fontSize: span === 1 ? '8px' : span === 2 ? '10px' : '11px' }}>
+                                style={{ fontSize: codeFontSize }}>
                                 {s.subject?.code}
                               </p>
-                              {/* Subject name — 1 hr (2 slots) and above */}
-                              {span >= 2 && (
+                              {/* Subject name — needs ≥2 rows of budget AND ≥1 hr actual duration */}
+                              {rowBudget >= 2 && span >= 2 && (
                                 <p className="font-inter leading-tight truncate opacity-90 w-full"
-                                  style={{ fontSize: '9px' }}>
+                                  style={{ fontSize: bodyFontSize }}>
                                   {s.subject?.name}
                                 </p>
                               )}
-                              {/* Teacher — 1.5 hr (3 slots) and above */}
-                              {span >= 3 && (
+                              {/* Teacher — needs ≥3 rows of budget AND ≥1.5 hr actual duration */}
+                              {rowBudget >= 3 && span >= 3 && (
                                 <p className="font-inter leading-tight truncate opacity-75 w-full"
-                                  style={{ fontSize: '9px' }}>
+                                  style={{ fontSize: bodyFontSize }}>
                                   {s.teacher?.fullName}
                                 </p>
                               )}
-                              {/* Time range — 2 hr (4 slots) and above */}
-                              {span >= 4 && (
+                              {/* Time range — needs ≥4 rows of budget AND ≥2 hr actual duration */}
+                              {rowBudget >= 4 && span >= 4 && (
                                 <p className="font-inter leading-tight opacity-60 w-full"
-                                  style={{ fontSize: '9px' }}>
+                                  style={{ fontSize: bodyFontSize }}>
                                   {s.startTime}–{s.endTime}
                                 </p>
                               )}
