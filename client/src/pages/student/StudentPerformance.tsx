@@ -292,14 +292,14 @@ export default function StudentPerformance() {
           />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 gap-4">
-            {gradingCards.map(({ year, period, label, count }) => (
+            {gradingCards.map(({ year, period, label, count, total }) => (
               <GradingCard
                 key={`${year.id}-${period}`}
                 period={period}
                 label={label}
                 year={year}
                 count={count}
-                total={count > 0 ? count : 0}
+                total={total}
                 onClick={() => setGradeModal({ year, period })}
               />
             ))}

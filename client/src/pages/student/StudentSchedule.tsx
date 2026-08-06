@@ -15,7 +15,6 @@ const SLOT_MIN    = 30
 const TOTAL_SLOTS = ((HOUR_END - HOUR_START) * 60) / SLOT_MIN  // 22 slots
 const SLOT_H      = 28  // px per 30-min slot
 
-const GRADING_PERIODS = ['1st Grading', '2nd Grading', '3rd Grading', '4th Grading']
 const DEFAULT_COLOR   = '#6366f1'
 
 function timeToSlot(time: string): number {
@@ -43,7 +42,6 @@ export default function StudentSchedule() {
   const currentAssignment = user?.profile?.sectionAssignments?.[0]
 
   const [selectedYearId, setSelectedYearId] = useState<string>('')
-  const [selectedGrading, setSelectedGrading] = useState('1st Grading')
 
   // Academic years
   const { data: years = [] } = useQuery({
@@ -121,23 +119,6 @@ export default function StudentSchedule() {
         )}
       </div>
 
-      {/* Grading period tabs */}
-      <div className="flex gap-1 flex-wrap">
-        {GRADING_PERIODS.map(p => (
-          <button
-            key={p}
-            onClick={() => setSelectedGrading(p)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-inter font-medium transition-colors ${
-              selectedGrading === p
-                ? 'bg-primary text-white shadow-sm'
-                : 'bg-surface text-text-secondary hover:text-text-primary hover:bg-background border border-border'
-            }`}
-          >
-            {p}
-          </button>
-        ))}
-      </div>
-
       {(schedules as any[]).length === 0 ? (
         <EmptyState
           title="No Schedule Yet"
@@ -151,7 +132,7 @@ export default function StudentSchedule() {
             <div>
               <h2 className="font-poppins font-semibold text-lg text-text-primary">Weekly Timetable</h2>
               <p className="text-text-secondary font-inter text-xs mt-0.5">
-                {selectedGrading} · S.Y. {selectedYear?.name}
+                S.Y. {selectedYear?.name}
               </p>
             </div>
             <span className="badge bg-primary-light text-primary-dark text-xs">
