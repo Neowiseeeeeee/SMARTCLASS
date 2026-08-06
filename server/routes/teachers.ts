@@ -186,7 +186,7 @@ router.post('/:id/reset-password', requireAuth, requireRole('ADMIN'), async (req
       u.passwordHash = await bcrypt.hash(tempPassword, 12)
       u.isFirstLogin = true
     }
-    res.json({ tempPassword })
+    res.json({ email: t.email, tempPassword })
   } catch (err) {
     res.status(500).json({ error: 'Server error' })
   }

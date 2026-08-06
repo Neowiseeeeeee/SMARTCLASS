@@ -26,7 +26,7 @@
       "email": "student@erlhs.edu.ph",
       "passwordHash": "$2a$12$taGy/8VcGuRaqcGWTQZfredvRITyf.Gq2MaNySJiYPUPiHaM6lzrS",
       "role": "STUDENT",
-      "status": "active",
+      "status": "inactive",
       "isFirstLogin": false,
       "createdAt": "2026-07-30T16:46:59.689Z",
       "lastLogin": "2026-08-06T13:11:00.341Z"
@@ -34,7 +34,7 @@
     {
       "id": "fa98bf85-a0a8-4a83-a342-e71e1ffc6f36",
       "email": "ana.reyes@erlhs.edu.ph",
-      "passwordHash": "$2a$12$bn4DMYIAmtJpvX9nc9IRrex4xDtfWOzDiU2a/xbQqUmgIZZ7.Z2q2",
+      "passwordHash": "$2a$12$bHiQ4NGUTZhFF3wzAKhfZujBHkVHbiBBWhXxtUUM4Gteny.IJTxAy",
       "role": "STUDENT",
       "status": "active",
       "isFirstLogin": true,
@@ -230,7 +230,7 @@
       "fullName": "Juan Dela Cruz",
       "gender": "Male",
       "email": "student@erlhs.edu.ph",
-      "status": "active",
+      "status": "archived",
       "createdAt": "2026-07-30T16:46:59.689Z",
       "contactNumber": "",
       "birthDate": ""

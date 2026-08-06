@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { teachersApi } from '../../lib/api'
 import { Avatar } from '../../components/ui/Avatar'
 import { Badge } from '../../components/ui/Badge'
+import { Button } from '../../components/ui/Button'
+import { Modal } from '../../components/ui/Modal'
 import { format } from 'date-fns'
 import {
-  ArrowLeft, User, Mail, Calendar, Briefcase,
+  ArrowLeft, User, Mail, Calendar, Briefcase, KeyRound,
   BookOpen, Clock, Phone, Shield, GraduationCap,
   LayoutGrid, Users,
 } from 'lucide-react'
@@ -46,11 +48,25 @@ export default function AdminTeacherProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [credentials, setCredentials] = useState<{ email: string; tempPassword: string } | null>(null)
+  const [resetError, setResetError] = useState('')
 
   const { data: teacher, isLoading } = useQuery({
     queryKey: ['teacher', id],
     queryFn: () => teachersApi.getOne(id!).then(r => r.data),
     enabled: !!id,
+  })
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: () => teachersApi.resetPassword(id!),
+    onSuccess: response => {
+      setResetError('')
+      setCredentials({
+        email: response.data.email || teacher?.email || '',
+        tempPassword: response.data.tempPassword,
+      })
+    },
+    onError: (error: any) => setResetError(error.response?.data?.error || 'Could not reset this teacher password.'),
   })
 
   if (isLoading) {
@@ -154,6 +170,22 @@ export default function AdminTeacherProfile() {
                   {teacher.contactNumber}
                 </span>
               )}
+            </div>
+            <div className="mt-4">
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={<KeyRound className="w-4 h-4" />}
+                loading={resetPasswordMutation.isPending}
+                onClick={() => {
+                  setResetError('')
+                  if (window.confirm(`Reset the password for ${teacher.fullName}? Their current password will stop working.`)) {
+                    resetPasswordMutation.mutate()
+                  }
+                }}
+              >
+                Reset Password
+              </Button>
             </div>
           </div>
         </div>
@@ -440,6 +472,36 @@ export default function AdminTeacherProfile() {
 
         </div>
       </div>
+
+      <Modal open={!!credentials} onClose={() => setCredentials(null)} title="Temporary Password Generated" size="sm">
+        {credentials && (
+          <div className="space-y-4">
+            <div className="w-14 h-14 mx-auto rounded-full bg-success/10 flex items-center justify-center">
+              <KeyRound className="w-7 h-7 text-success" />
+            </div>
+            <p className="text-sm text-text-secondary font-inter text-center">
+              Share these credentials with the teacher. They will be required to change the temporary password after signing in.
+            </p>
+            <div className="rounded-xl border border-border bg-primary-light/40 p-4 space-y-3">
+              <div>
+                <p className="text-xs text-text-secondary font-inter">Email</p>
+                <p className="font-poppins font-semibold text-primary break-all">{credentials.email || 'No email on file'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-text-secondary font-inter">New Temporary Password</p>
+                <p className="font-poppins font-semibold text-primary font-mono break-all">{credentials.tempPassword}</p>
+              </div>
+            </div>
+            {resetError && <p className="text-sm text-danger font-inter">{resetError}</p>}
+            <Button className="w-full" onClick={() => setCredentials(null)}>Done</Button>
+          </div>
+        )}
+      </Modal>
+      {resetError && !credentials && (
+        <div className="fixed bottom-5 right-5 z-40 max-w-sm rounded-xl border border-danger/20 bg-danger/10 px-4 py-3 text-sm text-danger font-inter shadow-lg">
+          {resetError}
+        </div>
+      )}
     </div>
   )
 }
