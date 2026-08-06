@@ -156,6 +156,13 @@ export default function LoginPage() {
           </div>
         </div>
 
+        {/* Temporary admin access — remove before production */}
+        <p className="text-center text-white/30 font-inter text-[11px] mt-5">
+          <Link to="/admin/login" className="hover:text-white/60 transition-colors">
+            ·
+          </Link>
+        </p>
+
       </div>
     </div>
   )

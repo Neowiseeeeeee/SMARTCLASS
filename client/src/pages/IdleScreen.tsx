@@ -185,58 +185,40 @@ export default function IdleScreen() {
             className="w-9 h-9 sm:w-10 sm:h-10 object-contain flex-shrink-0 drop-shadow-md"
           />
 
-          {/* SMARTCLASS — gradient stylish text */}
-          <span
-            className="font-poppins font-black text-base sm:text-lg tracking-widest hidden sm:block select-none"
-            style={{
-              background: 'linear-gradient(135deg, #2F5D34 0%, #4E7D4B 45%, #C89A2B 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
+          {/* SMARTCLASS */}
+          <span className="font-poppins font-black text-base sm:text-lg tracking-widest hidden sm:block select-none text-primary-dark">
             SMARTCLASS
           </span>
         </div>
 
-        {/* Right: date+time stack · weather · user chip */}
+        {/* Right: time + weather row / date underneath · user chip */}
         <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
 
-          {/* Date + time stacked */}
+          {/* Time + weather grouped, date underneath */}
           <div className="flex flex-col items-end gap-0.5">
-            <p className="text-gray-400 font-inter text-[10px] sm:text-[11px] leading-none tracking-wide">
-              {dayNames[now.getDay()]}, {monthNames[now.getMonth()]} {now.getDate()}, {now.getFullYear()}
-            </p>
-            <div className="flex items-baseline gap-1 leading-none">
-              <span className="text-gray-900 font-poppins font-black text-xl sm:text-2xl tabular-nums tracking-tight leading-none">
+            {/* Top row: time · divider · weather — all same size */}
+            <div className="flex items-center gap-2 sm:gap-2.5 leading-none">
+              <span className="text-gray-800 font-poppins font-bold text-base sm:text-lg tabular-nums leading-none">
                 {format(now, 'hh:mm')}
               </span>
-              <span
-                className="font-poppins font-bold text-xs sm:text-sm leading-none"
-                style={{
-                  background: 'linear-gradient(135deg, #4E7D4B, #C89A2B)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
+              <span className="text-gray-800 font-poppins font-bold text-base sm:text-lg leading-none">
                 {format(now, 'a')}
               </span>
+              {weather && (
+                <>
+                  <div className="w-px h-4 bg-gray-200 flex-shrink-0" />
+                  <span className="text-base sm:text-lg leading-none">{weather.emoji}</span>
+                  <span className="text-gray-800 font-poppins font-bold text-base sm:text-lg tabular-nums leading-none">
+                    {weather.temp}°C
+                  </span>
+                </>
+              )}
             </div>
+            {/* Date underneath in numeric format */}
+            <p className="text-gray-400 font-inter text-[10px] sm:text-[11px] tabular-nums leading-none tracking-wide">
+              {format(now, 'dd/MM/yyyy')}
+            </p>
           </div>
-
-          {/* Divider */}
-          <div className="w-px h-7 bg-gray-200 hidden sm:block flex-shrink-0" />
-
-          {/* Weather */}
-          {weather && (
-            <div className="flex items-center gap-1.5 leading-none hidden sm:flex">
-              <span className="text-xl">{weather.emoji}</span>
-              <p className="text-gray-800 font-poppins font-bold text-base sm:text-lg leading-none tabular-nums">
-                {weather.temp}°C
-              </p>
-            </div>
-          )}
 
           {/* Divider before user chip */}
           {user && <div className="w-px h-7 bg-gray-200 hidden sm:block flex-shrink-0" />}
